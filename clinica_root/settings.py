@@ -74,11 +74,17 @@ WSGI_APPLICATION = 'clinica_root.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres.xpzrljaykpanthomlegn',
+        'PASSWORD': 'licuadora33',
+        'HOST': 'aws-0-us-west-2.pooler.supabase.com', # <--- Este host suele resolver IPv4 mejor
+        'PORT': '6543',
+        'OPTIONS': {
+            'connect_timeout': 20, # Le damos más tiempo por el internet lento
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
