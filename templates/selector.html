@@ -1,0 +1,22 @@
+<h1>Bienvenido a Healthy Life</h1>
+<p>Por favor, seleccione la sede donde desea atenderse o trabajar:</p>
+
+<div class="sedes-container">
+    {% for sede in sedes %}
+        <a href="/{{ sede.slug }}/" class="boton-sede">
+            Sede {{ sede.nombre }}
+        </a>
+    {% endfor %}
+</div>
+
+<style>
+    .boton-sede {
+        display: inline-block;
+        padding: 20px;
+        margin: 10px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+    }
+</style>
