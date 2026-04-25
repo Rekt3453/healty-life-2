@@ -16,11 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from usuarios.views import selector_sede
-from usuarios import views
+from usuarios import views # Asegúrate de que esto apunte bien
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # 1. El selector TIENE que ir primero
     path('', views.selector_sede, name='selector_sede'),
+    
+    # 2. La ruta de la sede va de última
     path('<slug:sede_slug>/', include('usuarios.urls')),
 ]
