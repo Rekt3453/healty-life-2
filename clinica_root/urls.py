@@ -16,14 +16,25 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from usuarios import views # Asegúrate de que esto apunte bien
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # 1. El selector TIENE que ir primero
-    path('', views.selector_sede, name='selector_sede'),
+    # URLs de la app usuarios (login, registro, dashboard, etc.)
+    path('', include('usuarios.urls')),
     
-    # 2. La ruta de la sede va de última
+    # URLs de la app citas (agendamiento, facturas, etc.)
+    path('citas/', include('citas.urls')),
+    
+    # URLs específicas por sede - las sedes son: caracas, valencia
+    # Estas deben ir AL FINAL y Django probará los slugs específicos
     path('<slug:sede_slug>/', include('usuarios.urls')),
+    path('<slug:sede_slug>/citas/', include('citas.urls')),
 ]
+
+# Servir archivos estáticos y media en desarrollo
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()

@@ -1,5 +1,11 @@
 asgiref==3.11.1
 Django==6.0.4
-psycopg2-binary==2.9.12
+psycopg2-binary==2.9.6
 sqlparse==0.5.5
 tzdata==2026.2
+crispy-forms==1.14.0
+crispy-tailwind==1.0.3
+reportlab==3.6.0
+Pillow==9.5.0
+python-decouple==3.8
+django-cors-headers==4.3.1

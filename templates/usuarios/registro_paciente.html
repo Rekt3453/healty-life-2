@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registrarse - Healthy Life{% endblock %}
+
+{% block public_content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl w-full space-y-8">
+        <div>
+            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Registrarse como Paciente
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Crea tu cuenta para comenzar a agendar citas en Healthy Life
+            </p>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="rounded-md p-4 {% if message.tags == 'error' %}bg-red-50 text-red-700{% elif message.tags == 'success' %}bg-green-50 text-green-700{% else %}bg-blue-50 text-blue-700{% endif %}">
+                    <div class="text-sm">{{ message }}</div>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post" class="mt-8 space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Información básica -->
+                <div class="sm:col-span-2">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Información Personal</h3>
+                </div>
+                
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Nombre de usuario <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.username|as_crispy_field }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Correo electrónico <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.email|as_crispy_field }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Nombre <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.first_name|as_crispy_field }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Apellido <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.last_name|as_crispy_field }}
+                </div>
+                
+                <!-- Documentación y contacto -->
+                <div class="sm:col-span-2 pt-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Documentación y Contacto</h3>
+                </div>
+                
+                <div>
+                    <label for="{{ form.cedula.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Cédula de identidad <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.cedula|as_crispy_field }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.telefono.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Teléfono <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.telefono|as_crispy_field }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.fecha_nacimiento.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Fecha de nacimiento <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.fecha_nacimiento|as_crispy_field }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.sede.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Sede preferida <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.sede|as_crispy_field }}
+                </div>
+                
+                <div class="sm:col-span-2">
+                    <label for="{{ form.direccion.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Dirección
+                    </label>
+                    {{ form.direccion|as_crispy_field }}
+                </div>
+                
+                <!-- Contraseña -->
+                <div class="sm:col-span-2 pt-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Seguridad</h3>
+                </div>
+                
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Contraseña <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.password1|as_crispy_field }}
+                </div>
+                
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Confirmar contraseña <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.password2|as_crispy_field }}
+                </div>
+            </div>
+
+            <div class="flex items-center">
+                <input id="terms" name="terms" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" required>
+                <label for="terms" class="ml-2 block text-sm text-gray-900">
+                    Acepto los <a href="#" class="text-blue-600 hover:text-blue-500">términos y condiciones</a> y la <a href="#" class="text-blue-600 hover:text-blue-500">política de privacidad</a>
+                </label>
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-green-500 group-hover:text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    Crear Cuenta
+                </button>
+            </div>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-gray-50 text-gray-500">¿Ya tienes cuenta?</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{% url 'login' %}" class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Iniciar Sesión
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
