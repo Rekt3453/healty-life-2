@@ -1,0 +1,83 @@
+<!-- Header Público Moderno -->
+<header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex items-center">
+                {% include 'partials/_logo.html' %}
+            </div>
+            
+            <!-- Navegación Desktop -->
+            <nav class="hidden md:flex space-x-8">
+                <a href="/" class="text-gray-900 hover:text-green-600 font-medium transition-colors">
+                    Inicio
+                </a>
+                <a href="#servicios" class="text-gray-900 hover:text-green-600 font-medium transition-colors">
+                    Servicios
+                </a>
+                <a href="#sedes" class="text-gray-900 hover:text-green-600 font-medium transition-colors">
+                    Sedes
+                </a>
+                <a href="#nosotros" class="text-gray-900 hover:text-green-600 font-medium transition-colors">
+                    Nosotros
+                </a>
+                <a href="#contacto" class="text-gray-900 hover:text-green-600 font-medium transition-colors">
+                    Contacto
+                </a>
+            </nav>
+            
+            <!-- Botones de Acción -->
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="{% url 'login' %}" class="text-green-600 hover:text-green-700 font-medium transition-colors">
+                    Iniciar Sesión
+                </a>
+                <a href="{% url 'registro_paciente' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    Registrarse
+                </a>
+            </div>
+            
+            <!-- Botón Móvil -->
+            <button class="md:hidden text-gray-700 hover:text-green-600 focus:outline-none" onclick="toggleMobileMenu()">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Menú Móvil -->
+        <div id="mobileMenu" class="hidden md:hidden pb-4">
+            <nav class="flex flex-col space-y-2">
+                <a href="/" class="text-gray-900 hover:text-green-600 font-medium py-2 transition-colors">
+                    Inicio
+                </a>
+                <a href="#servicios" class="text-gray-900 hover:text-green-600 font-medium py-2 transition-colors">
+                    Servicios
+                </a>
+                <a href="#sedes" class="text-gray-900 hover:text-green-600 font-medium py-2 transition-colors">
+                    Sedes
+                </a>
+                <a href="#nosotros" class="text-gray-900 hover:text-green-600 font-medium py-2 transition-colors">
+                    Nosotros
+                </a>
+                <a href="#contacto" class="text-gray-900 hover:text-green-600 font-medium py-2 transition-colors">
+                    Contacto
+                </a>
+                <div class="pt-4 border-t border-gray-200 flex flex-col space-y-2">
+                    <a href="{% url 'login' %}" class="text-green-600 hover:text-green-700 font-medium py-2 transition-colors">
+                        Iniciar Sesión
+                    </a>
+                    <a href="{% url 'registro_paciente' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-center transition-colors">
+                        Registrarse
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<script>
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    menu.classList.toggle('hidden');
+}
+</script>
