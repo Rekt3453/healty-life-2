@@ -12,6 +12,8 @@ class Sede(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     
     class Meta:
+        managed = False
+        db_table = 'usuarios_sede'
         ordering = ['nombre']
     
     def __str__(self):
@@ -44,6 +46,8 @@ class UserProfile(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     
     class Meta:
+        managed = False
+        db_table = 'usuarios_userprofile'
         ordering = ['user__username']
     
     def __str__(self):
@@ -77,6 +81,8 @@ class Especialidad(models.Model):
     activa = models.BooleanField(default=True)
     
     class Meta:
+        managed = False
+        db_table = 'usuarios_especialidad'
         ordering = ['nombre']
     
     def __str__(self):
@@ -90,6 +96,10 @@ class MedicoProfile(models.Model):
     biografia = models.TextField(blank=True)
     consulta_precio_base = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
+    class Meta:
+        managed = False
+        db_table = 'usuarios_medicoprofile'
+    
     def __str__(self):
         return f"Dr. {self.user_profile.nombre_completo} - {self.especialidad.nombre}"
 
@@ -102,6 +112,10 @@ class PacienteProfile(models.Model):
     contacto_emergencia_nombre = models.CharField(max_length=200, blank=True)
     contacto_emergencia_telefono = models.CharField(max_length=20, blank=True)
     contacto_emergencia_parentesco = models.CharField(max_length=50, blank=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'usuarios_pacienteprofile'
     
     def __str__(self):
         return f"Paciente: {self.user_profile.nombre_completo}"

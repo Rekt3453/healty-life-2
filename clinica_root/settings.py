@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'citas',
     # Third party
     'crispy_forms',
-    'crispy_tailwind',
+    # 'crispy_tailwind',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'usuarios.middleware.SedeMiddleware',  # Middleware para filtrado por sede
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -81,21 +82,17 @@ WSGI_APPLICATION = 'clinica_root.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres.xpzrljaykpanthomlegn',
+        'PASSWORD': 'TVqFID3AdDXi85aF',
+        'HOST': 'aws-1-us-west-2.pooler.supabase.com',
+        'PORT': '6543',
+        'OPTIONS': {
+            'connect_timeout': 20,
+            'sslmode': 'require',
+        },
     }
-    # PostgreSQL para producción (comentar para desarrollo)
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': 'postgres',
-    #     'USER': 'postgres.xpzrljaykpanthomlegn',
-    #     'PASSWORD': 'licuadora33',
-    #     'HOST': 'aws-0-us-west-2.pooler.supabase.com',
-    #     'PORT': '6543',
-    #     'OPTIONS': {
-    #         'connect_timeout': 20,
-    #     },
-    # }
 }
 
 # Password validation
