@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from usuarios.models import UserProfile, MedicoProfile, PacienteProfile, Sede, Especialidad
+from usuarios.managers import CitaManager
 from decimal import Decimal
 
 class Servicio(models.Model):
@@ -15,6 +16,8 @@ class Servicio(models.Model):
     activo = models.BooleanField(default=True)
     
     class Meta:
+        managed = False
+        db_table = 'citas_servicio'
         ordering = ['nombre']
     
     def __str__(self):
@@ -39,6 +42,8 @@ class DisponibilidadMedica(models.Model):
     activo = models.BooleanField(default=True)
     
     class Meta:
+        managed = False
+        db_table = 'citas_disponibilidadmedica'
         ordering = ['dia_semana', 'hora_inicio']
         unique_together = ['medico', 'dia_semana', 'hora_inicio']
     
@@ -68,7 +73,11 @@ class Cita(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     motivo_cancelacion = models.TextField(blank=True)
     
+    objects = CitaManager()
+    
     class Meta:
+        managed = False
+        db_table = 'citas_cita'
         ordering = ['fecha_hora']
     
     def __str__(self):
@@ -110,6 +119,8 @@ class Factura(models.Model):
     referencia_pago = models.CharField(max_length=100, blank=True, help_text="Referencia de pago")
     
     class Meta:
+        managed = False
+        db_table = 'citas_factura'
         ordering = ['-fecha_emision']
     
     def __str__(self):
@@ -165,6 +176,8 @@ class HistoriaClinica(models.Model):
     observaciones = models.TextField(blank=True, help_text="Observaciones adicionales")
     
     class Meta:
+        managed = False
+        db_table = 'citas_historiaclinica'
         ordering = ['-fecha_consulta']
         verbose_name = 'Historia Clínica'
         verbose_name_plural = 'Historias Clínicas'
@@ -194,6 +207,8 @@ class Reporte(models.Model):
     generado_por = models.ForeignKey(User, on_delete=models.CASCADE)
     
     class Meta:
+        managed = False
+        db_table = 'citas_reporte'
         ordering = ['-fecha_generacion']
     
     def __str__(self):
