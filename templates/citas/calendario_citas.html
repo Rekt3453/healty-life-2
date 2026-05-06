@@ -1,0 +1,345 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Citas - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+        }
+        
+        .calendar-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .calendar-day {
+            min-height: 100px;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .calendar-day.other-month {
+            background-color: #f9fafb;
+            color: #9ca3af;
+        }
+        
+        .calendar-day.today {
+            background-color: #dbeafe;
+            border: 2px solid #3b82f6;
+        }
+        
+        .calendar-day.has-citas {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+        }
+        
+        .cita-badge {
+            font-size: 0.7rem;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 1px;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        
+        .cita-pendiente {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .cita-asignada {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .cita-aprobada {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .btn-nav {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-nav:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .shape:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            left: 5%;
+            animation-delay: 0s;
+        }
+        
+        .shape:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            right: 10%;
+            animation-delay: 3s;
+        }
+        
+        .shape:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            left: 80%;
+            animation-delay: 6s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-30px) rotate(180deg);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="hero-section relative">
+        <!-- Formas flotantes de fondo -->
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+        
+        <!-- Header -->
+        <header class="relative z-10">
+            <nav class="container mx-auto px-4 py-6">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                        </svg>
+                        <span class="text-2xl font-bold text-white">Healthy Life</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <a href="{% url 'citas_pendientes_medico' %}" class="text-white hover:text-green-100 transition-colors flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            <span>Citas Pendientes</span>
+                        </a>
+                        <a href="{% url 'dashboard_medico' %}" class="text-white hover:text-green-100 transition-colors flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Contenido principal -->
+        <main class="relative z-10 container mx-auto px-4 py-12">
+            <div class="max-w-7xl mx-auto">
+                <div class="calendar-card rounded-2xl p-8">
+                    <!-- Título y Navegación -->
+                    <div class="flex justify-between items-center mb-8">
+                        <div class="text-center">
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">Calendario de Citas</h1>
+                            <p class="text-gray-600">{{ month_name }} {{ year }}</p>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn-nav bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                                <span>Anterior</span>
+                            </a>
+                            <a href="?year={{ next_year }}&month={{ next_month }}" class="btn-nav bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center space-x-2">
+                                <span>Siguiente</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda -->
+                    <div class="mb-6 flex flex-wrap gap-4 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 cita-pendiente rounded"></div>
+                            <span>Pendiente</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 cita-asignada rounded"></div>
+                            <span>Asignada</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 cita-aprobada rounded"></div>
+                            <span>Aprobada</span>
+                        </div>
+                    </div>
+
+                    <!-- Calendario -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <!-- Días de la semana -->
+                            <thead>
+                                <tr class="text-gray-700">
+                                    <th class="py-3 px-2 text-center font-semibold">Dom</th>
+                                    <th class="py-3 px-2 text-center font-semibold">Lun</th>
+                                    <th class="py-3 px-2 text-center font-semibold">Mar</th>
+                                    <th class="py-3 px-2 text-center font-semibold">Mié</th>
+                                    <th class="py-3 px-2 text-center font-semibold">Jue</th>
+                                    <th class="py-3 px-2 text-center font-semibold">Vie</th>
+                                    <th class="py-3 px-2 text-center font-semibold">Sáb</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for week in calendar %}
+                                    <tr>
+                                        {% for day in week %}
+                                            {% if day == 0 %}
+                                                <td class="p-2"></td>
+                                            {% else %}
+                                                <td class="p-2">
+                                                    <div class="calendar-day border rounded-lg p-2 {% if day == today %}today{% endif %} {% if day in citas_calendario %}has-citas{% endif %}">
+                                                        <div class="font-semibold text-sm mb-1">{{ day }}</div>
+                                                        
+                                                        {% if day in citas_calendario %}
+                                                            <div class="space-y-1">
+                                                                {% for cita in citas_calendario.day %}
+                                                                    <div class="cita-badge cita-{{ cita.estado }}" title="{{ cita.paciente.username }} - {{ cita.hora_confirmada|default:cita.hora_solicitada }}">
+                                                                        {% if cita.hora_confirmada %}
+                                                                            {{ cita.hora_confirmada }}:00
+                                                                        {% else %}
+                                                                            {{ cita.hora_solicitada }}:00
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Resumen del mes -->
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-yellow-600 font-medium">Pendientes</p>
+                                    <p class="text-2xl font-bold text-yellow-800">
+                                        {% widthratio citas_calendario.values|length 1 1 %}
+                                    </p>
+                                </div>
+                                <svg class="w-8 h-8 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-blue-600 font-medium">Asignadas</p>
+                                    <p class="text-2xl font-bold text-blue-800">0</p>
+                                </div>
+                                <svg class="w-8 h-8 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100 4h2a1 1 0 100 2 2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-green-600 font-medium">Aprobadas</p>
+                                    <p class="text-2xl font-bold text-green-800">0</p>
+                                </div>
+                                <svg class="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-purple-600 font-medium">Total del Mes</p>
+                                    <p class="text-2xl font-bold text-purple-800">
+                                        {% widthratio citas_calendario.values|length 1 1 %}
+                                    </p>
+                                </div>
+                                <svg class="w-8 h-8 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Animación de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            const card = document.querySelector('.calendar-card');
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+            
+            // Hacer clic en los días con citas
+            document.querySelectorAll('.calendar-day.has-citas').forEach(day => {
+                day.style.cursor = 'pointer';
+                day.addEventListener('click', function() {
+                    // Aquí podrías abrir un modal con los detalles de las citas del día
+                    console.log('Clic en día con citas');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

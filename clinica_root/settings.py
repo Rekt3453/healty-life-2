@@ -82,16 +82,8 @@ WSGI_APPLICATION = 'clinica_root.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.xpzrljaykpanthomlegn',
-        'PASSWORD': 'TVqFID3AdDXi85aF',
-        'HOST': 'aws-1-us-west-2.pooler.supabase.com',
-        'PORT': '6543',
-        'OPTIONS': {
-            'connect_timeout': 20,
-            'sslmode': 'require',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

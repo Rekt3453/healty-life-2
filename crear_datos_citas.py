@@ -5,132 +5,66 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'clinica_root.settings')
 django.setup()
 
-from django.utils import timezone
-from datetime import datetime, timedelta
-from usuarios.models import MedicoProfile, Sede, Especialidad
-from citas.models import Servicio, DisponibilidadMedica
+from citas.models import Sede, Especialidad, Servicio
+from usuarios.models import UserProfile
 
-def crear_datos_citas():
-    print("Creando datos para el sistema de citas...")
+def crear_datos_iniciales():
+    print("Creando datos iniciales para el sistema de citas...")
     
-    # Crear servicios médicos
-    servicios_data = [
-        {
-            'nombre': 'Consulta General',
-            'descripcion': 'Consulta médica general de 30 minutos',
-            'especialidad': 'Medicina General',
-            'precio_base': 150.00,
-            'duracion_minutos': 30
-        },
-        {
-            'nombre': 'Consulta Cardiología',
-            'descripcion': 'Evaluación cardiológica completa',
-            'especialidad': 'Cardiología',
-            'precio_base': 250.00,
-            'duracion_minutos': 45
-        },
-        {
-            'nombre': 'Consulta Pediatría',
-            'descripcion': 'Consulta pediátrica general',
-            'especialidad': 'Pediatría',
-            'precio_base': 180.00,
-            'duracion_minutos': 30
-        },
-        {
-            'nombre': 'Consulta Ginecología',
-            'descripcion': 'Examen ginecológico completo',
-            'especialidad': 'Ginecología',
-            'precio_base': 200.00,
-            'duracion_minutos': 40
-        },
-        {
-            'nombre': 'Consulta Ortopedia',
-            'descripcion': 'Evaluación ortopédica',
-            'especialidad': 'Ortopedia',
-            'precio_base': 180.00,
-            'duracion_minutos': 30
-        },
-        {
-            'nombre': 'Chequeo Preventivo',
-            'descripcion': 'Examen médico preventivo completo',
-            'especialidad': 'Medicina General',
-            'precio_base': 300.00,
-            'duracion_minutos': 60
-        },
-        {
-            'nombre': 'Electrocardiograma',
-            'descripcion': 'Estudio electrocardiográfico',
-            'especialidad': 'Cardiología',
-            'precio_base': 120.00,
-            'duracion_minutos': 20
-        },
-        {
-            'nombre': 'Control Embarazo',
-            'descripcion': 'Control prenatal rutinario',
-            'especialidad': 'Ginecología',
-            'precio_base': 150.00,
-            'duracion_minutos': 25
-        }
+    # Crear sedes
+    sedes = [
+        Sede(nombre="Sede Principal", direccion="Av. Principal 100, Caracas", telefono="0212-5550100"),
+        Sede(nombre="Sede Este", direccion="Av. Este 200, Caracas", telefono="0212-5550101"),
+        Sede(nombre="Sede Oeste", direccion="Av. Oeste 300, Caracas", telefono="0212-5550102"),
     ]
     
-    for servicio_data in servicios_data:
-        try:
-            especialidad = Especialidad.objects.get(nombre=servicio_data['especialidad'])
-            servicio, created = Servicio.objects.get_or_create(
-                nombre=servicio_data['nombre'],
-                defaults={
-                    'descripcion': servicio_data['descripcion'],
-                    'especialidad': especialidad,
-                    'precio_base': servicio_data['precio_base'],
-                    'duracion_minutos': servicio_data['duracion_minutos'],
-                    'activo': True
-                }
-            )
-            if created:
-                print(f"OK Servicio creado: {servicio.nombre}")
-            else:
-                print(f"- Servicio existente: {servicio.nombre}")
-        except Especialidad.DoesNotExist:
-            print(f"ERROR: Especialidad {servicio_data['especialidad']} no encontrada")
-        except Exception as e:
-            print(f"ERROR creando servicio {servicio_data['nombre']}: {e}")
+    for sede in sedes:
+        sede.save()
+        print(f"Sede creada: {sede.nombre}")
     
-    # Crear disponibilidades médicas
-    disponibilidades_data = [
-        # Dr. Juan Pérez (Medicina General)
-        {'medico': 'dr_perez', 'dias': [1, 2, 3, 4, 5], 'inicio': '08:00', 'fin': '16:00'},
-        
-        # Dra. Ana Martínez (Cardiología)
-        {'medico': 'dra_martinez', 'dias': [2, 3, 4, 5], 'inicio': '09:00', 'fin': '17:00'},
-        
-        # Agregar más médicos si existen
+    # Crear especialidades
+    especialidades = [
+        Especialidad(nombre="Medicina General", descripcion="Consultas generales y check-ups"),
+        Especialidad(nombre="Cardiología", descripcion="Enfermedades del corazón y sistema circulatorio"),
+        Especialidad(nombre="Pediatría", descripcion="Atención médica infantil"),
+        Especialidad(nombre="Ginecología", descripcion="Salud de la mujer"),
+        Especialidad(nombre="Dermatología", descripcion="Enfermedades de la piel"),
     ]
     
-    for disp_data in disponibilidades_data:
-        try:
-            medico_user = MedicoProfile.objects.select_related('user_profile__user').get(
-                user_profile__user__username=disp_data['medico']
-            )
-            
-            for dia in disp_data['dias']:
-                disponibilidad, created = DisponibilidadMedica.objects.get_or_create(
-                    medico=medico_user,
-                    dia_semana=dia,
-                    hora_inicio=disp_data['inicio'],
-                    hora_fin=disp_data['fin'],
-                    defaults={'activo': True}
-                )
-                if created:
-                    print(f"OK Disponibilidad creada: {medico_user} - {disp_data['inicio']} a {disp_data['fin']} (día {dia})")
-                else:
-                    print(f"- Disponibilidad existente: {medico_user} - día {dia}")
-                    
-        except MedicoProfile.DoesNotExist:
-            print(f"ERROR: Médico {disp_data['medico']} no encontrado")
-        except Exception as e:
-            print(f"ERROR creando disponibilidad para {disp_data['medico']}: {e}")
+    for especialidad in especialidades:
+        especialidad.save()
+        print(f"Especialidad creada: {especialidad.nombre}")
     
-    print("\n¡Datos de citas creados exitosamente!")
+    # Crear servicios
+    servicios = [
+        # Sede Principal
+        Servicio(nombre="Consulta General", especialidad=especialidades[0], sede=sedes[0], precio=150.00),
+        Servicio(nombre="Check-up Completo", especialidad=especialidades[0], sede=sedes[0], precio=300.00),
+        Servicio(nombre="Evaluación Cardíaca", especialidad=especialidades[1], sede=sedes[0], precio=250.00),
+        Servicio(nombre="Electrocardiograma", especialidad=especialidades[1], sede=sedes[0], precio=100.00),
+        Servicio(nombre="Consulta Pediátrica", especialidad=especialidades[2], sede=sedes[0], precio=180.00),
+        
+        # Sede Este
+        Servicio(nombre="Consulta General", especialidad=especialidades[0], sede=sedes[1], precio=140.00),
+        Servicio(nombre="Control Prenatal", especialidad=especialidades[3], sede=sedes[1], precio=200.00),
+        Servicio(nombre="Consulta Dermatológica", especialidad=especialidades[4], sede=sedes[1], precio=160.00),
+        
+        # Sede Oeste
+        Servicio(nombre="Consulta General", especialidad=especialidades[0], sede=sedes[2], precio=130.00),
+        Servicio(nombre="Consulta Pediátrica", especialidad=especialidades[2], sede=sedes[2], precio=170.00),
+        Servicio(nombre="Consulta Ginecológica", especialidad=especialidades[3], sede=sedes[2], precio=190.00),
+    ]
+    
+    for servicio in servicios:
+        servicio.save()
+        print(f"Servicio creado: {servicio.nombre} - {servicio.sede.nombre}")
+    
+    print(f"\nTotal creados:")
+    print(f"- Sedes: {Sede.objects.count()}")
+    print(f"- Especialidades: {Especialidad.objects.count()}")
+    print(f"- Servicios: {Servicio.objects.count()}")
+    
+    print("\n¡Datos iniciales creados exitosamente!")
 
-if __name__ == '__main__':
-    crear_datos_citas()
+if __name__ == "__main__":
+    crear_datos_iniciales()

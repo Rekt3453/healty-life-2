@@ -1,562 +1,286 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_POST
-from django.utils import timezone
-from django.db.models import Q, Count, Sum
-from django.core.paginator import Paginator
-from datetime import datetime, timedelta
-from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.units import inch
-import io
-import json
-
-from .models import Cita, Servicio, DisponibilidadMedica, Factura, HistoriaClinica, Reporte
-from .forms import AgendarCitaForm, CancelarCitaForm, HistoriaClinicaForm, BusquedaCitasForm
-from usuarios.models import UserProfile, MedicoProfile, PacienteProfile, Sede, Especialidad
+from django.db.models import Sum
+from django.http import JsonResponse
+from datetime import date, datetime, time, timedelta
+from usuarios.decorators import rol_requerido
+from usuarios.models import UserProfile
+from .models import Cita, HorarioMedico, Especialidad
+from .forms import SolicitudCitaForm, AsignarMedicoForm, HorarioMedicoForm, ConfirmarCitaForm, HorarioSelectorForm
+import calendar
 
 @login_required
-def agendar_cita(request):
-    """Vista para agendar nuevas citas"""
-    if not hasattr(request.user, 'userprofile') or request.user.userprofile.rol not in ['paciente', 'paciente_especial']:
-        messages.error(request, "Solo los pacientes pueden agendar citas.")
-        return redirect('dashboard_paciente')
-    
+@rol_requerido('paciente')
+def solicitar_cita(request):
     if request.method == 'POST':
-        form = AgendarCitaForm(request.POST, user=request.user)
+        form = SolicitudCitaForm(request.POST)
         if form.is_valid():
-            try:
+            cita = form.save(commit=False)
+            cita.paciente = request.user
+            cita.estado = 'pendiente'
+            cita.save()
+            messages.success(request, 'Cita solicitada con éxito. Espera aprobación de la recepción.')
+            return redirect('dashboard_paciente')
+    else:
+        form = SolicitudCitaForm()
+    
+    return render(request, 'citas/solicitar_cita.html', {'form': form})
+
+@login_required
+@rol_requerido('paciente')
+def solicitar_cita_con_horario(request):
+    """Nueva vista para solicitar cita con selector de horarios laborables"""
+    if request.method == 'POST':
+        form = HorarioSelectorForm(request.POST)
+        if form.is_valid():
+            fecha = form.cleaned_data['fecha']
+            especialidad = form.cleaned_data['especialidad']
+            horario_seleccionado = form.cleaned_data['horario_disponible']
+            
+            if horario_seleccionado:
+                # Parsear el horario seleccionado (formato: medico_id_hora)
+                medico_id, hora_str = horario_seleccionado.split('_')
+                medico = UserProfile.objects.get(user__id=medico_id).user
+                hora = datetime.strptime(hora_str, '%H:%M').time()
+                
                 # Crear la cita
                 cita = Cita.objects.create(
                     paciente=request.user,
-                    medico=form.cleaned_data['medico'],
-                    sede=form.cleaned_data['sede'],
-                    servicio=form.cleaned_data['servicio'],
-                    fecha_hora=datetime.combine(
-                        form.cleaned_data['fecha'], 
-                        form.cleaned_data['hora']
-                    ),
-                    notas_paciente=form.cleaned_data['notas_paciente'],
-                    estado='pendiente'
+                    medico=medico,
+                    especialidad=especialidad,
+                    fecha=fecha,
+                    hora_solicitada=hora,
+                    hora_confirmada=hora,
+                    estado='aprobada',  # Directamente aprobada ya que se seleccionó horario disponible
+                    motivo='Cita solicitada con horario disponible'
                 )
                 
-                # Crear factura
-                Factura.objects.create(
-                    cita=cita,
-                    monto_total=cita.precio_total
-                )
-                
-                messages.success(request, f"Cita agendada exitosamente para el {cita.fecha_hora.strftime('%d/%m/%Y %H:%M')}")
-                return redirect('mis_citas')
-                
-            except Exception as e:
-                messages.error(request, f"Error al agendar la cita: {str(e)}")
-        else:
-            messages.error(request, "Por favor corrige los errores en el formulario.")
+                messages.success(request, f'Cita confirmada para el {fecha} a las {hora} con el Dr. {medico.username}.')
+                return redirect('dashboard_paciente')
+            else:
+                messages.error(request, 'Por favor selecciona un horario disponible.')
     else:
-        form = AgendarCitaForm(user=request.user)
+        form = HorarioSelectorForm()
     
-    return render(request, 'citas/agendar_cita.html', {'form': form})
+    return render(request, 'citas/solicitar_cita_horario.html', {'form': form})
 
 @login_required
-def mis_citas(request):
-    """Vista para ver las citas del paciente actual"""
-    if not hasattr(request.user, 'userprofile') or request.user.userprofile.rol not in ['paciente', 'paciente_especial']:
-        return redirect('dashboard_paciente')
-    
-    citas = Cita.objects.filter(paciente=request.user).order_by('-fecha_hora')
-    
-    # Filtros
-    estado = request.GET.get('estado')
-    if estado:
-        citas = citas.filter(estado=estado)
-    
-    # Paginación
-    paginator = Paginator(citas, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'page_obj': page_obj,
-        'estados_choices': Cita.ESTADOS_CHOICES,
-        'estado_actual': estado
-    }
-    return render(request, 'citas/mis_citas.html', context)
+@rol_requerido('recepcionista')
+def gestionar_citas(request):
+    citas_pendientes = Cita.objects.filter(estado='pendiente').order_by('fecha', 'hora_solicitada')
+    return render(request, 'citas/gestionar_citas.html', {
+        'citas_pendientes': citas_pendientes
+    })
 
 @login_required
-def detalle_cita(request, pk):
-    """Vista para ver detalles de una cita específica"""
-    cita = get_object_or_404(Cita, pk=pk)
-    
-    # Verificar permisos
-    if request.user.userprofile.rol in ['paciente', 'paciente_especial']:
-        if cita.paciente != request.user:
-            raise Http404("No tienes permiso para ver esta cita")
-    elif request.user.userprofile.rol == 'medico':
-        if cita.medico.user_profile.user != request.user:
-            raise Http404("No tienes permiso para ver esta cita")
-    elif request.user.userprofile.rol in ['recepcionista', 'gerente', 'gerente_general']:
-        if cita.sede != request.user.userprofile.sede and request.user.userprofile.rol != 'gerente_general':
-            raise Http404("No tienes permiso para ver esta cita")
-    
-    # Intentar obtener factura e historia clínica
-    try:
-        factura = cita.factura
-    except Factura.DoesNotExist:
-        factura = None
-    
-    try:
-        historia = cita.historia_clinica
-    except HistoriaClinica.DoesNotExist:
-        historia = None
-    
-    context = {
-        'cita': cita,
-        'factura': factura,
-        'historia': historia,
-        'puede_cancelar': cita.puede_cancelar
-    }
-    return render(request, 'citas/detalle_cita.html', context)
-
-@login_required
-def cancelar_cita(request, pk):
-    """Vista para cancelar una cita"""
-    cita = get_object_or_404(Cita, pk=pk)
-    
-    # Verificar permisos
-    if request.user.userprofile.rol in ['paciente', 'paciente_especial']:
-        if cita.paciente != request.user:
-            raise Http404("No tienes permiso para cancelar esta cita")
-    elif request.user.userprofile.rol == 'medico':
-        if cita.medico.user_profile.user != request.user:
-            raise Http404("No tienes permiso para cancelar esta cita")
-    
-    if not cita.puede_cancelar:
-        messages.error(request, "Esta cita no se puede cancelar. Las citas deben cancelarse con al menos 2 horas de antelación.")
-        return redirect('detalle_cita', pk=pk)
+@rol_requerido('recepcionista')
+def asignar_medico(request, cita_id):
+    cita = get_object_or_404(Cita, id=cita_id)
     
     if request.method == 'POST':
-        form = CancelarCitaForm(request.POST, instance=cita)
+        form = AsignarMedicoForm(request.POST)
         if form.is_valid():
-            cita.estado = 'cancelada'
-            cita.motivo_cancelacion = form.cleaned_data['motivo_cancelacion']
+            cita.medico = form.cleaned_data['medico']
+            cita.estado = 'asignada'  # Cambiar a estado asignada
             cita.save()
-            
-            # Cancelar factura si existe
-            try:
-                factura = cita.factura
-                factura.estado = 'cancelada'
-                factura.save()
-            except Factura.DoesNotExist:
-                pass
-            
-            messages.success(request, "Cita cancelada exitosamente.")
-            return redirect('mis_citas')
+            messages.success(request, f'Médico asignado a la cita {cita.id}. Ahora el médico debe confirmar la hora.')
+            return redirect('gestionar_citas')
     else:
-        form = CancelarCitaForm(instance=cita)
+        form = AsignarMedicoForm()
     
-    return render(request, 'citas/cancelar_cita.html', {'form': form, 'cita': cita})
+    return render(request, 'citas/asignar_medico.html', {
+        'form': form,
+        'cita': cita
+    })
 
 @login_required
-def calendario_medico(request):
-    """Vista del calendario para médicos"""
-    if not hasattr(request.user, 'userprofile') or request.user.userprofile.rol != 'medico':
-        raise Http404("No tienes permiso para ver esta página")
-    
-    try:
-        medico_profile = request.user.userprofile.medicoprofile
-    except MedicoProfile.DoesNotExist:
-        messages.error(request, "Tu perfil de médico no está configurado correctamente.")
-        return redirect('dashboard_medico')
-    
-    # Obtener fecha del parámetro o usar fecha actual
-    fecha_str = request.GET.get('fecha')
-    if fecha_str:
-        try:
-            fecha_actual = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-        except ValueError:
-            fecha_actual = timezone.now().date()
-    else:
-        fecha_actual = timezone.now().date()
-    
-    # Obtener citas del médico para la semana actual
-    inicio_semana = fecha_actual - timedelta(days=fecha_actual.weekday())
-    fin_semana = inicio_semana + timedelta(days=6)
-    
-    citas = Cita.objects.filter(
-        medico=medico_profile,
-        fecha_hora__gte=inicio_semana,
-        fecha_hora__lte=fin_semana,
-        estado__in=['pendiente', 'confirmada', 'en_progreso']
-    ).order_by('fecha_hora')
-    
-    # Generar matriz de calendario
-    calendario = {}
-    for i in range(7):
-        dia = inicio_semana + timedelta(days=i)
-        calendario[dia] = []
-    
-    for cita in citas:
-        dia_cita = cita.fecha_hora.date()
-        if dia_cita in calendario:
-            calendario[dia_cita].append(cita)
-    
-    context = {
-        'calendario': calendario,
-        'fecha_actual': fecha_actual,
-        'inicio_semana': inicio_semana,
-        'fin_semana': fin_semana,
-        'medico_profile': medico_profile
-    }
-    return render(request, 'citas/calendario_medico.html', context)
-
-@login_required
-def calendario_general(request):
-    """Vista del calendario general para recepcionistas y gerentes"""
-    if not hasattr(request.user, 'userprofile') or not request.user.userprofile.puede_ver_calendario_general():
-        raise Http404("No tienes permiso para ver esta página")
-    
-    # Obtener parámetros
-    fecha_str = request.GET.get('fecha')
-    especialidad_id = request.GET.get('especialidad')
-    medico_id = request.GET.get('medico')
-    
-    if fecha_str:
-        try:
-            fecha_actual = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-        except ValueError:
-            fecha_actual = timezone.now().date()
-    else:
-        fecha_actual = timezone.now().date()
-    
-    # Filtrar por sede
-    if request.user.userprofile.rol == 'gerente_general':
-        citas_query = Cita.objects.all()
-    else:
-        citas_query = Cita.objects.filter(sede=request.user.userprofile.sede)
-    
-    # Aplicar filtros adicionales
-    if especialidad_id:
-        citas_query = citas_query.filter(medico__especialidad_id=especialidad_id)
-    
-    if medico_id:
-        citas_query = citas_query.filter(medico_id=medico_id)
-    
-    # Obtener citas del día
-    citas_dia = citas_query.filter(
-        fecha_hora__date=fecha_actual,
-        estado__in=['pendiente', 'confirmada', 'en_progreso']
-    ).order_by('fecha_hora')
-    
-    context = {
-        'citas_dia': citas_dia,
-        'fecha_actual': fecha_actual,
-        'especialidades': Especialidad.objects.filter(activa=True),
-        'medicos': MedicoProfile.objects.all(),
-        'especialidad_actual': especialidad_id,
-        'medico_actual': medico_id
-    }
-    return render(request, 'citas/calendario_general.html', context)
-
-@login_required
-def crear_historia_clinica(request, cita_id):
-    """Vista para crear historia clínica de una cita"""
-    cita = get_object_or_404(Cita, pk=cita_id)
-    
-    # Solo médicos pueden crear historias clínicas
-    if not hasattr(request.user, 'userprofile') or request.user.userprofile.rol != 'medico':
-        raise Http404("Solo los médicos pueden crear historias clínicas")
-    
-    if cita.medico.user_profile.user != request.user:
-        raise Http404("No tienes permiso para crear historia clínica de esta cita")
-    
-    # Verificar que la cita esté completada
-    if cita.estado != 'completada':
-        messages.error(request, "Solo se pueden crear historias clínicas de citas completadas.")
-        return redirect('detalle_cita', pk=cita_id)
-    
-    # Verificar que no exista ya una historia clínica
-    if HistoriaClinica.objects.filter(cita=cita).exists():
-        messages.error(request, "Esta cita ya tiene una historia clínica.")
-        return redirect('detalle_cita', pk=cita_id)
-    
-    try:
-        paciente_profile = cita.paciente.userprofile.paciente_profile
-    except PacienteProfile.DoesNotExist:
-        messages.error(request, "El paciente no tiene perfil configurado.")
-        return redirect('detalle_cita', pk=cita_id)
+@rol_requerido('medico')
+def confirmar_cita(request, cita_id):
+    """Vista para que el médico confirme la hora de la cita"""
+    cita = get_object_or_404(Cita, id=cita_id, medico=request.user, estado='asignada')
     
     if request.method == 'POST':
-        form = HistoriaClinicaForm(request.POST)
+        form = ConfirmarCitaForm(request.POST, cita=cita)
         if form.is_valid():
-            historia = form.save(commit=False)
-            historia.paciente = paciente_profile
-            historia.medico = request.user.userprofile.medicoprofile
-            historia.cita = cita
-            historia.save()
+            hora_confirmada = form.cleaned_data.get('horarios_disponibles') or form.cleaned_data.get('hora_confirmada')
             
-            messages.success(request, "Historia clínica creada exitosamente.")
-            return redirect('detalle_cita', pk=cita_id)
+            if hora_confirmada:
+                if isinstance(hora_confirmada, str):
+                    hora_confirmada = datetime.strptime(hora_confirmada, '%H:%M').time()
+                
+                cita.hora_confirmada = hora_confirmada
+                cita.save()  # Guardar antes de verificar disponibilidad
+                
+                # Verificar disponibilidad final
+                if cita.esta_disponible():
+                    cita.estado = 'aprobada'
+                    cita.save()
+                    messages.success(request, f'Cita {cita.id} confirmada para el {cita.fecha} a las {hora_confirmada}.')
+                    return redirect('dashboard_medico')
+                else:
+                    messages.error(request, 'La hora seleccionada ya no está disponible. Por favor, selecciona otra.')
+                    return render(request, 'citas/confirmar_cita.html', {
+                        'form': form,
+                        'cita': cita
+                    })
+            else:
+                messages.error(request, 'Debes seleccionar una hora para la cita.')
     else:
-        form = HistoriaClinicaForm()
+        form = ConfirmarCitaForm(cita=cita)
     
-    context = {
+    return render(request, 'citas/confirmar_cita.html', {
         'form': form,
-        'cita': cita,
-        'paciente': cita.paciente
-    }
-    return render(request, 'citas/crear_historia_clinica.html', context)
+        'cita': cita
+    })
 
 @login_required
-def ver_historia_clinica(request, pk):
-    """Vista para ver una historia clínica específica"""
-    historia = get_object_or_404(HistoriaClinica, pk=pk)
+@rol_requerido('medico')
+def gestionar_horarios(request):
+    """Vista para que los médicos gestionen sus horarios de disponibilidad"""
+    if request.method == 'POST':
+        form = HorarioMedicoForm(request.POST)
+        if form.is_valid():
+            horario = form.save(commit=False)
+            horario.medico = request.user
+            horario.save()
+            messages.success(request, 'Horario agregado correctamente.')
+            return redirect('gestionar_horarios')
+    else:
+        form = HorarioMedicoForm()
     
-    # Verificar permisos
-    if request.user.userprofile.rol in ['paciente', 'paciente_especial']:
-        if historia.paciente.user_profile.user != request.user:
-            raise Http404("No tienes permiso para ver esta historia clínica")
-    elif request.user.userprofile.rol == 'medico':
-        if historia.medico.user_profile.user != request.user:
-            raise Http404("No tienes permiso para ver esta historia clínica")
-    elif request.user.userprofile.rol in ['recepcionista', 'gerente', 'gerente_general']:
-        if historia.cita.sede != request.user.userprofile.sede and request.user.userprofile.rol != 'gerente_general':
-            raise Http404("No tienes permiso para ver esta historia clínica")
+    horarios = HorarioMedico.objects.filter(medico=request.user).order_by('dia_semana', 'hora_inicio')
     
-    context = {'historia': historia}
-    return render(request, 'citas/ver_historia_clinica.html', context)
+    return render(request, 'citas/gestionar_horarios.html', {
+        'form': form,
+        'horarios': horarios
+    })
 
 @login_required
-def mis_facturas(request):
-    """Vista para ver las facturas del paciente"""
-    if not hasattr(request.user, 'userprofile') or request.user.userprofile.rol not in ['paciente', 'paciente_especial']:
-        raise Http404("No tienes permiso para ver esta página")
+@rol_requerido('medico')
+def eliminar_horario(request, horario_id):
+    """Eliminar un horario de disponibilidad"""
+    horario = get_object_or_404(HorarioMedico, id=horario_id, medico=request.user)
+    horario.delete()
+    messages.success(request, 'Horario eliminado correctamente.')
+    return redirect('gestionar_horarios')
+
+@login_required
+@rol_requerido('medico')
+def calendario_citas(request):
+    """Vista de calendario para médicos con citas pendientes y confirmadas"""
+    # Obtener parámetros de mes y año
+    year = request.GET.get('year', datetime.now().year)
+    month = request.GET.get('month', datetime.now().month)
     
-    facturas = Factura.objects.filter(cita__paciente=request.user).order_by('-fecha_emision')
+    try:
+        year = int(year)
+        month = int(month)
+    except (ValueError, TypeError):
+        year = datetime.now().year
+        month = datetime.now().month
     
-    # Filtros
-    estado = request.GET.get('estado')
-    if estado:
-        facturas = facturas.filter(estado=estado)
+    # Obtener primer y último día del mes
+    first_day = date(year, month, 1)
+    if month == 12:
+        last_day = date(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        last_day = date(year, month + 1, 1) - timedelta(days=1)
     
-    # Paginación
-    paginator = Paginator(facturas, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Obtener citas del médico en el mes
+    citas_mes = Cita.objects.filter(
+        medico=request.user,
+        fecha__gte=first_day,
+        fecha__lte=last_day
+    ).order_by('fecha', 'hora_confirmada')
+    
+    # Organizar citas por día
+    calendario_citas = {}
+    for cita in citas_mes:
+        dia = cita.fecha.day
+        if dia not in calendario_citas:
+            calendario_citas[dia] = []
+        calendario_citas[dia].append(cita)
+    
+    # Crear matriz del calendario
+    cal = calendar.monthcalendar(year, month)
+    
+    # Navegación
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year if month > 1 else year - 1
+    next_month = month + 1 if month < 12 else 1
+    next_year = year if month < 12 else year + 1
     
     context = {
-        'page_obj': page_obj,
-        'estados_choices': Factura.ESTADOS_CHOICES,
-        'estado_actual': estado
+        'year': year,
+        'month': month,
+        'month_name': calendar.month_name[month],
+        'calendar': cal,
+        'citas_calendario': calendario_citas,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
     }
-    return render(request, 'citas/mis_facturas.html', context)
+    
+    return render(request, 'citas/calendario_citas.html', context)
 
 @login_required
-def descargar_factura_pdf(request, pk):
-    """Vista para descargar factura en PDF"""
-    factura = get_object_or_404(Factura, pk=pk)
+@rol_requerido('medico')
+def citas_pendientes_medico(request):
+    """Vista para que los médicos vean sus citas pendientes"""
+    citas_pendientes = Cita.objects.filter(
+        medico=request.user,
+        estado='pendiente'
+    ).order_by('fecha', 'hora_solicitada')
     
-    # Verificar permisos
-    if request.user.userprofile.rol in ['paciente', 'paciente_especial']:
-        if factura.cita.paciente != request.user:
-            raise Http404("No tienes permiso para descargar esta factura")
-    elif request.user.userprofile.rol in ['recepcionista', 'gerente', 'gerente_general']:
-        if factura.cita.sede != request.user.userprofile.sede and request.user.userprofile.rol != 'gerente_general':
-            raise Http404("No tienes permiso para descargar esta factura")
+    citas_asignadas = Cita.objects.filter(
+        medico=request.user,
+        estado='asignada'
+    ).order_by('fecha', 'hora_solicitada')
     
-    # Crear PDF
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
-    styles = getSampleStyleSheet()
-    
-    # Contenido del PDF
-    story = []
-    
-    # Título
-    title_style = styles['Title']
-    story.append(Paragraph("FACTURA", title_style))
-    story.append(Spacer(1, 12))
-    
-    # Información de la factura
-    data = [
-        ['Número de Factura:', factura.numero_factura],
-        ['Fecha de Emisión:', factura.fecha_emision.strftime('%d/%m/%Y %H:%M')],
-        ['Fecha de Vencimiento:', factura.fecha_vencimiento.strftime('%d/%m/%Y')],
-        ['Estado:', factura.get_estado_display()],
-        ['Monto Total:', f"${factura.monto_total:.2f}"],
-        ['Monto Pagado:', f"${factura.monto_pagado:.2f}"],
-        ['Saldo Pendiente:', f"${factura.saldo_pendiente:.2f}"],
-    ]
-    
-    table = Table(data, colWidths=[2*inch, 3*inch])
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-    ]))
-    
-    story.append(table)
-    story.append(Spacer(1, 20))
-    
-    # Información de la cita
-    story.append(Paragraph("Información de la Cita", styles['Heading2']))
-    story.append(Spacer(1, 12))
-    
-    cita_data = [
-        ['Paciente:', f"{factura.cita.paciente.get_full_name()}"],
-        ['Médico:', f"Dr. {factura.cita.medico.user_profile.nombre_completo}"],
-        ['Especialidad:', factura.cita.medico.especialidad.nombre],
-        ['Servicio:', factura.cita.servicio.nombre],
-        ['Sede:', factura.cita.sede.nombre],
-        ['Fecha y Hora:', factura.cita.fecha_hora.strftime('%d/%m/%Y %H:%M')],
-    ]
-    
-    cita_table = Table(cita_data, colWidths=[2*inch, 3*inch])
-    cita_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-    ]))
-    
-    story.append(cita_table)
-    
-    # Generar PDF
-    doc.build(story)
-    
-    # Preparar respuesta
-    buffer.seek(0)
-    response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="factura_{factura.numero_factura}.pdf"'
-    
-    return response
+    return render(request, 'citas/citas_pendientes_medico.html', {
+        'citas_pendientes': citas_pendientes,
+        'citas_asignadas': citas_asignadas
+    })
 
-@require_POST
 @login_required
-def obtener_medicos_por_especialidad(request):
-    """AJAX: Obtener médicos filtrados por especialidad y sede"""
-    especialidad_id = request.POST.get('especialidad_id')
-    sede_id = request.POST.get('sede_id')
+@rol_requerido('recepcionista')
+def rechazar_cita(request, cita_id):
+    cita = get_object_or_404(Cita, id=cita_id)
+    cita.estado = 'rechazada'
+    cita.save()
+    messages.success(request, f'Cita {cita.id} rechazada.')
+    return redirect('gestionar_citas')
+
+def api_horarios_disponibles(request):
+    """API endpoint para obtener horarios disponibles dinámicamente"""
+    fecha = request.GET.get('fecha')
+    especialidad_id = request.GET.get('especialidad')
     
-    if not especialidad_id or not sede_id:
-        return JsonResponse({'error': 'Faltan parámetros'}, status=400)
+    if not fecha or not especialidad_id:
+        return JsonResponse({'horarios': []})
     
     try:
+        from datetime import datetime
+        fecha_obj = datetime.strptime(fecha, '%Y-%m-%d').date()
+        
+        from .models import Especialidad
         especialidad = Especialidad.objects.get(id=especialidad_id)
-        sede = Sede.objects.get(id=sede_id)
         
-        medicos = MedicoProfile.objects.filter(
-            especialidad=especialidad,
-            user_profile__sede=sede,
-            user_profile__activo=True
-        ).select_related('user_profile__user')
+        form = HorarioSelectorForm()
+        horarios = form.get_horarios_disponibles(fecha_obj, especialidad)
         
-        medicos_data = []
-        for medico in medicos:
-            medicos_data.append({
-                'id': medico.id,
-                'nombre': f"Dr. {medico.user_profile.nombre_completo}",
-                'experiencia': medico.experiencia_anios,
-                'precio': float(medico.consulta_precio_base)
-            })
+        # Convertir a formato para el frontend
+        horarios_list = []
+        for value, text in horarios:
+            if value:  # Skip empty option
+                horarios_list.append({
+                    'value': value,
+                    'text': text
+                })
         
-        return JsonResponse({'medicos': medicos_data})
+        return JsonResponse({'horarios': horarios_list})
         
-    except (Especialidad.DoesNotExist, Sede.DoesNotExist):
-        return JsonResponse({'error': 'Especialidad o sede no encontrada'}, status=404)
-
-@require_POST
-@login_required
-def obtener_servicios_por_especialidad(request):
-    """AJAX: Obtener servicios filtrados por especialidad"""
-    especialidad_id = request.POST.get('especialidad_id')
-    
-    if not especialidad_id:
-        return JsonResponse({'error': 'Falta especialidad'}, status=400)
-    
-    try:
-        especialidad = Especialidad.objects.get(id=especialidad_id)
-        servicios = Servicio.objects.filter(
-            especialidad=especialidad,
-            activo=True
-        )
-        
-        servicios_data = []
-        for servicio in servicios:
-            servicios_data.append({
-                'id': servicio.id,
-                'nombre': servicio.nombre,
-                'precio': float(servicio.precio_base),
-                'duracion': servicio.duracion_minutos
-            })
-        
-        return JsonResponse({'servicios': servicios_data})
-        
-    except Especialidad.DoesNotExist:
-        return JsonResponse({'error': 'Especialidad no encontrada'}, status=404)
-
-@require_POST
-@login_required
-def verificar_disponibilidad(request):
-    """AJAX: Verificar disponibilidad de un médico en fecha y hora específicas"""
-    medico_id = request.POST.get('medico_id')
-    fecha = request.POST.get('fecha')
-    hora = request.POST.get('hora')
-    
-    if not all([medico_id, fecha, hora]):
-        return JsonResponse({'error': 'Faltan parámetros'}, status=400)
-    
-    try:
-        medico = MedicoProfile.objects.get(id=medico_id)
-        fecha_hora = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
-        
-        # Verificar día de semana
-        dia_semana = fecha_hora.weekday() + 1  # Convertir a nuestro formato
-        
-        # Verificar disponibilidad del médico
-        disponible = DisponibilidadMedica.objects.filter(
-            medico=medico,
-            dia_semana=dia_semana,
-            hora_inicio__lte=hora,
-            hora_fin__gte=hora,
-            activo=True
-        ).exists()
-        
-        if not disponible:
-            return JsonResponse({
-                'disponible': False,
-                'motivo': 'El médico no está disponible en este horario'
-            })
-        
-        # Verificar si ya tiene cita a esa hora
-        cita_existente = Cita.objects.filter(
-            medico=medico,
-            fecha_hora=fecha_hora,
-            estado__in=['pendiente', 'confirmada']
-        ).exists()
-        
-        if cita_existente:
-            return JsonResponse({
-                'disponible': False,
-                'motivo': 'El médico ya tiene una cita agendada a esta hora'
-            })
-        
-        return JsonResponse({'disponible': True})
-        
-    except MedicoProfile.DoesNotExist:
-        return JsonResponse({'error': 'Médico no encontrado'}, status=404)
-    except ValueError:
-        return JsonResponse({'error': 'Formato de fecha u hora inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
