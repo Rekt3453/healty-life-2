@@ -31,9 +31,19 @@ class PacienteRegistroForm(UserCreationForm):
         label='Fecha de nacimiento',
         widget=forms.DateInput(attrs={'type': 'date'})
     )
-    direccion = forms.CharField(widget=forms.Textarea, required=False, label='Dirección')
+    tipo_cedula = forms.ChoiceField(
+        choices=[('V', 'V'), ('E', 'E')],
+        initial='V',
+        required=True,
+        label='Tipo de cédula'
+    )
+    sexo = forms.ChoiceField(
+        choices=[('M', 'Masculino'), ('F', 'Femenino')],
+        required=True,
+        label='Sexo'
+    )
     sede = forms.ModelChoiceField(
-        queryset=Sede.objects.filter(activa=True),
+        queryset=Sede.objects.all(),  # No hay campo activa en la tabla real
         required=True,
         label='Sede preferida'
     )
@@ -51,10 +61,11 @@ class PacienteRegistroForm(UserCreationForm):
                 Field('email', placeholder='correo@ejemplo.com'),
                 Field('first_name', placeholder='Nombre'),
                 Field('last_name', placeholder='Apellido'),
-                Field('cedula', placeholder='V-12345678'),
+                Field('cedula', placeholder='12345678'),
+                Field('tipo_cedula'),
                 Field('telefono', placeholder='04141234567'),
                 Field('fecha_nacimiento'),
-                Field('direccion', placeholder='Dirección completa', rows=3),
+                Field('sexo'),
                 Field('sede'),
                 Field('password1'),
                 Field('password2'),
@@ -76,28 +87,27 @@ class PacienteRegistroForm(UserCreationForm):
         
         if commit:
             user.save()
-            # Crear UserProfile
-            user_profile = UserProfile.objects.create(
-                user=user,
-                rol='paciente',
+            # Crear PacienteProfile directamente (sin UserProfile)
+            paciente_profile = PacienteProfile.objects.create(
+                nombre_1=self.cleaned_data['first_name'],
+                nombre_2='',
+                apellido_1=self.cleaned_data['last_name'],
+                apellido_2='',
+                id_historial_medico_paciente=1,  # Valor temporal, debe ajustarse
+                id_user_paciente=user,
                 cedula=self.cleaned_data['cedula'],
-                telefono=self.cleaned_data['telefono'],
-                fecha_nacimiento=self.cleaned_data['fecha_nacimiento'],
-                direccion=self.cleaned_data['direccion'],
-                sede=self.cleaned_data['sede']
+                tipo_cedula=self.cleaned_data['tipo_cedula'],
+                sexo=self.cleaned_data['sexo']
             )
-            # Crear PacienteProfile
-            PacienteProfile.objects.create(user_profile=user_profile)
         
         return user
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['telefono', 'fecha_nacimiento', 'direccion', 'avatar']
+        fields = ['telefono']  # Solo usar campos existentes
         widgets = {
-            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
-            'direccion': forms.Textarea(attrs={'rows': 3}),
+            'telefono': forms.TextInput(attrs={'placeholder': 'Teléfono'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -106,9 +116,6 @@ class UserProfileForm(forms.ModelForm):
         self.helper.layout = Layout(
             Div(
                 Field('telefono'),
-                Field('fecha_nacimiento'),
-                Field('direccion'),
-                Field('avatar'),
                 Submit('submit', 'Actualizar Perfil', css_class='bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700'),
                 css_class='space-y-4'
             )
@@ -135,7 +142,7 @@ class MedicoRegistroForm(UserCreationForm):
         label='Precio base de consulta'
     )
     sede = forms.ModelChoiceField(
-        queryset=Sede.objects.filter(activa=True),
+        queryset=Sede.objects.filter(Status=True),
         required=True,
         label='Sede asignada'
     )
@@ -203,7 +210,7 @@ class RecepcionistaRegistroForm(UserCreationForm):
     cedula = forms.CharField(max_length=15, required=True, label='Cédula de identidad')
     telefono = forms.CharField(max_length=20, required=True, label='Teléfono')
     sede = forms.ModelChoiceField(
-        queryset=Sede.objects.filter(activa=True),
+        queryset=Sede.objects.filter(Status=True),
         required=True,
         label='Sede asignada'
     )

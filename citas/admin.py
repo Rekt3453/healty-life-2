@@ -14,8 +14,8 @@ class ServicioAdmin(admin.ModelAdmin):
 @admin.register(DisponibilidadMedica)
 class DisponibilidadMedicaAdmin(admin.ModelAdmin):
     list_display = ('medico', 'get_dia_semana_display', 'hora_inicio', 'hora_fin', 'activo')
-    list_filter = ('dia_semana', 'activo', 'medico__especialidad')
-    search_fields = ('medico__user_profile__user__first_name', 'medico__user_profile__user__last_name')
+    list_filter = ('dia_semana', 'activo')
+    search_fields = ('medico__nombre_1', 'medico__apellido_1')
 
 @admin.register(Cita)
 class CitaAdmin(admin.ModelAdmin):
@@ -35,8 +35,8 @@ class FacturaAdmin(admin.ModelAdmin):
 @admin.register(HistoriaClinica)
 class HistoriaClinicaAdmin(admin.ModelAdmin):
     list_display = ('paciente', 'medico', 'fecha_consulta', 'diagnostico', 'dias_reposo')
-    list_filter = ('fecha_consulta', 'medico__especialidad', 'dias_reposo')
-    search_fields = ('paciente__user_profile__user__first_name', 'medico__user_profile__user__first_name', 'diagnostico')
+    list_filter = ('fecha_consulta', 'dias_reposo')
+    search_fields = ('paciente__nombre_1', 'paciente__apellido_1', 'medico__nombre_1', 'diagnostico')
     readonly_fields = ('fecha_consulta',)
 
 @admin.register(Reporte)

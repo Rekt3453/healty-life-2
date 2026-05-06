@@ -79,12 +79,25 @@ def home_sede(request, sede_slug):
 @login_required
 def dashboard_paciente(request):
     """Dashboard para pacientes"""
-    if not hasattr(request.user, 'userprofile') or request.user.userprofile.rol not in ['paciente', 'paciente_especial']:
+    # Buscar el perfil de paciente usando la nueva estructura
+    from django.db import connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id_user_paceinte FROM \"User_paciente\" WHERE \"Usename\" = %s;", [request.user.username])
+            result = cursor.fetchone()
+            if not result:
+                raise Http404("No se encontró tu perfil de paciente")
+            
+            user_paciente_id = result[0]
+            paciente = PacienteProfile.objects.filter(id_user_paciente=user_paciente_id).first()
+            if not paciente:
+                raise Http404("No se encontró tu perfil de paciente")
+    except Exception:
         raise Http404("No tienes permiso para ver esta página")
     
     context = {
-        'user_profile': request.user.userprofile,
-        'sede_actual': request.user.userprofile.sede
+        'paciente': paciente,
+        'user': request.user
     }
     return render(request, 'dashboard/paciente.html', context)
 
@@ -148,25 +161,30 @@ def registro_paciente(request, sede_slug=None):
     if request.method == 'POST':
         form = PacienteRegistroForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Cuenta creada para {username}!')
-            
-            # Autenticar y redirigir al login
-            user = authenticate(username=user.username, password=form.cleaned_data.get('password1'))
-            if user:
-                login(request, user)
-                return redirect('dashboard_paciente')
-            return redirect('login')
+            try:
+                user = form.save()
+                username = form.cleaned_data.get('username')
+                messages.success(request, f'Cuenta creada para {username}!')
+                
+                # Autenticar y redirigir al dashboard
+                user = authenticate(username=user.username, password=form.cleaned_data.get('password1'))
+                if user:
+                    login(request, user)
+                    return redirect('dashboard_paciente')
+                return redirect('login')
+            except Exception as e:
+                messages.error(request, f'Error al crear la cuenta: {str(e)}')
         else:
             messages.error(request, 'Por favor corrige los errores en el formulario.')
     else:
         initial = {}
         if sede_slug:
             try:
-                sede = Sede.objects.get(slug=sede_slug, activa=True)
-                initial['sede'] = sede
-            except Sede.DoesNotExist:
+                # Intentar encontrar una sede existente
+                sedes = Sede.objects.all()
+                if sedes.exists():
+                    initial['sede'] = sedes.first()
+            except Exception:
                 pass
         
         form = PacienteRegistroForm(initial=initial)

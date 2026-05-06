@@ -3,59 +3,75 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 class Sede(models.Model):
-    nombre = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True, help_text="URL amigable para la sede")
-    direccion = models.TextField()
-    telefono = models.CharField(max_length=20)
-    email = models.EmailField()
-    activa = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    id_sede = models.AutoField(primary_key=True)
+    id_direccion = models.BigIntegerField()
+    rif_sede = models.CharField(max_length=50, blank=True, null=True)
+    telefono = models.CharField(max_length=50, blank=True, null=True)
+    id_CM = models.BigIntegerField(blank=True, null=True)
+    Status = models.BooleanField(default=True)
     
     class Meta:
         managed = False
-        db_table = 'usuarios_sede'
-        ordering = ['nombre']
+        db_table = 'Sede'
+        ordering = ['id_sede']
     
     def __str__(self):
-        return self.nombre
+        return f"Sede {self.id_sede}"
     
-    def get_absolute_url(self):
-        return f'/{self.slug}/'
+    @property
+    def nombre(self):
+        return f"Sede {self.id_sede}"
+    
+    @property
+    def activa(self):
+        return self.Status
 
 class UserProfile(models.Model):
     ROLES_CHOICES = [
-        ('paciente', 'Paciente'),
-        ('paciente_especial', 'Paciente Especial'),
-        ('medico', 'Médico'),
+        ('administrador', 'Administrador'),
+        ('doctor', 'Doctor'),
         ('recepcionista', 'Recepcionista'),
-        ('gerente', 'Gerente'),
-        ('gerente_general', 'Gerente General'),
+        ('paciente', 'Paciente'),
     ]
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
-    rol = models.CharField(max_length=20, choices=ROLES_CHOICES)
-    sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, 
-                            help_text="Sede asignada (no aplica para Gerente General)")
-    telefono = models.CharField(max_length=20, blank=True)
-    cedula = models.CharField(max_length=15, unique=True, help_text="Cédula de identidad")
-    fecha_nacimiento = models.DateField(null=True, blank=True)
-    direccion = models.TextField(blank=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-    activo = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    id_administrador = models.AutoField(primary_key=True)
+    id_user_admin = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
+    nombre_1 = models.CharField(max_length=50)
+    nombre_2 = models.CharField(max_length=50, blank=True)
+    apellido_1 = models.CharField(max_length=50)
+    apellido_2 = models.CharField(max_length=50, blank=True)
+    cedula = models.CharField(max_length=15, unique=True)
+    tipo_cedula = models.CharField(max_length=10)
+    fecha_nacimiento = models.DateField()
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, db_column='id_sede')
+    sexo = models.CharField(max_length=10)
+    id_direccion_admin = models.IntegerField()
+    status = models.CharField(max_length=10, default='activo')
+    telefono = models.CharField(max_length=20)
     
-    class Meta:
-        managed = False
-        db_table = 'usuarios_userprofile'
-        ordering = ['user__username']
+    # Campo virtual para compatibilidad con el código existente
+    @property
+    def rol(self):
+        return 'administrador'
     
-    def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username} - {self.get_rol_display()}"
+    @property
+    def activo(self):
+        return self.status == 'activo'
     
     @property
     def nombre_completo(self):
-        return self.user.get_full_name() or self.user.username
+        nombres = f"{self.nombre_1} {self.nombre_2}".strip()
+        apellidos = f"{self.apellido_1} {self.apellido_2}".strip()
+        return f"{nombres} {apellidos}".strip()
+    
+    class Meta:
+        managed = False
+        db_table = 'administrador'
+        ordering = ['id_administrador']
+    
+    def __str__(self):
+        return f"{self.nombre_completo} - {self.rol}"
     
     def puede_registrar_pacientes(self):
         return self.rol in ['recepcionista', 'gerente', 'gerente_general']
@@ -89,39 +105,89 @@ class Especialidad(models.Model):
         return self.nombre
 
 class MedicoProfile(models.Model):
-    user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    especialidad = models.ForeignKey(Especialidad, on_delete=models.PROTECT)
-    numero_matricula = models.CharField(max_length=50, unique=True, help_text="Matricula profesional")
-    experiencia_anios = models.PositiveIntegerField(default=0)
-    biografia = models.TextField(blank=True)
-    consulta_precio_base = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    id_doctor = models.AutoField(primary_key=True)
+    nombre_1 = models.CharField(max_length=50)
+    nombre_2 = models.CharField(max_length=50, blank=True)
+    apellido_1 = models.CharField(max_length=50)
+    apellido_2 = models.CharField(max_length=50, blank=True)
+    id_especialidad_doctor = models.IntegerField()
+    id_user_doctor = models.OneToOneField(User, on_delete=models.CASCADE, related_name='medicoprofile')
+    id_consultorio = models.IntegerField()
+    sexo = models.CharField(max_length=10)
+    fecha_nacimiento = models.DateField()
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    cedula = models.CharField(max_length=15, unique=True)
+    tipo_cedula = models.CharField(max_length=10)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, db_column='id_sede')
+    status = models.CharField(max_length=10, default='activo')
+    id_direccion_doctor = models.IntegerField()
+    telefono = models.CharField(max_length=20)
+    id_horario = models.IntegerField()
+    
+    @property
+    def nombre_completo(self):
+        nombres = f"{self.nombre_1} {self.nombre_2}".strip()
+        apellidos = f"{self.apellido_1} {self.apellido_2}".strip()
+        return f"{nombres} {apellidos}".strip()
+    
+    @property
+    def especialidad(self):
+        return f"Especialidad {self.id_especialidad_doctor}"
     
     class Meta:
         managed = False
-        db_table = 'usuarios_medicoprofile'
+        db_table = 'doctor'
+        ordering = ['id_doctor']
     
     def __str__(self):
         return f"Dr. {self.user_profile.nombre_completo} - {self.especialidad.nombre}"
 
 class PacienteProfile(models.Model):
-    user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    historia_clinica_numero = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    alergias = models.TextField(blank=True, help_text="Alergias conocidas")
-    medicamentos_actuales = models.TextField(blank=True, help_text="Medicamentos que toma actualmente")
-    condiciones_cronicas = models.TextField(blank=True, help_text="Condiciones crónicas")
-    contacto_emergencia_nombre = models.CharField(max_length=200, blank=True)
-    contacto_emergencia_telefono = models.CharField(max_length=20, blank=True)
-    contacto_emergencia_parentesco = models.CharField(max_length=50, blank=True)
+    id_datos_paciente = models.AutoField(primary_key=True)
+    nombre_1 = models.CharField(max_length=50)
+    nombre_2 = models.CharField(max_length=50, blank=True)
+    apellido_1 = models.CharField(max_length=50)
+    apellido_2 = models.CharField(max_length=50, blank=True)
+    id_historial_medico_paciente = models.IntegerField()
+    id_user_paciente = models.IntegerField()  # Referencia a User_paciente, no a auth_user
+    cedula = models.CharField(max_length=15, unique=True)
+    tipo_cedula = models.CharField(max_length=10)
+    sexo = models.CharField(max_length=10)
+    
+    @property
+    def nombre_completo(self):
+        nombres = f"{self.nombre_1} {self.nombre_2}".strip()
+        apellidos = f"{self.apellido_1} {self.apellido_2}".strip()
+        return f"{nombres} {apellidos}".strip()
+    
+    @property
+    def user_profile(self):
+        # Para compatibilidad con el código existente
+        return self
+    
+    @property
+    def alergias(self):
+        return ""  # Podría obtenerse de historial_medico_paciente
+    
+    @property
+    def medicamentos_actuales(self):
+        return ""  # Podría obtenerse de historial_medico_paciente
+    
+    @property
+    def condiciones_cronicas(self):
+        return ""  # Podría obtenerse de historial_medico_paciente
     
     class Meta:
         managed = False
-        db_table = 'usuarios_pacienteprofile'
+        db_table = 'paciente_datos_personales'
+        ordering = ['id_datos_paciente']
     
     def __str__(self):
-        return f"Paciente: {self.user_profile.nombre_completo}"
+        return f"Paciente: {self.nombre_completo}"
     
-    def save(self, *args, **kwargs):
-        if not self.historia_clinica_numero:
-            import uuid
-            self.historia_clinica_numero = f"HC-{uuid.uuid4().hex[:8].upper()}"
-        super().save(*args, **kwargs)
+    # El método save original fue removido porque el campo historia_clinica_numero no existe en la tabla actual
+    # def save(self, *args, **kwargs):
+    #     if not self.historia_clinica_numero:
+    #         import uuid
+    #         self.historia_clinica_numero = f"HC-{uuid.uuid4().hex[:8].upper()}"
+    #     super().save(*args, **kwargs)
