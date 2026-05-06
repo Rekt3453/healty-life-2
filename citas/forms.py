@@ -1,266 +1,178 @@
 from django import forms
-from django.forms import inlineformset_factory
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, Field, HTML, Row, Column
-from django.utils import timezone
-from datetime import datetime, timedelta
-from .models import Cita, Servicio, HistoriaClinica
-from usuarios.models import MedicoProfile, Sede, Especialidad
+from django.contrib.auth.models import User
+from .models import Cita, Servicio, Sede, HorarioMedico, Especialidad
 
-class AgendarCitaForm(forms.ModelForm):
-    """Formulario para agendar nuevas citas"""
+class SolicitudCitaForm(forms.ModelForm):
+    class Meta:
+        model = Cita
+        fields = ['especialidad', 'fecha', 'hora_solicitada', 'motivo']
+        widgets = {
+            'especialidad': forms.Select(attrs={'class': 'form-select'}),
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'hora_solicitada': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'motivo': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Describe el motivo de tu consulta...'}),
+        }
     
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        
-        if user and hasattr(user, 'userprofile'):
-            sede_paciente = user.userprofile.sede
-            # Filtrar por sede del paciente
-            self.fields['sede'].queryset = Sede.objects.filter(activa=True)
-            if sede_paciente:
-                self.fields['sede'].initial = sede_paciente
-        
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Div(
-                Row(
-                    Column('sede', css_class='form-group col-md-6 mb-0'),
-                    Column('especialidad', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
-                Row(
-                    Column('medico', css_class='form-group col-md-6 mb-0'),
-                    Column('servicio', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
-                Row(
-                    Column('fecha', css_class='form-group col-md-6 mb-0'),
-                    Column('hora', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
-                'notas_paciente',
-                Submit('submit', 'Agendar Cita', css_class='btn btn-primary btn-lg w-100'),
-                css_class='space-y-4'
-            )
-        )
-    
-    especialidad = forms.ModelChoiceField(
-        queryset=Especialidad.objects.filter(activa=True),
-        empty_label="Seleccione especialidad",
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    
+        # Filtrar especialidades que tengan médicos disponibles
+        especialidades_con_medicos = Especialidad.objects.filter(
+            servicio__isnull=False
+        ).distinct()
+        self.fields['especialidad'].queryset = especialidades_con_medicos
+
+class AsignarMedicoForm(forms.Form):
     medico = forms.ModelChoiceField(
-        queryset=MedicoProfile.objects.none(),
-        empty_label="Primero seleccione especialidad y sede",
-        required=True,
+        queryset=None,
+        empty_label="Seleccionar médico",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
-    servicio = forms.ModelChoiceField(
-        queryset=Servicio.objects.none(),
-        empty_label="Primero seleccione especialidad",
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    
-    fecha = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        required=True
-    )
-    
-    hora = forms.TimeField(
-        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-        required=True
-    )
-    
-    notas_paciente = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Describe tus síntomas o motivo de consulta...'}),
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from usuarios.models import UserProfile
+        # Obtener usuarios que son médicos
+        medicos_user = User.objects.filter(userprofile__rol='medico')
+        self.fields['medico'].queryset = medicos_user
+
+class HorarioMedicoForm(forms.ModelForm):
+    class Meta:
+        model = HorarioMedico
+        fields = ['dia_semana', 'hora_inicio', 'hora_fin', 'activo']
+        widgets = {
+            'dia_semana': forms.Select(attrs={'class': 'form-select'}),
+            'hora_inicio': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'hora_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class ConfirmarCitaForm(forms.Form):
+    hora_confirmada = forms.TimeField(
+        label="Hora de la cita",
+        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
         required=False
     )
     
-    class Meta:
-        model = Cita
-        fields = ['sede', 'notas_paciente']
+    def __init__(self, *args, **kwargs):
+        cita = kwargs.pop('cita', None)
+        super().__init__(*args, **kwargs)
+        if cita and cita.medico:
+            self.fields['horarios_disponibles'] = forms.ChoiceField(
+                label="Horarios disponibles",
+                choices=self._get_horarios_disponibles(cita),
+                widget=forms.Select(attrs={'class': 'form-select'}),
+                required=False
+            )
     
-    def clean_fecha(self):
-        fecha = self.cleaned_data.get('fecha')
-        if fecha and fecha < timezone.now().date():
-            raise forms.ValidationError("No se pueden agendar citas en fechas pasadas.")
-        return fecha
+    def _get_horarios_disponibles(self, cita):
+        """Obtiene horarios disponibles para el médico en la fecha de la cita"""
+        if not cita.medico or not cita.fecha:
+            return [('', 'No hay horarios disponibles')]
+        
+        # Obtener el día de la semana
+        dias_semana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
+        dia_semana = dias_semana[cita.fecha.weekday()]
+        
+        # Obtener horarios del médico para ese día
+        horarios = HorarioMedico.objects.filter(
+            medico=cita.medico,
+            dia_semana=dia_semana,
+            activo=True
+        )
+        
+        # Generar opciones de horas (cada 30 minutos)
+        opciones = [('', 'Seleccionar hora')]
+        for horario in horarios:
+            hora_actual = horario.hora_inicio
+            while hora_actual < horario.hora_fin:
+                # Verificar si esta hora está disponible
+                if not self._esta_ocupada(cita.medico, cita.fecha, hora_actual):
+                    opciones.append((hora_actual.strftime('%H:%M'), hora_actual.strftime('%H:%M')))
+                
+                # Avanzar 30 minutos
+                from datetime import datetime, timedelta
+                hora_actual = (datetime.combine(datetime.today(), hora_actual) + timedelta(minutes=30)).time()
+        
+        return opciones
     
-    def clean(self):
-        cleaned_data = super().clean()
-        sede = cleaned_data.get('sede')
-        especialidad = cleaned_data.get('especialidad')
-        medico = cleaned_data.get('medico')
-        servicio = cleaned_data.get('servicio')
-        fecha = cleaned_data.get('fecha')
-        hora = cleaned_data.get('hora')
+    def _esta_ocupada(self, medico, fecha, hora):
+        """Verifica si el médico ya tiene una cita a esa hora"""
+        return Cita.objects.filter(
+            medico=medico,
+            fecha=fecha,
+            hora_confirmada=hora,
+            estado__in=['asignada', 'aprobada', 'completada']
+        ).exists()
+
+class HorarioSelectorForm(forms.Form):
+    """Formulario para seleccionar horarios laborables disponibles"""
+    fecha = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    especialidad = forms.ModelChoiceField(
+        queryset=Especialidad.objects.all(),
+        empty_label="Seleccionar especialidad",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Agregar campo dinámico de horarios cuando se selecciona fecha y especialidad
+        self.fields['horario_disponible'] = forms.ChoiceField(
+            choices=[('', 'Selecciona fecha y especialidad primero')],
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            required=False
+        )
+    
+    def get_horarios_disponibles(self, fecha, especialidad):
+        """Obtiene horarios disponibles para una fecha y especialidad"""
+        if not fecha or not especialidad:
+            return [('', 'Selecciona fecha y especialidad primero')]
         
-        # Validar que todos los campos estén presentes
-        if not all([sede, especialidad, medico, servicio, fecha, hora]):
-            return cleaned_data
+        # Obtener médicos de esa especialidad con horarios configurados
+        from usuarios.models import UserProfile
+        medicos = User.objects.filter(
+            userprofile__rol='medico',
+            horarios__activo=True
+        ).distinct()
         
-        # Combinar fecha y hora
-        fecha_hora = datetime.combine(fecha, hora)
+        # Obtener día de la semana
+        dias_semana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
+        dia_semana = dias_semana[fecha.weekday()]
         
-        # Validar que no sea en el pasado
-        if fecha_hora < timezone.now():
-            raise forms.ValidationError("No se pueden agendar citas en el pasado.")
-        
-        # Validar disponibilidad del médico
-        if medico:
-            # Verificar que el médico trabaje ese día y hora
-            dia_semana = fecha_hora.weekday() + 1  # Django: 0=Lunes, nuestro modelo: 1=Lunes
-            if not DisponibilidadMedica.objects.filter(
+        # Obtener todos los horarios disponibles para ese día
+        horarios_disponibles = []
+        for medico in medicos:
+            horarios = HorarioMedico.objects.filter(
                 medico=medico,
                 dia_semana=dia_semana,
-                hora_inicio__lte=hora,
-                hora_fin__gte=hora,
                 activo=True
-            ).exists():
-                raise forms.ValidationError("El médico no está disponible en este horario.")
-            
-            # Verificar que no tenga otra cita a la misma hora
-            if Cita.objects.filter(
-                medico=medico,
-                fecha_hora=fecha_hora,
-                estado__in=['pendiente', 'confirmada']
-            ).exists():
-                raise forms.ValidationError("El médico ya tiene una cita agendada a esta hora.")
-        
-        return cleaned_data
-
-class CancelarCitaForm(forms.ModelForm):
-    """Formulario para cancelar citas"""
-    
-    class Meta:
-        model = Cita
-        fields = ['motivo_cancelacion']
-        widgets = {
-            'motivo_cancelacion': forms.Textarea(attrs={
-                'rows': 4,
-                'class': 'form-control',
-                'placeholder': 'Describe el motivo de la cancelación...'
-            })
-        }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            'motivo_cancelacion',
-            Submit('submit', 'Cancelar Cita', css_class='btn btn-danger'),
-            HTML('<a href="javascript:history.back()" class="btn btn-secondary">Volver</a>')
-        )
-
-class HistoriaClinicaForm(forms.ModelForm):
-    """Formulario para historias clínicas"""
-    
-    class Meta:
-        model = HistoriaClinica
-        fields = [
-            'motivo_consulta', 'sintomas', 'diagnostico', 'tratamiento',
-            'medicamentos_recetados', 'dosis_medicamentos', 'estudios_solicitados',
-            'dias_reposo', 'indicaciones_reposo', 'ordenes_medicas',
-            'proxima_cita_sugerida', 'observaciones'
-        ]
-        widgets = {
-            'motivo_consulta': forms.TextInput(attrs={'class': 'form-control'}),
-            'sintomas': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'diagnostico': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'tratamiento': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'medicamentos_recetados': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'dosis_medicamentos': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-            'estudios_solicitados': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-            'indicaciones_reposo': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-            'ordenes_medicas': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-            'proxima_cita_sugerida': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'observaciones': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-        }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Div(
-                HTML('<h4 class="mb-3">Información de la Consulta</h4>'),
-                Row(
-                    Column('motivo_consulta', css_class='form-group col-md-12 mb-0'),
-                    css_class='form-row'
-                ),
-                Row(
-                    Column('sintomas', css_class='form-group col-md-6 mb-0'),
-                    Column('diagnostico', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
-                HTML('<h4 class="mb-3 mt-4">Tratamiento y Medicamentos</h4>'),
-                Row(
-                    Column('tratamiento', css_class='form-group col-md-6 mb-0'),
-                    Column('medicamentos_recetados', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
-                'dosis_medicamentos',
-                HTML('<h4 class="mb-3 mt-4">Estudios y Reposo</h4>'),
-                Row(
-                    Column('estudios_solicitados', css_class='form-group col-md-6 mb-0'),
-                    Column('dias_reposo', css_class='form-group col-md-3 mb-0'),
-                    Column('proxima_cita_sugerida', css_class='form-group col-md-3 mb-0'),
-                    css_class='form-row'
-                ),
-                'indicaciones_reposo',
-                HTML('<h4 class="mb-3 mt-4">Órdenes Médicas</h4>'),
-                'ordenes_medicas',
-                'observaciones',
-                Div(
-                    Submit('submit', 'Guardar Historia Clínica', css_class='btn btn-primary'),
-                    HTML('<a href="javascript:history.back()" class="btn btn-secondary ms-2">Volver</a>'),
-                    css_class='mt-4'
-                ),
-                css_class='space-y-4'
             )
-        )
-
-class BusquedaCitasForm(forms.Form):
-    """Formulario para búsqueda de citas"""
+            
+            for horario in horarios:
+                hora_actual = horario.hora_inicio
+                while hora_actual < horario.hora_fin:
+                    # Verificar disponibilidad
+                    if not self._esta_ocupada_general(medico, fecha, hora_actual):
+                        horarios_disponibles.append((
+                            f"{medico.id}_{hora_actual.strftime('%H:%M')}",
+                            f"{medico.username} - {hora_actual.strftime('%H:%M')}"
+                        ))
+                    
+                    # Avanzar 30 minutos
+                    from datetime import datetime, timedelta
+                    hora_actual = (datetime.combine(datetime.today(), hora_actual) + timedelta(minutes=30)).time()
+        
+        if not horarios_disponibles:
+            return [('', 'No hay horarios disponibles')]
+        
+        return [('', 'Seleccionar horario')] + sorted(horarios_disponibles, key=lambda x: x[1])
     
-    fecha_inicio = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        required=False
-    )
-    
-    fecha_fin = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        required=False
-    )
-    
-    estado = forms.ChoiceField(
-        choices=[('', 'Todos')] + Cita.ESTADOS_CHOICES,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    
-    especialidad = forms.ModelChoiceField(
-        queryset=Especialidad.objects.filter(activa=True),
-        empty_label="Todas",
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Row(
-                Column('fecha_inicio', css_class='form-group col-md-3 mb-0'),
-                Column('fecha_fin', css_class='form-group col-md-3 mb-0'),
-                Column('estado', css_class='form-group col-md-3 mb-0'),
-                Column('especialidad', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
-            ),
-            Submit('submit', 'Buscar', css_class='btn btn-primary'),
-            css_class='form-inline'
-        )
+    def _esta_ocupada_general(self, medico, fecha, hora):
+        """Verifica si el médico ya tiene una cita a esa hora"""
+        return Cita.objects.filter(
+            medico=medico,
+            fecha=fecha,
+            hora_confirmada=hora,
+            estado__in=['asignada', 'aprobada', 'completada']
+        ).exists()

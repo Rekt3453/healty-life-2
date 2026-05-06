@@ -28,10 +28,30 @@
             
             <!-- Botones de Acción -->
             <div class="hidden md:flex items-center space-x-4">
-                <a href="{% url 'login' %}" class="text-green-600 hover:text-green-700 font-medium transition-colors">
-                    Iniciar Sesión
-                </a>
-                <a href="{% url 'registro_paciente' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <!-- Dropdown de Login -->
+                <div class="relative">
+                    <button onclick="toggleLoginDropdown()" class="text-green-600 hover:text-green-700 font-medium transition-colors flex items-center">
+                        Iniciar Sesión
+                        <svg class="ml-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <div id="loginDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <a href="{% url 'login_paciente' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                            👤 Paciente
+                        </a>
+                        <a href="{% url 'login_medico' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                            👨‍⚕️ Médico
+                        </a>
+                        <a href="{% url 'login_recepcionista' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                            📋 Recepcionista
+                        </a>
+                        <a href="{% url 'login_gerente' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                            👔 Gerente
+                        </a>
+                    </div>
+                </div>
+                <a href="{% url 'registro' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                     Registrarse
                 </a>
             </div>
@@ -63,10 +83,29 @@
                     Contacto
                 </a>
                 <div class="pt-4 border-t border-gray-200 flex flex-col space-y-2">
-                    <a href="{% url 'login' %}" class="text-green-600 hover:text-green-700 font-medium py-2 transition-colors">
-                        Iniciar Sesión
-                    </a>
-                    <a href="{% url 'registro_paciente' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-center transition-colors">
+                    <div class="relative">
+                        <button onclick="toggleMobileLoginDropdown()" class="text-green-600 hover:text-green-700 font-medium py-2 transition-colors flex items-center justify-between w-full">
+                            Iniciar Sesión
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <div id="mobileLoginDropdown" class="hidden mt-2 w-full bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="{% url 'login_paciente' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                                👤 Paciente
+                            </a>
+                            <a href="{% url 'login_medico' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                                👨‍⚕️ Médico
+                            </a>
+                            <a href="{% url 'login_recepcionista' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                                📋 Recepcionista
+                            </a>
+                            <a href="{% url 'login_gerente' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
+                                👔 Gerente
+                            </a>
+                        </div>
+                    </div>
+                    <a href="{% url 'registro' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-center transition-colors">
                         Registrarse
                     </a>
                 </div>
@@ -80,4 +119,31 @@ function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');
     menu.classList.toggle('hidden');
 }
+
+function toggleLoginDropdown() {
+    const dropdown = document.getElementById('loginDropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+function toggleMobileLoginDropdown() {
+    const dropdown = document.getElementById('mobileLoginDropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+// Cerrar dropdowns al hacer clic fuera
+document.addEventListener('click', function(event) {
+    const loginDropdown = document.getElementById('loginDropdown');
+    const loginButton = event.target.closest('button[onclick="toggleLoginDropdown()"]');
+    
+    if (!loginButton && !loginDropdown.contains(event.target)) {
+        loginDropdown.classList.add('hidden');
+    }
+    
+    const mobileLoginDropdown = document.getElementById('mobileLoginDropdown');
+    const mobileLoginButton = event.target.closest('button[onclick="toggleMobileLoginDropdown()"]');
+    
+    if (!mobileLoginButton && !mobileLoginDropdown.contains(event.target)) {
+        mobileLoginDropdown.classList.add('hidden');
+    }
+});
 </script>
