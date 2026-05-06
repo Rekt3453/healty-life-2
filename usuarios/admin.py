@@ -38,17 +38,15 @@ class PacienteProfileInline(admin.StackedInline):
 
 @admin.register(Sede)
 class SedeAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'slug', 'telefono', 'email', 'activa', 'fecha_creacion')
-    list_filter = ('activa', 'fecha_creacion')
-    search_fields = ('nombre', 'slug')
-    prepopulated_fields = {'slug': ('nombre',)}
+    list_display = ('id_sede', 'rif_sede', 'telefono', 'Status')
+    list_filter = ('Status',)
+    search_fields = ('rif_sede', 'telefono')
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'rol', 'sede', 'cedula', 'telefono', 'activo', 'fecha_creacion')
-    list_filter = ('rol', 'sede', 'activo', 'fecha_creacion')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'cedula')
-    readonly_fields = ('fecha_creacion', 'fecha_actualizacion')
+    list_display = ('id_administrador', 'nombre_1', 'apellido_1', 'cedula', 'telefono', 'status')
+    list_filter = ('status', 'sexo')
+    search_fields = ('nombre_1', 'apellido_1', 'cedula')
 
 @admin.register(Especialidad)
 class EspecialidadAdmin(admin.ModelAdmin):
@@ -58,14 +56,14 @@ class EspecialidadAdmin(admin.ModelAdmin):
 
 @admin.register(MedicoProfile)
 class MedicoProfileAdmin(admin.ModelAdmin):
-    list_display = ('user_profile', 'especialidad', 'numero_matricula', 'experiencia_anios', 'consulta_precio_base')
-    list_filter = ('especialidad', 'experiencia_anios')
-    search_fields = ('user_profile__user__first_name', 'user_profile__user__last_name', 'numero_matricula')
+    list_display = ('id_doctor', 'nombre_1', 'apellido_1', 'cedula', 'telefono')
+    list_filter = ('sexo', 'status')
+    search_fields = ('nombre_1', 'apellido_1', 'cedula')
 
 @admin.register(PacienteProfile)
 class PacienteProfileAdmin(admin.ModelAdmin):
-    list_display = ('user_profile', 'historia_clinica_numero', 'contacto_emergencia_telefono')
-    search_fields = ('user_profile__user__first_name', 'user_profile__user__last_name', 'historia_clinica_numero')
+    list_display = ('id_datos_paciente', 'nombre_1', 'apellido_1', 'cedula', 'tipo_cedula', 'sexo')
+    search_fields = ('nombre_1', 'apellido_1', 'cedula')
 
 # Re-registrar el User admin con nuestro custom
 admin.site.unregister(User)
