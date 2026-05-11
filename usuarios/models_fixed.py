@@ -6,7 +6,7 @@ import hashlib
 class Estado(models.Model):
     id_estado = models.AutoField(primary_key=True)
     estado = models.CharField(max_length=100)
-    iso_3166_2 = models.CharField(max_length=10, blank=True, null=True, db_column='iso_3166-2')
+    iso_3166_2 = models.CharField(max_length=10, blank=True, null=True)
 
     class Meta:
         db_table = 'estados'
@@ -140,74 +140,13 @@ class Sede(models.Model):
         return self.nombre_sede
 
 # Modelos de usuarios personalizados - SIN herencia de AbstractBaseUser
-class CustomUserManager(models.Manager):
-    def create_user(self, username, correo, password=None, **extra_fields):
-        if not username:
-            raise ValueError('El nombre de usuario es obligatorio')
-        if not correo:
-            raise ValueError('El correo electrónico es obligatorio')
-        
-        from django.core.validators import validate_email
-        from django.core.exceptions import ValidationError
-        try:
-            validate_email(correo)
-            correo_normalizado = correo.lower().strip()
-        except ValidationError:
-            correo_normalizado = correo
-        
-        # Mapear los campos estándar a los campos de la BD
-        user_data = {
-            'username': username,  # Mapear a 'Username' en la BD
-            'email': correo_normalizado,  # Mapear a 'correo' en la BD
-        }
-        
-        # Agregar campos adicionales según el tipo de modelo
-        model_name = self.model._meta.model_name.lower()
-        if model_name == 'userpaciente':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        elif model_name == 'userdoctor':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        elif model_name == 'userrecepcionista':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        elif model_name == 'useradmin':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        
-        user = self.model(**user_data)
-        if password:
-            user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, username, correo, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(username, correo, password, **extra_fields)
 class UserPaciente(models.Model):
     id_user_paciente = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    password = models.CharField(max_length=255, db_column='contrasena')  # Guardará el hash
-    email = models.EmailField(unique=True, db_column='correo')
+    Username = models.CharField(max_length=150, unique=True)
+    contrasena = models.CharField(max_length=255)  # Guardará el hash
+    correo = models.EmailField(unique=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
-
-    objects = CustomUserManager()
 
     class Meta:
         db_table = 'user_paciente'
@@ -215,13 +154,13 @@ class UserPaciente(models.Model):
         verbose_name_plural = 'Usuarios Pacientes'
 
     def __str__(self):
-        return self.username
+        return self.Username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -237,14 +176,11 @@ class UserPaciente(models.Model):
 
 class UserDoctor(models.Model):
     id_user_doctor = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    password = models.CharField(max_length=255, db_column='contrasena')
-    email = models.EmailField(unique=True, db_column='correo')
+    username = models.CharField(max_length=150, unique=True)
+    contrasena = models.CharField(max_length=255)
+    correo = models.EmailField(unique=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
-
-    objects = CustomUserManager()
 
     class Meta:
         db_table = 'user_doctor'
@@ -255,10 +191,10 @@ class UserDoctor(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -274,14 +210,11 @@ class UserDoctor(models.Model):
 
 class UserRecepcionista(models.Model):
     id_user_recepcionista = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    password = models.CharField(max_length=255, db_column='contrasena')
-    email = models.EmailField(unique=True, db_column='correo')
+    username = models.CharField(max_length=150, unique=True)
+    contrasena = models.CharField(max_length=255)
+    correo = models.EmailField(unique=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
-
-    objects = CustomUserManager()
 
     class Meta:
         db_table = 'user_recepcionista'
@@ -292,10 +225,10 @@ class UserRecepcionista(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -311,14 +244,11 @@ class UserRecepcionista(models.Model):
 
 class UserAdmin(models.Model):
     id_user_admin = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    email = models.EmailField(unique=True, db_column='correo')
+    username = models.CharField(max_length=150, unique=True)
+    correo = models.EmailField(unique=True)
+    contrasena = models.CharField(max_length=255)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    password = models.CharField(max_length=255, db_column='contrasena')
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
-
-    objects = CustomUserManager()
 
     class Meta:
         db_table = 'user_admin'
@@ -329,10 +259,10 @@ class UserAdmin(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
