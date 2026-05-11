@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.exceptions import ValidationError
 import hashlib
 
@@ -6,10 +7,10 @@ import hashlib
 class Estado(models.Model):
     id_estado = models.AutoField(primary_key=True)
     estado = models.CharField(max_length=100)
-    iso_3166_2 = models.CharField(max_length=10, blank=True, null=True, db_column='iso_3166-2')
+    iso_3166_2 = models.CharField(max_length=10, blank=True, null=True)
 
     class Meta:
-        db_table = 'estados'
+        db_table = 'public.estados'
         verbose_name = 'Estado'
         verbose_name_plural = 'Estados'
 
@@ -22,7 +23,7 @@ class Municipio(models.Model):
     municipio = models.CharField(max_length=100)
 
     class Meta:
-        db_table = 'municipios'
+        db_table = 'public.municipios'
         verbose_name = 'Municipio'
         verbose_name_plural = 'Municipios'
 
@@ -36,7 +37,7 @@ class Ciudad(models.Model):
     capital = models.SmallIntegerField(default=0)
 
     class Meta:
-        db_table = 'ciudades'
+        db_table = 'public.ciudades'
         verbose_name = 'Ciudad'
         verbose_name_plural = 'Ciudades'
 
@@ -49,7 +50,7 @@ class Parroquia(models.Model):
     parroquia = models.CharField(max_length=100)
 
     class Meta:
-        db_table = 'parroquias'
+        db_table = 'public.parroquias'
         verbose_name = 'Parroquia'
         verbose_name_plural = 'Parroquias'
 
@@ -69,7 +70,7 @@ class DireccionPaciente(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        db_table = 'direccion_paciente'
+        db_table = 'public.direccion_paciente'
         verbose_name = 'Dirección de Paciente'
         verbose_name_plural = 'Direcciones de Pacientes'
 
@@ -85,7 +86,7 @@ class DireccionDoctor(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        db_table = 'direccion_doctor'
+        db_table = 'public.direccion_doctor'
         verbose_name = 'Dirección de Doctor'
         verbose_name_plural = 'Direcciones de Doctores'
 
@@ -101,7 +102,7 @@ class DireccionRecepcionista(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        db_table = 'direccion_recepcionista'
+        db_table = 'public.direccion_recepcionista'
         verbose_name = 'Dirección de Recepcionista'
         verbose_name_plural = 'Direcciones de Recepcionistas'
 
@@ -117,7 +118,7 @@ class DireccionAdmin(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        db_table = 'direccion_admin'
+        db_table = 'public.direccion_admin'
         verbose_name = 'Dirección de Administrador'
         verbose_name_plural = 'Direcciones de Administradores'
 
@@ -132,65 +133,27 @@ class Sede(models.Model):
     nombre_sede = models.TextField()
 
     class Meta:
-        db_table = 'sede'
+        db_table = 'public.sede'
         verbose_name = 'Sede'
         verbose_name_plural = 'Sedes'
 
     def __str__(self):
         return self.nombre_sede
 
-# Modelos de usuarios personalizados - SIN herencia de AbstractBaseUser
-class CustomUserManager(models.Manager):
+# Modelos de usuarios personalizados - SIN PermissionsMixin para evitar conflictos
+class UserManager(BaseUserManager):
     def create_user(self, username, correo, password=None, **extra_fields):
         if not username:
             raise ValueError('El nombre de usuario es obligatorio')
         if not correo:
             raise ValueError('El correo electrónico es obligatorio')
         
-        from django.core.validators import validate_email
-        from django.core.exceptions import ValidationError
-        try:
-            validate_email(correo)
-            correo_normalizado = correo.lower().strip()
-        except ValidationError:
-            correo_normalizado = correo
-        
-        # Mapear los campos estándar a los campos de la BD
-        user_data = {
-            'username': username,  # Mapear a 'Username' en la BD
-            'email': correo_normalizado,  # Mapear a 'correo' en la BD
-        }
-        
-        # Agregar campos adicionales según el tipo de modelo
-        model_name = self.model._meta.model_name.lower()
-        if model_name == 'userpaciente':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        elif model_name == 'userdoctor':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        elif model_name == 'userrecepcionista':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        elif model_name == 'useradmin':
-            user_data.update({
-                'password': '',  # Se agregará después con set_password
-                'id_sede': extra_fields.get('id_sede'),
-                'status': extra_fields.get('status', True)
-            })
-        
-        user = self.model(**user_data)
-        if password:
-            user.set_password(password)
+        user = self.model(
+            username=username,
+            correo=self.normalize_email(correo),
+            **extra_fields
+        )
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
@@ -198,56 +161,54 @@ class CustomUserManager(models.Manager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(username, correo, password, **extra_fields)
-class UserPaciente(models.Model):
-    id_user_paciente = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    password = models.CharField(max_length=255, db_column='contrasena')  # Guardará el hash
-    email = models.EmailField(unique=True, db_column='correo')
+
+# Tablas de autenticación - Simplificadas sin PermissionsMixin
+class UserPaciente(AbstractBaseUser):
+    id_user_paceinte = models.AutoField(primary_key=True)  # Nota: en la BD es 'id_user_paceinte' con error tipográfico
+    Username = models.CharField(max_length=150, unique=True)
+    contrasena = models.CharField(max_length=255)  # Guardará el hash
+    correo = models.EmailField(unique=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    objects = CustomUserManager()
+    objects = UserManager()
+
+    USERNAME_FIELD = 'Username'
+    REQUIRED_FIELDS = ['correo']
 
     class Meta:
-        db_table = 'user_paciente'
+        db_table = 'public.user_paciente'
         verbose_name = 'Usuario Paciente'
         verbose_name_plural = 'Usuarios Pacientes'
 
     def __str__(self):
-        return self.username
+        return self.Username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return self.status
-
-    @property
-    def is_staff(self):
-        return False
-
-class UserDoctor(models.Model):
+class UserDoctor(AbstractBaseUser):
     id_user_doctor = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    password = models.CharField(max_length=255, db_column='contrasena')
-    email = models.EmailField(unique=True, db_column='correo')
+    username = models.CharField(max_length=150, unique=True)
+    contrasena = models.CharField(max_length=255)
+    correo = models.EmailField(unique=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    objects = CustomUserManager()
+    objects = UserManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['correo']
 
     class Meta:
-        db_table = 'user_doctor'
+        db_table = 'public.user_doctor'
         verbose_name = 'Usuario Doctor'
         verbose_name_plural = 'Usuarios Doctores'
 
@@ -255,36 +216,28 @@ class UserDoctor(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return self.status
-
-    @property
-    def is_staff(self):
-        return False
-
-class UserRecepcionista(models.Model):
+class UserRecepcionista(AbstractBaseUser):
     id_user_recepcionista = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    password = models.CharField(max_length=255, db_column='contrasena')
-    email = models.EmailField(unique=True, db_column='correo')
+    username = models.CharField(max_length=150, unique=True)
+    contrasena = models.CharField(max_length=255)
+    correo = models.EmailField(unique=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    objects = CustomUserManager()
+    objects = UserManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['correo']
 
     class Meta:
-        db_table = 'user_recepcionista'
+        db_table = 'public.user_recepcionista'
         verbose_name = 'Usuario Recepcionista'
         verbose_name_plural = 'Usuarios Recepcionistas'
 
@@ -292,36 +245,29 @@ class UserRecepcionista(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return self.status
-
-    @property
-    def is_staff(self):
-        return False
-
-class UserAdmin(models.Model):
+class UserAdmin(AbstractBaseUser):
     id_user_admin = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    email = models.EmailField(unique=True, db_column='correo')
+    username = models.CharField(max_length=150, unique=True)
+    correo = models.EmailField(unique=True)
+    contrasena = models.CharField(max_length=255)
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
-    password = models.CharField(max_length=255, db_column='contrasena')
-    last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=True)
+    is_superuser = models.BooleanField(default=True)
 
-    objects = CustomUserManager()
+    objects = UserManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['correo']
 
     class Meta:
-        db_table = 'user_admin'
+        db_table = 'public.user_admin'
         verbose_name = 'Usuario Administrador'
         verbose_name_plural = 'Usuarios Administradores'
 
@@ -329,26 +275,10 @@ class UserAdmin(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
-
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return self.status
-
-    @property
-    def is_staff(self):
-        return True
-
-    @property
-    def is_superuser(self):
-        return True
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
 
 # Tablas de datos personales
 class PacienteDatosPersonales(models.Model):
@@ -371,7 +301,7 @@ class PacienteDatosPersonales(models.Model):
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        db_table = 'paciente_datos_personales'
+        db_table = 'public.paciente_datos_personales'
         verbose_name = 'Datos Personales de Paciente'
         verbose_name_plural = 'Datos Personales de Pacientes'
 
@@ -405,7 +335,7 @@ class Doctor(models.Model):
     id_horario = models.BigIntegerField(blank=True, null=True)
 
     class Meta:
-        db_table = 'doctor'
+        db_table = 'public.doctor'
         verbose_name = 'Doctor'
         verbose_name_plural = 'Doctores'
 
@@ -436,7 +366,7 @@ class Recepcionista(models.Model):
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        db_table = 'recepcionista'
+        db_table = 'public.recepcionista'
         verbose_name = 'Recepcionista'
         verbose_name_plural = 'Recepcionistas'
 
@@ -467,7 +397,7 @@ class Administrador(models.Model):
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        db_table = 'administrador'
+        db_table = 'public.administrador'
         verbose_name = 'Administrador'
         verbose_name_plural = 'Administradores'
 
