@@ -1,12 +1,13 @@
 from django.urls import path
 from . import views
+from . import views_final
 
 urlpatterns = [
     # Homepage
     path('', views.home, name='home'),
     
-    # Registro público (solo pacientes)
-    path('registro/', views.registro_paciente, name='registro'),
+    # Registro público (solo pacientes) - usando formulario final
+    path('registro/', views_final.registro_paciente, name='registro'),
     
     # Logins por rol
     path('login/paciente/', views.login_paciente, name='login_paciente'),
@@ -25,4 +26,9 @@ urlpatterns = [
     
     # Registro de staff (gerente)
     path('dashboard/gerente/registrar-staff/', views.registro_staff, name='registro_staff'),
+    
+    # API endpoints para selectores dependientes
+    path('ajax/municipios/', views.cargar_municipios, name='cargar_municipios'),
+    path('ajax/ciudades/', views.cargar_ciudades, name='cargar_ciudades'),
+    path('ajax/parroquias/', views.cargar_parroquias, name='cargar_parroquias'),
 ]

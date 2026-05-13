@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registro de Paciente - Healthy Life{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Encabezado -->
+            <div class="text-center mb-4">
+                <h2 class="fw-bold" style="color: #2E7D32;">Healthy Life</h2>
+                <p class="text-muted">Registro de Pacientes</p>
+                <p>Crea tu cuenta para acceder a nuestros servicios</p>
+            </div>
+            
+            <!-- Formulario -->
+            <form method="POST" id="form-registro" novalidate>
+                {% csrf_token %}
+                
+                <!-- Errores generales -->
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Corrige los siguientes errores:</strong>
+                    <ul class="mb-0">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                            <li>{{ field }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- ========== SECCIÓN: INFORMACIÓN DE CUENTA ========== -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">📝 Información de Cuenta</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.username.label }}</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.email.label }} *</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Contraseña</label>
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}
+                                <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Confirmar Contraseña</label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}
+                                <div class="text-danger small mt-1">{{ form.password2.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ========== SECCIÓN: INFORMACIÓN PERSONAL ========== -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">👤 Información Personal</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Nombres -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.nombre_1.label }} *</label>
+                                {{ form.nombre_1 }}
+                                {% if form.nombre_1.errors %}
+                                <div class="text-danger small mt-1">{{ form.nombre_1.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.nombre_2.label }}</label>
+                                {{ form.nombre_2 }}
+                            </div>
+                        </div>
+                        
+                        <!-- Apellidos -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.apellido_1.label }} *</label>
+                                {{ form.apellido_1 }}
+                                {% if form.apellido_1.errors %}
+                                <div class="text-danger small mt-1">{{ form.apellido_1.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.apellido_2.label }}</label>
+                                {{ form.apellido_2 }}
+                            </div>
+                        </div>
+                        
+                        <!-- Cédula -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">{{ form.tipo_cedula.label }} *</label>
+                                {{ form.tipo_cedula }}
+                                {% if form.tipo_cedula.errors %}
+                                <div class="text-danger small mt-1">{{ form.tipo_cedula.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-semibold">{{ form.cedula.label }} *</label>
+                                {{ form.cedula }}
+                                {% if form.cedula.errors %}
+                                <div class="text-danger small mt-1">{{ form.cedula.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Sexo, Fecha Nac, Teléfono -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">{{ form.sexo.label }} *</label>
+                                {{ form.sexo }}
+                                {% if form.sexo.errors %}
+                                <div class="text-danger small mt-1">{{ form.sexo.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">{{ form.fecha_nacimiento.label }} *</label>
+                                {{ form.fecha_nacimiento }}
+                                {% if form.fecha_nacimiento.errors %}
+                                <div class="text-danger small mt-1">{{ form.fecha_nacimiento.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">{{ form.telefono.label }} *</label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                <div class="text-danger small mt-1">{{ form.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Dirección -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ form.direccion.label }}</label>
+                            {{ form.direccion }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ========== SECCIÓN: UBICACIÓN ========== -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">📍 Ubicación</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.id_estado.label }} *</label>
+                                {{ form.id_estado }}
+                                {% if form.id_estado.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_estado.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.id_municipio.label }} *</label>
+                                {{ form.id_municipio }}
+                                {% if form.id_municipio.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_municipio.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.id_ciudad.label }} *</label>
+                                {{ form.id_ciudad }}
+                                {% if form.id_ciudad.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_ciudad.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ form.id_parroquia.label }} *</label>
+                                {{ form.id_parroquia }}
+                                {% if form.id_parroquia.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_parroquia.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botón de envío -->
+                <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+                    Crear Cuenta
+                </button>
+                
+                <p class="text-center">
+                    ¿Ya tienes cuenta? <a href="{% url 'login_paciente' %}">Inicia sesión aquí</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========== JAVASCRIPT PARA SELECTORES DEPENDIENTES ========== -->
+<script>
+// Obtener los selectores
+const estadoSelect = document.getElementById('id_estado');
+const municipioSelect = document.getElementById('id_municipio');
+const ciudadSelect = document.getElementById('id_ciudad');
+const parroquiaSelect = document.getElementById('id_parroquia');
+
+// Al cambiar estado → cargar municipios
+estadoSelect.addEventListener('change', function() {
+    const estadoId = this.value;
+    municipioSelect.innerHTML = '<option value="">Cargando...</option>';
+    ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+    parroquiaSelect.innerHTML = '<option value="">Seleccione una parroquia</option>';
+    
+    if (estadoId) {
+        fetch(`/ajax/municipios/?id_estado=${estadoId}`)
+            .then(response => response.json())
+            .then(data => {
+                municipioSelect.innerHTML = '<option value="">Seleccione un municipio</option>';
+                data.forEach(m => {
+                    municipioSelect.innerHTML += `<option value="${m.id_municipio}">${m.municipio}</option>`;
+                });
+            })
+            .catch(error => {
+                municipioSelect.innerHTML = '<option value="">Error al cargar</option>';
+                console.error('Error:', error);
+            });
+    } else {
+        municipioSelect.innerHTML = '<option value="">Seleccione un municipio</option>';
+    }
+});
+
+// Al cambiar municipio → cargar ciudades
+municipioSelect.addEventListener('change', function() {
+    const municipioId = this.value;
+    ciudadSelect.innerHTML = '<option value="">Cargando...</option>';
+    parroquiaSelect.innerHTML = '<option value="">Seleccione una parroquia</option>';
+    
+    if (municipioId) {
+        fetch(`/ajax/ciudades/?id_municipio=${municipioId}`)
+            .then(response => response.json())
+            .then(data => {
+                ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                data.forEach(c => {
+                    ciudadSelect.innerHTML += `<option value="${c.id_ciudad}">${c.ciudad}</option>`;
+                });
+            })
+            .catch(error => {
+                ciudadSelect.innerHTML = '<option value="">Error al cargar</option>';
+                console.error('Error:', error);
+            });
+    } else {
+        ciudadSelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+    }
+});
+
+// Al cambiar ciudad → cargar parroquias
+ciudadSelect.addEventListener('change', function() {
+    const municipioId = document.getElementById('id_municipio').value;
+    parroquiaSelect.innerHTML = '<option value="">Cargando...</option>';
+    
+    if (municipioId) {
+        fetch(`/ajax/parroquias/?id_municipio=${municipioId}`)
+            .then(response => response.json())
+            .then(data => {
+                parroquiaSelect.innerHTML = '<option value="">Seleccione una parroquia</option>';
+                data.forEach(p => {
+                    parroquiaSelect.innerHTML += `<option value="${p.id_parroquia}">${p.parroquia}</option>`;
+                });
+            })
+            .catch(error => {
+                parroquiaSelect.innerHTML = '<option value="">Error al cargar</option>';
+                console.error('Error:', error);
+            });
+    } else {
+        parroquiaSelect.innerHTML = '<option value="">Seleccione una parroquia</option>';
+    }
+});
+</script>
+{% endblock %}

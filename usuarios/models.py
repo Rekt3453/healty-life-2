@@ -9,6 +9,7 @@ class Estado(models.Model):
     iso_3166_2 = models.CharField(max_length=10, blank=True, null=True, db_column='iso_3166-2')
 
     class Meta:
+        managed = False
         db_table = 'estados'
         verbose_name = 'Estado'
         verbose_name_plural = 'Estados'
@@ -22,6 +23,7 @@ class Municipio(models.Model):
     municipio = models.CharField(max_length=100)
 
     class Meta:
+        managed = False
         db_table = 'municipios'
         verbose_name = 'Municipio'
         verbose_name_plural = 'Municipios'
@@ -36,6 +38,7 @@ class Ciudad(models.Model):
     capital = models.SmallIntegerField(default=0)
 
     class Meta:
+        managed = False
         db_table = 'ciudades'
         verbose_name = 'Ciudad'
         verbose_name_plural = 'Ciudades'
@@ -49,6 +52,7 @@ class Parroquia(models.Model):
     parroquia = models.CharField(max_length=100)
 
     class Meta:
+        managed = False
         db_table = 'parroquias'
         verbose_name = 'Parroquia'
         verbose_name_plural = 'Parroquias'
@@ -371,6 +375,7 @@ class PacienteDatosPersonales(models.Model):
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'paciente_datos_personales'
         verbose_name = 'Datos Personales de Paciente'
         verbose_name_plural = 'Datos Personales de Pacientes'
@@ -480,7 +485,7 @@ class Administrador(models.Model):
         apellidos = f"{self.apellido_1} {self.apellido_2 or ''}".strip()
         return f"{nombres} {apellidos}".strip()
 
-# Modelo temporal para compatibilidad durante la migración
+# Modelo UserProfile para compatibilidad con el nuevo formulario
 class UserProfile(models.Model):
     ROLES = (
         ('paciente', 'Paciente'),
@@ -495,6 +500,12 @@ class UserProfile(models.Model):
     telefono = models.CharField(max_length=20, verbose_name="Teléfono")
     fecha_nacimiento = models.DateField(verbose_name="Fecha de Nacimiento", null=True, blank=True)
     direccion = models.TextField(verbose_name="Dirección")
+    
+    # Campos de ubicación
+    id_estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Estado")
+    id_municipio = models.ForeignKey(Municipio, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Municipio")
+    id_ciudad = models.ForeignKey(Ciudad, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Ciudad")
+    id_parroquia = models.ForeignKey(Parroquia, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Parroquia")
     
     class Meta:
         verbose_name = "Perfil de Usuario"
