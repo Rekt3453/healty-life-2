@@ -271,9 +271,13 @@ class RegistroStaffForm(forms.Form):
     )
     tipo_cedula = forms.ChoiceField(
         choices=[
-            ('V', 'Venezolano'),
-            ('E', 'Extranjero'),
-            ('P', 'Pasaporte'),
+            ('V', 'V - Venezolano'),
+            ('E', 'E - Extranjero'),
+            ('J', 'J - Jurídico'),
+            ('C', 'C - Consejo Comunal'),
+            ('G', 'G - Gobierno'),
+            ('P', 'P - Pasaporte'),
+            ('F', 'F - Fallecido'),
         ],
         required=True,
         widget=forms.Select(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
@@ -282,7 +286,6 @@ class RegistroStaffForm(forms.Form):
         choices=[
             ('M', 'Masculino'),
             ('F', 'Femenino'),
-            ('O', 'Otro'),
         ],
         required=True,
         widget=forms.Select(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
@@ -297,6 +300,36 @@ class RegistroStaffForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-input w-full px-3 py-2 rounded-lg'})
     )
     
+    # Datos de ubicación (obligatorios según Supabase)
+    id_estado = forms.ModelChoiceField(
+        queryset=Estado.objects.all(),
+        required=True,
+        empty_label="Seleccione un estado",
+        widget=forms.Select(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
+    )
+    id_municipio = forms.ModelChoiceField(
+        queryset=Municipio.objects.none(),
+        required=True,
+        empty_label="Seleccione un municipio",
+        widget=forms.Select(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
+    )
+    id_ciudad = forms.ModelChoiceField(
+        queryset=Ciudad.objects.none(),
+        required=True,
+        empty_label="Seleccione una ciudad",
+        widget=forms.Select(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
+    )
+    id_parroquia = forms.ModelChoiceField(
+        queryset=Parroquia.objects.none(),
+        required=True,
+        empty_label="Seleccione una parroquia",
+        widget=forms.Select(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
+    )
+    direccion = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-input w-full px-3 py-2 rounded-lg'}),
+        required=True
+    )
+
     # Rol del staff
     rol = forms.ChoiceField(
         choices=[

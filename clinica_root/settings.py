@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres.xpzrljaykpanthomlegn',
         'PASSWORD': 'TVqFID3AdDXi85aF',
-        'HOST': 'aws-1-us-west-2.pooler.supabase.com',
+        'HOST': '44.252.246.120',  # IP directa para evitar problemas DNS
         'PORT': '6543',
         'OPTIONS': {
             'connect_timeout': 20,

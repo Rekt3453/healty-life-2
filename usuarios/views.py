@@ -3,18 +3,19 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.contrib.auth.views import LogoutView
-from usuarios.authentication import CustomAuthBackend
-from django.db.models import Sum
-from datetime import date
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
 from .forms import RegistroPacienteForm, RegistroStaffForm
-from .decorators import rol_requerido
-from .authentication import CustomAuthBackend
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin,
-    PacienteDatosPersonales, Doctor, Recepcionista, Administrador
+    PacienteDatosPersonales, Doctor, Recepcionista, Administrador,
+    Estado, Municipio, Ciudad, Parroquia
 )
+from usuarios.decorators import rol_requerido
+from .views_new import registro_paciente as nuevo_registro_paciente
+from .views_new import cargar_municipios, cargar_ciudades, cargar_parroquias
 from citas.models import Cita
+from .authentication import CustomAuthBackend
 
 def home(request):
     return render(request, 'home.html')
