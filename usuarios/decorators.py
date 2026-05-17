@@ -2,9 +2,11 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from .authentication import CustomAuthBackend
 
-def rol_requerido(rol):
+def rol_requerido(*roles):
     """
-    Decorador para requerir un rol específico usando los nuevos modelos de Supabase
+    Decorador para requerir uno o más roles específicos usando los modelos de Supabase.
+    Uso: @rol_requerido('medico')
+         @rol_requerido('recepcionista', 'gerente')
     """
     def decorator(view_func):
         def wrapper(request, *args, **kwargs):
@@ -22,24 +24,27 @@ def rol_requerido(rol):
                 'medico': 'medico',
                 'recepcionista': 'recepcionista',
                 'gerente': 'gerente',
-                'administrador': 'gerente',  # Mapear administrador a gerente
+                'administrador': 'gerente',
             }
             
-            if user_rol == rol_mapping.get(rol, rol):
+            # Verificar si el rol del usuario está en cualquiera de los roles requeridos
+            mapped_roles = [rol_mapping.get(r, r) for r in roles]
+            if user_rol in mapped_roles:
                 return view_func(request, *args, **kwargs)
             
-            messages.error(request, f"No tienes permiso para acceder a esta página. Se requiere rol: {rol}")
-            
-            # Redirigir al login apropiado según el rol requerido
-            login_redirects = {
-                'paciente': 'login_paciente',
-                'medico': 'login_medico',
-                'recepcionista': 'login_recepcionista',
-                'gerente': 'login_gerente',
-                'administrador': 'login_gerente',
+            messages.error(request, f"No tienes permiso para acceder a esta sección.")
+
+            # Si ya está autenticado, redirigir a SU propio dashboard
+            dashboard_redirects = {
+                'paciente': 'dashboard_paciente',
+                'medico': 'dashboard_medico',
+                'recepcionista': 'dashboard_recepcionista',
+                'gerente': 'dashboard_gerente',
+                'administrador': 'dashboard_gerente',
             }
-            
-            return redirect(login_redirects.get(rol, 'home'))
+            if user_rol and user_rol in dashboard_redirects:
+                return redirect(dashboard_redirects[user_rol])
+            return redirect('home')
         return wrapper
     return decorator
 
