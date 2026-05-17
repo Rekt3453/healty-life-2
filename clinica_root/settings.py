@@ -11,19 +11,24 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-e4l=dlcuit(*)kz72sdw1h9b2^+dnq!89gbg9bwok8_t5&rh*2'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-e4l=dlcuit(*)kz72sdw1h9b2^+dnq!89gbg9bwok8_t5&rh*2')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', 'testserver']
 
@@ -84,11 +89,11 @@ WSGI_APPLICATION = 'clinica_root.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.xpzrljaykpanthomlegn',
-        'PASSWORD': 'TVqFID3AdDXi85aF',
-        'HOST': '44.252.246.120',  # IP directa para evitar problemas DNS
-        'PORT': '6543',
+        'NAME': os.environ.get('DB_NAME', 'postgres'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
         'OPTIONS': {
             'connect_timeout': 20,
             'sslmode': 'require',
@@ -151,12 +156,12 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-app-password'
-DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
