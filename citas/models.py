@@ -1,107 +1,221 @@
 from django.db import models
-from django.conf import settings
+from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico
 
-class Sede(models.Model):
-    nombre = models.CharField(max_length=100)
-    direccion = models.CharField(max_length=255)
-    telefono = models.CharField(max_length=20)
-    
+
+class Consultorio(models.Model):
+    id_consultorio = models.BigAutoField(primary_key=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    id_cm = models.ForeignKey(CentroMedico, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cm')
+    consultorios = models.CharField(max_length=255, blank=True, null=True)
+    status = models.BooleanField(default=True)
+
+    class Meta:
+        managed = False
+        db_table = 'consultorio'
+
     def __str__(self):
-        return self.nombre
+        return self.consultorios or f"Consultorio {self.id_consultorio}"
+
 
 class Especialidad(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField(blank=True)
-    
-    def __str__(self):
-        return self.nombre
+    id_especialidad = models.BigAutoField(primary_key=True)
+    tipo_especialidad = models.TextField(blank=True, null=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    status = models.BooleanField(default=True)
 
-class Servicio(models.Model):
-    nombre = models.CharField(max_length=100)
-    especialidad = models.ForeignKey(Especialidad, on_delete=models.CASCADE)
-    sede = models.ForeignKey(Sede, on_delete=models.CASCADE)
-    precio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
-    def __str__(self):
-        return f"{self.nombre} - {self.sede.nombre}"
-
-class HorarioMedico(models.Model):
-    DIAS_SEMANA = [
-        ('lunes', 'Lunes'),
-        ('martes', 'Martes'),
-        ('miercoles', 'Miércoles'),
-        ('jueves', 'Jueves'),
-        ('viernes', 'Viernes'),
-        ('sabado', 'Sábado'),
-        ('domingo', 'Domingo'),
-    ]
-    
-    medico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='horarios')
-    dia_semana = models.CharField(max_length=10, choices=DIAS_SEMANA)
-    hora_inicio = models.TimeField()
-    hora_fin = models.TimeField()
-    activo = models.BooleanField(default=True)
-    
     class Meta:
-        unique_together = ['medico', 'dia_semana', 'hora_inicio']
-    
+        managed = False
+        db_table = 'especialidades'
+
     def __str__(self):
-        return f"{self.medico.username} - {self.get_dia_semana_display()} {self.hora_inicio} a {self.hora_fin}"
+        return self.tipo_especialidad or f"Especialidad {self.id_especialidad}"
+
+
+class EspecialidadDoctor(models.Model):
+    id_especialidad_doctor = models.BigAutoField(primary_key=True)
+    id_especialidad = models.ForeignKey(
+        Especialidad, on_delete=models.CASCADE,
+        db_column='id_especialidad', null=True, blank=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'especialidad_doctor'
+
+    def __str__(self):
+        return f"EspDoc {self.id_especialidad_doctor}"
+
+
+class Horario(models.Model):
+    id_horario = models.BigAutoField(primary_key=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    hora_inicio = models.TimeField(blank=True, null=True)
+    hora_fin = models.TimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'horario'
+
+    def __str__(self):
+        return f"Horario {self.id_horario}: {self.hora_inicio} - {self.hora_fin}"
+
+
+class PreciosServicios(models.Model):
+    id_precios_servicios = models.BigAutoField(primary_key=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    id_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor')
+    precios = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'precios_servicios'
+
+    def __str__(self):
+        return f"Precio {self.id_precios_servicios}"
+
+
+class ServicioEspecialidad(models.Model):
+    id_servicios_especialidad = models.BigAutoField(primary_key=True)
+    servicios = models.CharField(max_length=255, blank=True, null=True)
+    id_especialidad = models.ForeignKey(
+        Especialidad, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_especialidad'
+    )
+    id_doctor = models.ForeignKey(
+        Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor'
+    )
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    status = models.BooleanField(default=True)
+    id_precios_servicios = models.ForeignKey(
+        PreciosServicios, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_precios_servicios'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'servicios_especialidad'
+
+    def __str__(self):
+        return self.servicios or f"Servicio {self.id_servicios_especialidad}"
+
+
+class PagoCita(models.Model):
+    id_pagos_cita = models.BigAutoField(primary_key=True)
+    id_paciente = models.ForeignKey(
+        PacienteDatosPersonales, on_delete=models.SET_NULL,
+        null=True, blank=True, db_column='id_paciente'
+    )
+    monto_pagar = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    referencia_pago = models.CharField(max_length=255, blank=True, null=True)
+    metodo_pago = models.CharField(max_length=100, blank=True, null=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    fecha_consulta = models.DateTimeField(blank=True, null=True)
+    status = models.BooleanField(default=True)
+    id_cita = models.BigIntegerField(blank=True, null=True)  # sin FK constraint en el schema
+
+    class Meta:
+        managed = False
+        db_table = 'pagos_cita'
+
+    def __str__(self):
+        return f"Pago {self.id_pagos_cita}"
+
 
 class Cita(models.Model):
-    ESTADOS = [
-        ('pendiente', 'Pendiente'),
-        ('asignada', 'Asignada'),
-        ('aprobada', 'Aprobada'),
-        ('rechazada', 'Rechazada'),
-        ('cancelada', 'Cancelada'),
-        ('completada', 'Completada'),
-    ]
-    
-    paciente = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='citas_paciente')
-    medico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='citas_medico', null=True, blank=True)
-    especialidad = models.ForeignKey(Especialidad, on_delete=models.CASCADE, default=1)
-    servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE, null=True, blank=True)
-    sede = models.ForeignKey(Sede, on_delete=models.CASCADE, null=True, blank=True)
-    fecha = models.DateField()
-    hora_solicitada = models.TimeField()  # Hora solicitada por el paciente
-    hora_confirmada = models.TimeField(null=True, blank=True)  # Hora confirmada por el médico
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
-    motivo = models.TextField(blank=True)
-    fecha_solicitud = models.DateTimeField(auto_now_add=True)
-    fecha_atencion = models.DateTimeField(null=True, blank=True)
-    
+    id_citas = models.BigAutoField(primary_key=True)
+    id_consultorio = models.ForeignKey(
+        Consultorio, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_consultorio'
+    )
+    id_doctor = models.ForeignKey(
+        Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor'
+    )
+    id_especialidades = models.ForeignKey(
+        Especialidad, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_especialidades'
+    )
+    motivo = models.TextField(blank=True, null=True)
+    id_paciente = models.ForeignKey(
+        PacienteDatosPersonales, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_paciente'
+    )
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    id_pago_cita = models.ForeignKey(
+        PagoCita, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_pago_cita'
+    )
+    fecha_consulta = models.DateTimeField(blank=True, null=True)
+    fecha_emision = models.DateTimeField(blank=True, null=True)
+    status = models.BooleanField(default=True)
+    id_servicio_especialidad = models.ForeignKey(
+        ServicioEspecialidad, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_servicio_especialidad'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'citas'
+
     def __str__(self):
-        return f"Cita {self.id} - {self.paciente.username} - {self.estado}"
-    
-    def esta_disponible(self):
-        """Verifica si el médico tiene disponibilidad para esta fecha y hora"""
-        if not self.medico or not self.hora_confirmada:
-            return False
-            
-        # Obtener el día de la semana de la fecha
-        dias_semana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
-        dia_semana = dias_semana[self.fecha.weekday()]
-        
-        # Buscar horario del médico para ese día
-        try:
-            horario = HorarioMedico.objects.get(
-                medico=self.medico,
-                dia_semana=dia_semana,
-                activo=True,
-                hora_inicio__lte=self.hora_confirmada,
-                hora_fin__gt=self.hora_confirmada
-            )
-            
-            # Verificar que no tenga otra cita a la misma hora
-            citas_existentes = Cita.objects.filter(
-                medico=self.medico,
-                fecha=self.fecha,
-                hora_confirmada=self.hora_confirmada,
-                estado__in=['asignada', 'aprobada', 'completada']
-            ).exclude(id=self.id)
-            
-            return not citas_existentes.exists()
-            
-        except HorarioMedico.DoesNotExist:
-            return False
+        return f"Cita {self.id_citas}"
+
+
+# ── Modelos auxiliares ────────────────────────────────────────────────────────
+
+class Alergias(models.Model):
+    id_alergias = models.BigAutoField(primary_key=True)
+    alergias = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'alergias'
+
+    def __str__(self):
+        return self.alergias or f"Alergia {self.id_alergias}"
+
+
+class TipoSangre(models.Model):
+    id_tipo_sangre = models.BigAutoField(primary_key=True)
+    tipo_sangre = models.CharField(max_length=10, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tipo_sangre'
+
+    def __str__(self):
+        return self.tipo_sangre or f"Tipo {self.id_tipo_sangre}"
+
+
+class Vacunas(models.Model):
+    id_vacunas = models.BigAutoField(primary_key=True)
+    vacunas_cumplidas = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vacunas'
+
+    def __str__(self):
+        return self.vacunas_cumplidas or f"Vacuna {self.id_vacunas}"
+
+
+class HistorialMedicoPaciente(models.Model):
+    id_historial_medico = models.BigAutoField(primary_key=True)
+    id_alergias = models.ForeignKey(
+        Alergias, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_alergias'
+    )
+    id_tipo_sangre = models.ForeignKey(
+        TipoSangre, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_tipo_sangre'
+    )
+    id_vacunas = models.ForeignKey(
+        Vacunas, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_vacunas'
+    )
+    id_paciente = models.ForeignKey(
+        PacienteDatosPersonales, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_paciente'
+    )
+    id_enfermedades = models.BigIntegerField(blank=True, null=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    status = models.BooleanField(default=True)
+
+    class Meta:
+        managed = False
+        db_table = 'historial_medico_paciente'
+
+    def __str__(self):
+        return f"Historial {self.id_historial_medico}"

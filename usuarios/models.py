@@ -73,6 +73,7 @@ class DireccionPaciente(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'direccion_paciente'
         verbose_name = 'Dirección de Paciente'
         verbose_name_plural = 'Direcciones de Pacientes'
@@ -89,6 +90,7 @@ class DireccionDoctor(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'direccion_doctor'
         verbose_name = 'Dirección de Doctor'
         verbose_name_plural = 'Direcciones de Doctores'
@@ -105,6 +107,7 @@ class DireccionRecepcionista(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'direccion_recepcionista'
         verbose_name = 'Dirección de Recepcionista'
         verbose_name_plural = 'Direcciones de Recepcionistas'
@@ -121,21 +124,54 @@ class DireccionAdmin(models.Model):
     longitud = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'direccion_admin'
         verbose_name = 'Dirección de Administrador'
         verbose_name_plural = 'Direcciones de Administradores'
 
+
+class DireccionSede(models.Model):
+    id_direccion_sede = models.BigAutoField(primary_key=True)
+    id_estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_estado')
+    id_municipio = models.ForeignKey(Municipio, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_municipio')
+    id_parroquia = models.ForeignKey(Parroquia, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_parroquia')
+    id_ciudad = models.ForeignKey(Ciudad, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_ciudad')
+    direccion = models.TextField(blank=True, null=True)
+    referencia = models.TextField(blank=True, null=True)
+    latitud = models.CharField(max_length=100, blank=True, null=True)
+    longitud = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'direccion_sede'
+
+
+class CentroMedico(models.Model):
+    id_cm = models.BigAutoField(primary_key=True)
+    nombre_cm = models.TextField()
+    rif_cm = models.CharField(max_length=50, blank=True, null=True)
+    status = models.BooleanField(default=True)
+
+    class Meta:
+        managed = False
+        db_table = 'centro_medico'
+
+    def __str__(self):
+        return self.nombre_cm
+
+
 # Tabla de sedes
 class Sede(models.Model):
-    id_sede = models.AutoField(primary_key=True)
-    id_direccion = models.ForeignKey(DireccionAdmin, on_delete=models.CASCADE, db_column='id_direccion')
+    id_sede = models.BigAutoField(primary_key=True)
+    id_direccion = models.ForeignKey(DireccionSede, on_delete=models.CASCADE, db_column='id_direccion')
     rif_sede = models.CharField(max_length=50, blank=True, null=True)
     telefono = models.CharField(max_length=50, blank=True, null=True)
     status = models.BooleanField(default=True)
-    id_cm = models.IntegerField(blank=True, null=True)  # Referencia a centro_medico
+    id_cm = models.ForeignKey(CentroMedico, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cm')
     nombre_sede = models.TextField()
 
     class Meta:
+        managed = False
         db_table = 'sede'
         verbose_name = 'Sede'
         verbose_name_plural = 'Sedes'
@@ -203,7 +239,7 @@ class CustomUserManager(models.Manager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(username, correo, password, **extra_fields)
 class UserPaciente(models.Model):
-    id_user_paciente = models.AutoField(primary_key=True)
+    id_user_paciente = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True, db_column='username')
     password = models.CharField(max_length=255, db_column='contrasena')  # Guardará el hash
     email = models.EmailField(unique=True, db_column='correo')
@@ -214,6 +250,7 @@ class UserPaciente(models.Model):
     objects = CustomUserManager()
 
     class Meta:
+        managed = False
         db_table = 'user_paciente'
         verbose_name = 'Usuario Paciente'
         verbose_name_plural = 'Usuarios Pacientes'
@@ -240,7 +277,7 @@ class UserPaciente(models.Model):
         return False
 
 class UserDoctor(models.Model):
-    id_user_doctor = models.AutoField(primary_key=True)
+    id_user_doctor = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True, db_column='username')
     password = models.CharField(max_length=255, db_column='contrasena')
     email = models.EmailField(unique=True, db_column='correo')
@@ -251,6 +288,7 @@ class UserDoctor(models.Model):
     objects = CustomUserManager()
 
     class Meta:
+        managed = False
         db_table = 'user_doctor'
         verbose_name = 'Usuario Doctor'
         verbose_name_plural = 'Usuarios Doctores'
@@ -277,7 +315,7 @@ class UserDoctor(models.Model):
         return False
 
 class UserRecepcionista(models.Model):
-    id_user_recepcionista = models.AutoField(primary_key=True)
+    id_user_recepcionista = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True, db_column='username')
     password = models.CharField(max_length=255, db_column='contrasena')
     email = models.EmailField(unique=True, db_column='correo')
@@ -288,6 +326,7 @@ class UserRecepcionista(models.Model):
     objects = CustomUserManager()
 
     class Meta:
+        managed = False
         db_table = 'user_recepcionista'
         verbose_name = 'Usuario Recepcionista'
         verbose_name_plural = 'Usuarios Recepcionistas'
@@ -314,7 +353,7 @@ class UserRecepcionista(models.Model):
         return False
 
 class UserAdmin(models.Model):
-    id_user_admin = models.AutoField(primary_key=True)
+    id_user_admin = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True, db_column='username')
     email = models.EmailField(unique=True, db_column='correo')
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
@@ -325,6 +364,7 @@ class UserAdmin(models.Model):
     objects = CustomUserManager()
 
     class Meta:
+        managed = False
         db_table = 'user_admin'
         verbose_name = 'Usuario Administrador'
         verbose_name_plural = 'Usuarios Administradores'
@@ -356,7 +396,7 @@ class UserAdmin(models.Model):
 
 # Tablas de datos personales
 class PacienteDatosPersonales(models.Model):
-    id_datos_paciente = models.AutoField(primary_key=True)
+    id_datos_paciente = models.BigAutoField(primary_key=True)
     nombre_1 = models.TextField()
     nombre_2 = models.TextField(blank=True, null=True)
     apellido_1 = models.TextField()
@@ -367,11 +407,11 @@ class PacienteDatosPersonales(models.Model):
     tipo_cedula = models.CharField(max_length=20, blank=True, null=True)
     sexo = models.CharField(max_length=20, blank=True, null=True)
     id_recipe = models.BigIntegerField(blank=True, null=True)
-    id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     fecha_nacimiento = models.DateTimeField(blank=True, null=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_registro = models.DateTimeField(null=True, blank=True)
     status = models.BooleanField(default=True)
-    id_direccion_paciente = models.ForeignKey(DireccionPaciente, on_delete=models.CASCADE, db_column='id_direccion_paciente')
+    id_direccion_paciente = models.ForeignKey(DireccionPaciente, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_direccion_paciente')
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
@@ -390,7 +430,7 @@ class PacienteDatosPersonales(models.Model):
         return f"{nombres} {apellidos}".strip()
 
 class Doctor(models.Model):
-    id_doctor = models.AutoField(primary_key=True)
+    id_doctor = models.BigAutoField(primary_key=True)
     nombre_1 = models.TextField()  # En la BD es ARRAY, pero lo manejaremos como texto
     nombre_2 = models.TextField(blank=True, null=True)
     apellido_1 = models.TextField()
@@ -400,16 +440,17 @@ class Doctor(models.Model):
     id_consultorio = models.BigIntegerField(blank=True, null=True)
     sexo = models.CharField(max_length=20, blank=True, null=True)
     fecha_nacimiento = models.DateTimeField(blank=True, null=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    cedula = models.CharField(max_length=20, unique=True)
+    fecha_registro = models.DateTimeField(null=True, blank=True)
+    cedula = models.CharField(max_length=20, blank=True, null=True)
     tipo_cedula = models.CharField(max_length=20, blank=True, null=True)
-    id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     status = models.BooleanField(default=True)
-    id_direccion_doctor = models.ForeignKey(DireccionDoctor, on_delete=models.CASCADE, db_column='id_direccion_doctor')
+    id_direccion_doctor = models.ForeignKey(DireccionDoctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_direccion_doctor')
     telefono = models.CharField(max_length=50, blank=True, null=True)
     id_horario = models.BigIntegerField(blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'doctor'
         verbose_name = 'Doctor'
         verbose_name_plural = 'Doctores'
@@ -424,7 +465,7 @@ class Doctor(models.Model):
         return f"Dr. {nombres} {apellidos}".strip()
 
 class Recepcionista(models.Model):
-    id_recepcionista = models.AutoField(primary_key=True)
+    id_recepcionista = models.BigAutoField(primary_key=True)
     id_user_recepcionista = models.ForeignKey(UserRecepcionista, on_delete=models.CASCADE, db_column='id_user_recepcionista')
     nombre_1 = models.TextField()
     nombre_2 = models.TextField(blank=True, null=True)
@@ -433,14 +474,15 @@ class Recepcionista(models.Model):
     cedula = models.CharField(max_length=20, unique=True)
     tipo_cedula = models.CharField(max_length=20, blank=True, null=True)
     fecha_nacimiento = models.DateTimeField(blank=True, null=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
+    fecha_registro = models.DateTimeField(null=True, blank=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     sexo = models.CharField(max_length=20, blank=True, null=True)
-    id_direccion_recepcionista = models.ForeignKey(DireccionRecepcionista, on_delete=models.CASCADE, db_column='id_direccion_recepcionista')
+    id_direccion_recepcionista = models.ForeignKey(DireccionRecepcionista, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_direccion_recepcionista')
     status = models.BooleanField(default=True)
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'recepcionista'
         verbose_name = 'Recepcionista'
         verbose_name_plural = 'Recepcionistas'
@@ -455,7 +497,7 @@ class Recepcionista(models.Model):
         return f"{nombres} {apellidos}".strip()
 
 class Administrador(models.Model):
-    id_administrador = models.AutoField(primary_key=True)
+    id_administrador = models.BigAutoField(primary_key=True)
     id_user_admin = models.ForeignKey(UserAdmin, on_delete=models.CASCADE, db_column='id_user_admin')
     nombre_1 = models.TextField()
     nombre_2 = models.TextField(blank=True, null=True)
@@ -464,14 +506,15 @@ class Administrador(models.Model):
     cedula = models.CharField(max_length=20, unique=True)
     tipo_cedula = models.CharField(max_length=20, blank=True, null=True)
     fecha_nacimiento = models.DateTimeField(blank=True, null=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
+    fecha_registro = models.DateTimeField(null=True, blank=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     sexo = models.CharField(max_length=20, blank=True, null=True)
-    id_direccion_admin = models.ForeignKey(DireccionAdmin, on_delete=models.CASCADE, db_column='id_direccion_admin')
+    id_direccion_admin = models.ForeignKey(DireccionAdmin, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_direccion_admin')
     status = models.BooleanField(default=True)
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'administrador'
         verbose_name = 'Administrador'
         verbose_name_plural = 'Administradores'
@@ -484,6 +527,34 @@ class Administrador(models.Model):
         nombres = f"{self.nombre_1} {self.nombre_2 or ''}".strip()
         apellidos = f"{self.apellido_1} {self.apellido_2 or ''}".strip()
         return f"{nombres} {apellidos}".strip()
+
+# Modelo PacienteEspecial para pacientes especiales y tutores
+class PacienteEspecial(models.Model):
+    id_paciente_especial = models.AutoField(primary_key=True)
+    id_paciente_tutor = models.ForeignKey('PacienteDatosPersonales', on_delete=models.CASCADE, 
+                                         db_column='id_paciente_tutor', null=True, blank=True,
+                                         related_name='tutores')
+    nombre_1 = models.TextField(blank=True, null=True)
+    nombre_2 = models.TextField(blank=True, null=True)
+    apellido_1 = models.TextField(blank=True, null=True)
+    apellido_2 = models.TextField(blank=True, null=True)
+    status = models.BooleanField(default=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede', null=True, blank=True)
+    sexo = models.CharField(max_length=20, blank=True, null=True)
+    fecha_nacimiento = models.DateTimeField(blank=True, null=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    telefono = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'paciente_especial'
+        verbose_name = 'Paciente Especial'
+        verbose_name_plural = 'Pacientes Especiales'
+
+    def __str__(self):
+        if self.nombre_1 and self.apellido_1:
+            return f"{self.nombre_1} {self.apellido_1}"
+        return f"Paciente Especial {self.id_paciente_especial}"
 
 # Modelo UserProfile para compatibilidad con el nuevo formulario
 class UserProfile(models.Model):
@@ -508,8 +579,145 @@ class UserProfile(models.Model):
     id_parroquia = models.ForeignKey(Parroquia, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Parroquia")
     
     class Meta:
+        managed = False
         verbose_name = "Perfil de Usuario"
         verbose_name_plural = "Perfiles de Usuarios"
     
     def __str__(self):
         return f"{self.user.username} - {self.get_rol_display()}"
+
+
+# ── Nuevos modelos: SuperAdmin, Root ─────────────────────────────────────────
+
+class UserSuperAdmin(models.Model):
+    id_superadmin = models.BigAutoField(primary_key=True)
+    username = models.TextField(blank=True, null=True)
+    correo = models.CharField(max_length=255, blank=True, null=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    status = models.BooleanField(default=True)
+    contrasena = models.TextField(blank=True, null=True)
+
+    objects = CustomUserManager()
+
+    class Meta:
+        managed = False
+        db_table = 'user_superadmin'
+        verbose_name = 'Usuario SuperAdmin'
+        verbose_name_plural = 'Usuarios SuperAdmin'
+
+    def __str__(self):
+        return self.username or f'SuperAdmin {self.id_superadmin}'
+
+    def set_password(self, password):
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
+
+    def check_password(self, password):
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return self.status
+
+    @property
+    def is_staff(self):
+        return True
+
+    @property
+    def is_superuser(self):
+        return True
+
+
+class UserRoot(models.Model):
+    id_user_root = models.BigAutoField(primary_key=True)
+    username = models.CharField(max_length=255, blank=True, null=True)
+    correo = models.CharField(max_length=255, blank=True, null=True)
+    contrasena = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'user_root'
+        verbose_name = 'Usuario Root'
+        verbose_name_plural = 'Usuarios Root'
+
+    def __str__(self):
+        return self.username or f'Root {self.id_user_root}'
+
+    def set_password(self, password):
+        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
+
+    def check_password(self, password):
+        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_staff(self):
+        return True
+
+    @property
+    def is_superuser(self):
+        return True
+
+
+class Superadmin(models.Model):
+    id_superadmin = models.BigAutoField(primary_key=True)
+    id_user_superadmin = models.ForeignKey(
+        UserSuperAdmin, on_delete=models.SET_NULL,
+        null=True, blank=True, db_column='id_user_superadmin'
+    )
+    nombre_1 = models.TextField(blank=True, null=True)
+    nombre_2 = models.TextField(blank=True, null=True)
+    apellido_1 = models.TextField(blank=True, null=True)
+    apellido_2 = models.TextField(blank=True, null=True)
+    cedula = models.CharField(max_length=50, blank=True, null=True)
+    tipo_cedula = models.CharField(max_length=50, blank=True, null=True)
+    fecha_nacimiento = models.DateTimeField(blank=True, null=True)
+    fecha_registro = models.DateTimeField(null=True, blank=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    sexo = models.CharField(max_length=20, blank=True, null=True)
+    status = models.BooleanField(default=True)
+    telefono = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'superadmin'
+        verbose_name = 'Superadmin'
+        verbose_name_plural = 'Superadmins'
+
+    def __str__(self):
+        return f"{self.nombre_1 or ''} {self.apellido_1 or ''}".strip()
+
+    @property
+    def nombre_completo(self):
+        return f"{self.nombre_1 or ''} {self.nombre_2 or ''} {self.apellido_1 or ''} {self.apellido_2 or ''}".strip()
+
+
+class Root(models.Model):
+    id_root = models.BigAutoField(primary_key=True)
+    nombre = models.TextField(blank=True, null=True)
+    apellido = models.TextField(blank=True, null=True)
+    id_user_root = models.ForeignKey(
+        UserRoot, on_delete=models.SET_NULL,
+        null=True, blank=True, db_column='id_user_root'
+    )
+    status = models.BooleanField(default=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+
+    class Meta:
+        managed = False
+        db_table = 'root'
+        verbose_name = 'Root'
+        verbose_name_plural = 'Roots'
+
+    def __str__(self):
+        return f"{self.nombre or ''} {self.apellido or ''}".strip()

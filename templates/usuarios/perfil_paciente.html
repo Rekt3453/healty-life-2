@@ -1,0 +1,524 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-btn.active { border-bottom: 3px solid #10b981; color: #10b981; font-weight: 600; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .field-label { display:block; font-size:.75rem; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem; }
+        .field-value { font-size:.875rem; color:#111827; font-weight:500; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="date"],
+        input[type="password"], select, textarea {
+            width: 100%; padding: .5rem .75rem; border: 1px solid #d1d5db;
+            border-radius: .5rem; font-size: .875rem; outline: none;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #10b981; box-shadow: 0 0 0 2px #d1fae5; }
+        .btn-green  { background: linear-gradient(135deg,#10b981,#059669); color:#fff; padding:.5rem 1.25rem; border-radius:.5rem; font-weight:600; font-size:.875rem; }
+        .btn-gray   { background:#f3f4f6; color:#374151; padding:.5rem 1.25rem; border-radius:.5rem; font-weight:600; font-size:.875rem; }
+        .badge-green { background:#d1fae5; color:#065f46; padding:.2rem .6rem; border-radius:9999px; font-size:.7rem; font-weight:700; }
+        .badge-red   { background:#fee2e2; color:#991b1b; padding:.2rem .6rem; border-radius:9999px; font-size:.7rem; font-weight:700; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- NAV -->
+<header class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-lg">
+    <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762z"/>
+            </svg>
+            <span class="text-xl font-bold">Healthy Life</span>
+        </div>
+        <div class="flex items-center space-x-4 text-sm">
+            <a href="{% url 'dashboard_paciente' %}" class="hover:text-emerald-200 flex items-center space-x-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'logout' %}" class="hover:text-red-300 flex items-center space-x-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+</header>
+
+<main class="container mx-auto px-4 py-8 max-w-5xl">
+
+    <!-- MENSAJES -->
+    {% for msg in messages %}
+    <div class="mb-4 px-4 py-3 rounded-lg text-sm font-medium {% if msg.tags == 'success' %}bg-green-100 text-green-800 border border-green-300{% else %}bg-red-100 text-red-800 border border-red-300{% endif %}">
+        {{ msg }}
+    </div>
+    {% endfor %}
+
+    <!-- PERFIL HERO CARD -->
+    <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 mb-6 text-white shadow-xl">
+        <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center text-4xl font-bold border-4 border-white/40 flex-shrink-0">
+                {{ paciente.nombre_1|first|upper|default:user.username|first|upper }}
+            </div>
+            <div class="flex-1 text-center md:text-left">
+                <h1 class="text-2xl font-bold">
+                    {% if paciente %}{{ paciente.nombre_completo }}{% else %}{{ user.username }}{% endif %}
+                </h1>
+                <p class="text-emerald-100 text-sm mt-1">📧 {{ user.email }}</p>
+                {% if paciente and paciente.telefono %}<p class="text-emerald-100 text-sm">📱 {{ paciente.telefono }}</p>{% endif %}
+                <div class="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
+                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full">
+                        🏥 {{ user.id_sede.nombre_sede|default:"Sin sede" }}
+                    </span>
+                    {% if user.status %}
+                    <span class="bg-green-400/40 text-white text-xs px-3 py-1 rounded-full">✅ Cuenta Activa</span>
+                    {% else %}
+                    <span class="bg-red-400/40 text-white text-xs px-3 py-1 rounded-full">⛔ Cuenta Inactiva</span>
+                    {% endif %}
+                    {% if paciente and paciente.fecha_registro %}
+                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full">
+                        📅 Reg: {{ paciente.fecha_registro|date:"d/m/Y" }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Stats rápidas -->
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-white/15 rounded-xl p-3">
+                    <p class="text-2xl font-bold">{{ total_citas }}</p>
+                    <p class="text-xs text-emerald-100">Citas</p>
+                </div>
+                <div class="bg-white/15 rounded-xl p-3">
+                    <p class="text-2xl font-bold">{{ citas_activas }}</p>
+                    <p class="text-xs text-emerald-100">Activas</p>
+                </div>
+                <div class="bg-white/15 rounded-xl p-3">
+                    <p class="text-2xl font-bold">{{ citas_inactivas }}</p>
+                    <p class="text-xs text-emerald-100">Inactivas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AVISO SI NO HAY DATOS PERSONALES -->
+    {% if not paciente %}
+    <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mb-6 flex items-start space-x-3">
+        <span class="text-yellow-500 text-xl">⚠️</span>
+        <div>
+            <p class="font-semibold text-yellow-800">Perfil incompleto</p>
+            <p class="text-sm text-yellow-700">Aún no tienes datos personales registrados. Completa el formulario en la pestaña <strong>Datos Personales</strong> para acceder a todas las funciones.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- TABS -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="flex border-b border-gray-200 overflow-x-auto">
+            <button onclick="switchTab('datos')"     id="tab-datos"     class="tab-btn active px-5 py-3 text-sm whitespace-nowrap text-gray-500 hover:text-emerald-600">👤 Datos Personales</button>
+            <button onclick="switchTab('medico')"    id="tab-medico"    class="tab-btn px-5 py-3 text-sm whitespace-nowrap text-gray-500 hover:text-emerald-600">🏥 Datos Médicos</button>
+            <button onclick="switchTab('citas')"     id="tab-citas"     class="tab-btn px-5 py-3 text-sm whitespace-nowrap text-gray-500 hover:text-emerald-600">📅 Mis Citas</button>
+            <button onclick="switchTab('pagos')"     id="tab-pagos"     class="tab-btn px-5 py-3 text-sm whitespace-nowrap text-gray-500 hover:text-emerald-600">💰 Pagos</button>
+            <button onclick="switchTab('direccion')" id="tab-direccion" class="tab-btn px-5 py-3 text-sm whitespace-nowrap text-gray-500 hover:text-emerald-600">📍 Dirección</button>
+            <button onclick="switchTab('seguridad')" id="tab-seguridad" class="tab-btn px-5 py-3 text-sm whitespace-nowrap text-gray-500 hover:text-emerald-600">🔒 Seguridad</button>
+        </div>
+
+        <!-- TAB 1: DATOS PERSONALES -->
+        <div id="panel-datos" class="tab-panel active p-6">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-lg font-bold text-gray-800">Datos Personales</h2>
+                <button onclick="toggleEdit('form-datos','view-datos',this)" class="btn-green text-xs">✏️ Editar</button>
+            </div>
+
+            <!-- VISTA -->
+            <div id="view-datos" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% with p=paciente %}
+                <div><p class="field-label">Primer Nombre</p><p class="field-value">{{ p.nombre_1|default:"—" }}</p></div>
+                <div><p class="field-label">Segundo Nombre</p><p class="field-value">{{ p.nombre_2|default:"—" }}</p></div>
+                <div><p class="field-label">Primer Apellido</p><p class="field-value">{{ p.apellido_1|default:"—" }}</p></div>
+                <div><p class="field-label">Segundo Apellido</p><p class="field-value">{{ p.apellido_2|default:"—" }}</p></div>
+                <div><p class="field-label">Tipo Cédula</p><p class="field-value">{{ p.tipo_cedula|default:"—" }}</p></div>
+                <div><p class="field-label">Cédula</p><p class="field-value">{{ p.cedula|default:"—" }}</p></div>
+                <div><p class="field-label">Sexo</p><p class="field-value">{{ p.sexo|default:"—" }}</p></div>
+                <div><p class="field-label">Fecha de Nacimiento</p><p class="field-value">{{ p.fecha_nacimiento|date:"d/m/Y"|default:"—" }}{% if edad %} <span class="text-xs text-gray-400">({{ edad }} años)</span>{% endif %}</p></div>
+                <div><p class="field-label">Teléfono</p><p class="field-value">{{ p.telefono|default:"—" }}</p></div>
+                <div><p class="field-label">Correo</p><p class="field-value">{{ user.email }}</p></div>
+                {% endwith %}
+            </div>
+
+            <!-- FORMULARIO EDICIÓN (oculto por defecto) -->
+            <form id="form-datos" method="POST" class="hidden mt-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_perfil">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label class="field-label">Primer Nombre *</label><input type="text" name="nombre_1" value="{{ paciente.nombre_1|default:'' }}" required></div>
+                    <div><label class="field-label">Segundo Nombre</label><input type="text" name="nombre_2" value="{{ paciente.nombre_2|default:'' }}"></div>
+                    <div><label class="field-label">Primer Apellido *</label><input type="text" name="apellido_1" value="{{ paciente.apellido_1|default:'' }}" required></div>
+                    <div><label class="field-label">Segundo Apellido</label><input type="text" name="apellido_2" value="{{ paciente.apellido_2|default:'' }}"></div>
+                    <div><label class="field-label">Tipo Cédula</label>
+                        <select name="tipo_cedula">
+                            <option value="">Seleccionar</option>
+                            <option value="V" {% if paciente.tipo_cedula == "V" %}selected{% endif %}>V - Venezolano</option>
+                            <option value="E" {% if paciente.tipo_cedula == "E" %}selected{% endif %}>E - Extranjero</option>
+                            <option value="J" {% if paciente.tipo_cedula == "J" %}selected{% endif %}>J - Jurídico</option>
+                            <option value="G" {% if paciente.tipo_cedula == "G" %}selected{% endif %}>G - Gubernamental</option>
+                            <option value="P" {% if paciente.tipo_cedula == "P" %}selected{% endif %}>P - Pasaporte</option>
+                        </select>
+                    </div>
+                    <div><label class="field-label">Cédula *</label><input type="text" name="cedula" value="{{ paciente.cedula|default:'' }}" required></div>
+                    <div><label class="field-label">Sexo</label>
+                        <select name="sexo">
+                            <option value="">Seleccionar</option>
+                            <option value="Masculino" {% if paciente.sexo == "Masculino" %}selected{% endif %}>Masculino</option>
+                            <option value="Femenino"  {% if paciente.sexo == "Femenino"  %}selected{% endif %}>Femenino</option>
+                            <option value="Otro"      {% if paciente.sexo == "Otro"      %}selected{% endif %}>Otro</option>
+                        </select>
+                    </div>
+                    <div><label class="field-label">Fecha de Nacimiento</label>
+                        <input type="date" name="fecha_nacimiento" value="{{ paciente.fecha_nacimiento|date:'Y-m-d'|default:'' }}">
+                    </div>
+                    <div><label class="field-label">Teléfono</label><input type="tel" name="telefono" value="{{ paciente.telefono|default:'' }}"></div>
+                    <div><label class="field-label">Correo</label><input type="email" name="email" value="{{ user.email }}"></div>
+                </div>
+                <div class="flex space-x-3 mt-5">
+                    <button type="submit" class="btn-green">💾 Guardar Cambios</button>
+                    <button type="button" onclick="toggleEdit('form-datos','view-datos',null)" class="btn-gray">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 2: DATOS MÉDICOS -->
+        <div id="panel-medico" class="tab-panel p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-5">Datos Médicos</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-red-50 rounded-xl p-4 text-center border border-red-100">
+                    <p class="text-3xl mb-2">🩸</p>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Tipo de Sangre</p>
+                    <p class="text-xl font-bold text-red-600 mt-1">{{ tipo_sangre.tipo_sangre|default:"No registrado" }}</p>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-4 text-center border border-orange-100">
+                    <p class="text-3xl mb-2">⚠️</p>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Alergias</p>
+                    <p class="text-sm font-semibold text-orange-700 mt-1">{{ alergia.alergias|default:"Sin alergias registradas" }}</p>
+                </div>
+                <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+                    <p class="text-3xl mb-2">💉</p>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Vacunas</p>
+                    <p class="text-sm font-semibold text-blue-700 mt-1">{{ vacuna.vacunas_cumplidas|default:"Sin vacunas registradas" }}</p>
+                </div>
+            </div>
+
+            {% if historial %}
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Historial Médico</p>
+                <p class="text-sm text-gray-600">Registro #{{ historial.id_historial_medico }}
+                {% if historial.status %}<span class="badge-green ml-2">Activo</span>{% else %}<span class="badge-red ml-2">Inactivo</span>{% endif %}</p>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-400">
+                <p class="text-4xl mb-2">🗂️</p>
+                <p class="text-sm">Historial médico no disponible. Es gestionado por el personal médico.</p>
+            </div>
+            {% endif %}
+
+            <!-- Tutor / Condición especial -->
+            {% if tutor %}
+            <div class="mt-6 border-t pt-5">
+                <h3 class="font-bold text-gray-700 mb-3">👨‍👧 Datos del Tutor / Paciente Especial</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-purple-50 rounded-xl p-4 border border-purple-100">
+                    <div><p class="field-label">Nombre</p><p class="field-value">{% if tutor.nombre_1 %}{{ tutor.nombre_1 }} {{ tutor.nombre_2|default:"" }}{% else %}—{% endif %}</p></div>
+                    <div><p class="field-label">Apellido</p><p class="field-value">{% if tutor.apellido_1 %}{{ tutor.apellido_1 }} {{ tutor.apellido_2|default:"" }}{% else %}—{% endif %}</p></div>
+                    <div><p class="field-label">Teléfono</p><p class="field-value">{{ tutor.telefono|default:"—" }}</p></div>
+                    <div><p class="field-label">Sexo</p><p class="field-value">{{ tutor.sexo|default:"—" }}</p></div>
+                    <div><p class="field-label">Fecha Nacimiento</p><p class="field-value">{{ tutor.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</p></div>
+                    <div><p class="field-label">Estado</p><p class="field-value">{% if tutor.status %}<span class="badge-green">Activo</span>{% else %}<span class="badge-red">Inactivo</span>{% endif %}</p></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB 3: CITAS -->
+        <div id="panel-citas" class="tab-panel p-6">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-lg font-bold text-gray-800">Mis Citas</h2>
+                <a href="{% url 'solicitar_cita' %}" class="btn-green text-xs">+ Nueva Cita</a>
+            </div>
+
+            <!-- Próxima cita -->
+            {% if proxima_cita %}
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-5">
+                <p class="text-xs font-bold text-emerald-600 uppercase mb-2">📌 Próxima Cita</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <div><p class="text-xs text-gray-400">Fecha</p><p class="font-semibold">{{ proxima_cita.fecha_consulta|date:"d/m/Y" }}</p></div>
+                    <div><p class="text-xs text-gray-400">Hora</p><p class="font-semibold">{{ proxima_cita.fecha_consulta|time:"H:i" }}</p></div>
+                    <div><p class="text-xs text-gray-400">Médico</p><p class="font-semibold">{{ proxima_cita.id_doctor|default:"Sin asignar" }}</p></div>
+                    <div><p class="text-xs text-gray-400">Especialidad</p><p class="font-semibold">{{ proxima_cita.id_especialidades|default:"—" }}</p></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Motivo: {{ proxima_cita.motivo|default:"—" }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Historial -->
+            {% if citas_recientes %}
+            <div class="overflow-x-auto rounded-xl border border-gray-200">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">#</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Fecha</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Médico</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Especialidad</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Sede</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for c in citas_recientes %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-500">#{{ c.id_citas }}</td>
+                            <td class="px-4 py-3 font-medium">{{ c.fecha_consulta|date:"d/m/Y"|default:"—" }}<br><span class="text-xs text-gray-400">{{ c.fecha_consulta|time:"H:i"|default:"" }}</span></td>
+                            <td class="px-4 py-3">{{ c.id_doctor|default:"Sin asignar" }}</td>
+                            <td class="px-4 py-3">{{ c.id_especialidades|default:"—" }}</td>
+                            <td class="px-4 py-3">{{ c.id_sede|default:"—" }}</td>
+                            <td class="px-4 py-3">
+                                {% if c.status %}<span class="badge-green">Activa</span>{% else %}<span class="badge-red">Inactiva</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12 text-gray-400">
+                <p class="text-4xl mb-3">📅</p>
+                <p class="font-medium text-gray-500">No tienes citas registradas aún.</p>
+                <a href="{% url 'solicitar_cita' %}" class="inline-block mt-4 btn-green text-sm">Solicitar Primera Cita</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB 4: PAGOS -->
+        <div id="panel-pagos" class="tab-panel p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-5">Pagos y Facturación</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                    <p class="text-xs text-gray-500 uppercase font-semibold">💵 Total Pagado</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">${{ total_pagado|floatformat:2 }}</p>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+                    <p class="text-xs text-gray-500 uppercase font-semibold">🔴 Pendiente</p>
+                    <p class="text-2xl font-bold text-red-600 mt-1">${{ pendiente_pago|floatformat:2 }}</p>
+                </div>
+            </div>
+            {% if pagos_recientes %}
+            <div class="overflow-x-auto rounded-xl border border-gray-200">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">#</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Fecha</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Monto</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Método</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Referencia</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for p in pagos_recientes %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-500">#{{ p.id_pagos_cita }}</td>
+                            <td class="px-4 py-3">{{ p.fecha_consulta|date:"d/m/Y"|default:"—" }}</td>
+                            <td class="px-4 py-3 font-semibold">${{ p.monto_pagar|floatformat:2|default:"0.00" }}</td>
+                            <td class="px-4 py-3">{{ p.metodo_pago|default:"—" }}</td>
+                            <td class="px-4 py-3 text-gray-400 text-xs">{{ p.referencia_pago|default:"—" }}</td>
+                            <td class="px-4 py-3">{% if p.status %}<span class="badge-green">Pagado</span>{% else %}<span class="badge-red">Pendiente</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-10 text-gray-400">
+                <p class="text-4xl mb-3">💳</p>
+                <p>No hay pagos registrados.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB 5: DIRECCIÓN -->
+        <div id="panel-direccion" class="tab-panel p-6">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-lg font-bold text-gray-800">Dirección Registrada</h2>
+                {% if paciente %}
+                <button onclick="toggleEdit('form-dir','view-dir',this)" class="btn-green text-xs">✏️ Editar</button>
+                {% endif %}
+            </div>
+
+            <!-- VISTA -->
+            <div id="view-dir">
+                {% if direccion %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><p class="field-label">🗺️ Estado</p><p class="field-value">{{ direccion.id_estado|default:"—" }}</p></div>
+                    <div><p class="field-label">🏘️ Municipio</p><p class="field-value">{{ direccion.id_municipio|default:"—" }}</p></div>
+                    <div><p class="field-label">🏙️ Ciudad</p><p class="field-value">{{ direccion.id_ciudad|default:"—" }}</p></div>
+                    <div><p class="field-label">📍 Parroquia</p><p class="field-value">{{ direccion.id_parroquia|default:"—" }}</p></div>
+                    <div class="sm:col-span-2"><p class="field-label">📫 Dirección</p><p class="field-value">{{ direccion.direccion|default:"—" }}</p></div>
+                    {% if direccion.referencia %}<div class="sm:col-span-2"><p class="field-label">Referencia</p><p class="field-value">{{ direccion.referencia }}</p></div>{% endif %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-400">
+                    <p class="text-4xl mb-3">📍</p>
+                    <p class="text-sm">No hay dirección registrada.{% if paciente %} Haz clic en <strong>Editar</strong> para agregar una.{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- FORM EDICIÓN DIRECCIÓN -->
+            {% if paciente %}
+            <form id="form-dir" method="POST" class="hidden mt-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_direccion">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="field-label">Estado</label>
+                        <select name="id_estado" id="sel-estado-dir" onchange="loadMunicipiosDir(this.value)">
+                            <option value="">Seleccionar estado</option>
+                            {% for e in estados %}<option value="{{ e.id_estado }}" {% if direccion and direccion.id_estado_id == e.id_estado %}selected{% endif %}>{{ e.estado }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">Municipio</label>
+                        <select name="id_municipio" id="sel-mun-dir">
+                            <option value="">Seleccionar municipio</option>
+                            {% for m in municipios_dir %}<option value="{{ m.id_municipio }}" {% if direccion and direccion.id_municipio_id == m.id_municipio %}selected{% endif %}>{{ m.municipio }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">Ciudad</label>
+                        <select name="id_ciudad" id="sel-ciu-dir">
+                            <option value="">Seleccionar ciudad</option>
+                            {% for c in ciudades_dir %}<option value="{{ c.id_ciudad }}" {% if direccion and direccion.id_ciudad_id == c.id_ciudad %}selected{% endif %}>{{ c.ciudad }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">Parroquia</label>
+                        <select name="id_parroquia" id="sel-par-dir">
+                            <option value="">Seleccionar parroquia</option>
+                            {% for p in parroquias_dir %}<option value="{{ p.id_parroquia }}" {% if direccion and direccion.id_parroquia_id == p.id_parroquia %}selected{% endif %}>{{ p.parroquia }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="field-label">Dirección *</label>
+                        <textarea name="direccion" rows="2" required>{{ direccion.direccion|default:"" }}</textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="field-label">Referencia</label>
+                        <input type="text" name="referencia" value="{{ direccion.referencia|default:'' }}">
+                    </div>
+                </div>
+                <div class="flex space-x-3 mt-5">
+                    <button type="submit" class="btn-green">💾 Guardar Dirección</button>
+                    <button type="button" onclick="toggleEdit('form-dir','view-dir',null)" class="btn-gray">Cancelar</button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- TAB 6: SEGURIDAD -->
+        <div id="panel-seguridad" class="tab-panel p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-5">🔒 Cambiar Contraseña</h2>
+            <form method="POST" class="max-w-md">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_password">
+                <div class="space-y-4">
+                    <div>
+                        <label class="field-label">Contraseña Actual</label>
+                        <input type="password" name="password_actual" required placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="field-label">Nueva Contraseña</label>
+                        <input type="password" name="password_nuevo" required placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <div>
+                        <label class="field-label">Confirmar Nueva Contraseña</label>
+                        <input type="password" name="password_confirmar" required placeholder="Repite la contraseña">
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button type="submit" class="btn-green w-full">🔐 Actualizar Contraseña</button>
+                </div>
+            </form>
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h3 class="font-semibold text-gray-700 mb-2">Información de Cuenta</h3>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <p>👤 Usuario: <strong>{{ user.username }}</strong></p>
+                    <p>📧 Correo: <strong>{{ user.email }}</strong></p>
+                    <p>🏥 Sede: <strong>{{ user.id_sede.nombre_sede|default:"Sin sede" }}</strong></p>
+                    <p>Estado: {% if user.status %}<span class="badge-green">Activo</span>{% else %}<span class="badge-red">Inactivo</span>{% endif %}</p>
+                </div>
+            </div>
+        </div>
+    </div><!-- /tabs container -->
+
+    <!-- Botón volver -->
+    <div class="mt-6 text-center">
+        <a href="{% url 'dashboard_paciente' %}" class="text-sm text-gray-500 hover:text-emerald-600">← Volver al Dashboard</a>
+    </div>
+</main>
+
+<script>
+    // ── Tabs ──────────────────────────────────────────────────────────────────
+    function switchTab(name) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        document.getElementById('panel-' + name).classList.add('active');
+    }
+
+    // ── Toggle edición inline ────────────────────────────────────────────────
+    function toggleEdit(formId, viewId, btn) {
+        const form = document.getElementById(formId);
+        const view = document.getElementById(viewId);
+        const isHidden = form.classList.contains('hidden');
+        form.classList.toggle('hidden', !isHidden);
+        view.classList.toggle('hidden', isHidden);
+        if (btn) btn.textContent = isHidden ? '✖ Cancelar' : '✏️ Editar';
+    }
+
+    // ── AJAX municipios / ciudades / parroquias para dirección ───────────────
+    function loadMunicipiosDir(estadoId) {
+        const selMun = document.getElementById('sel-mun-dir');
+        const selCiu = document.getElementById('sel-ciu-dir');
+        const selPar = document.getElementById('sel-par-dir');
+        [selMun, selCiu, selPar].forEach(s => { s.innerHTML = '<option value="">Cargando...</option>'; });
+        if (!estadoId) return;
+
+        fetch(`{% url 'cargar_municipios' %}?estado_id=${estadoId}`)
+            .then(r => r.json()).then(data => {
+                selMun.innerHTML = '<option value="">Seleccionar</option>' +
+                    data.map(m => `<option value="${m.id_municipio}">${m.municipio}</option>`).join('');
+            });
+        fetch(`{% url 'cargar_ciudades' %}?estado_id=${estadoId}`)
+            .then(r => r.json()).then(data => {
+                selCiu.innerHTML = '<option value="">Seleccionar</option>' +
+                    data.map(c => `<option value="${c.id_ciudad}">${c.ciudad}</option>`).join('');
+            });
+        // Parroquias dependen del municipio; limpiamos por ahora
+        selPar.innerHTML = '<option value="">Selecciona municipio primero</option>';
+    }
+
+    document.getElementById('sel-mun-dir') && document.getElementById('sel-mun-dir').addEventListener('change', function() {
+        const munId = this.value;
+        const selPar = document.getElementById('sel-par-dir');
+        if (!munId) return;
+        fetch(`{% url 'cargar_parroquias' %}?municipio_id=${munId}`)
+            .then(r => r.json()).then(data => {
+                selPar.innerHTML = '<option value="">Seleccionar</option>' +
+                    data.map(p => `<option value="${p.id_parroquia}">${p.parroquia}</option>`).join('');
+            });
+    });
+</script>
+</body>
+</html>
