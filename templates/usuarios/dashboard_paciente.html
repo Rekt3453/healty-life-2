@@ -248,9 +248,9 @@
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Mi Perfil</h3>
                     <p class="text-gray-600 mb-4">Actualiza tus datos personales</p>
-                    <button class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium">
-                        Editar Perfil
-                    </button>
+                    <a href="{% url 'perfil_paciente' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
+                        Ver / Editar Perfil
+                    </a>
                 </div>
             </div>
         </div>
@@ -275,23 +275,20 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for cita in citas %}
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.servicio.nombre }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.sede.nombre }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.hora }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ cita.id_citas }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_especialidades|default:"—" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_sede|default:"—" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|date:"d/m/Y"|default:"—" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|time:"H:i"|default:"—" }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {% if cita.estado == 'aprobada' %}bg-green-100 text-green-800
-                                    {% elif cita.estado == 'rechazada' %}bg-red-100 text-red-800
-                                    {% elif cita.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
-                                    {% elif cita.estado == 'cancelada' %}bg-gray-100 text-gray-800
-                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
-                                    {{ cita.get_estado_display }}
-                                </span>
+                                {% if cita.status %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activa</span>
+                                {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactiva</span>
+                                {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.medico.username|default:"Sin asignar" }}
+                                {{ cita.id_doctor|default:"Sin asignar" }}
                             </td>
                         </tr>
                         {% endfor %}
