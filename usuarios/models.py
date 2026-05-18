@@ -150,7 +150,7 @@ class CentroMedico(models.Model):
     id_cm = models.BigAutoField(primary_key=True)
     nombre_cm = models.TextField()
     rif_cm = models.CharField(max_length=50, blank=True, null=True)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
 
     class Meta:
         managed = False
@@ -166,7 +166,7 @@ class Sede(models.Model):
     id_direccion = models.ForeignKey(DireccionSede, on_delete=models.CASCADE, db_column='id_direccion')
     rif_sede = models.CharField(max_length=50, blank=True, null=True)
     telefono = models.CharField(max_length=50, blank=True, null=True)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
     id_cm = models.ForeignKey(CentroMedico, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cm')
     nombre_sede = models.TextField()
 
@@ -410,7 +410,7 @@ class PacienteDatosPersonales(models.Model):
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     fecha_nacimiento = models.DateTimeField(blank=True, null=True)
     fecha_registro = models.DateTimeField(null=True, blank=True)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
     id_direccion_paciente = models.ForeignKey(DireccionPaciente, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_direccion_paciente')
     telefono = models.CharField(max_length=50, blank=True, null=True)
 
@@ -431,9 +431,9 @@ class PacienteDatosPersonales(models.Model):
 
 class Doctor(models.Model):
     id_doctor = models.BigAutoField(primary_key=True)
-    nombre_1 = models.TextField()  # En la BD es ARRAY, pero lo manejaremos como texto
+    nombre_1 = models.TextField(blank=True, null=True)
     nombre_2 = models.TextField(blank=True, null=True)
-    apellido_1 = models.TextField()
+    apellido_1 = models.TextField(blank=True, null=True)
     apellido_2 = models.TextField(blank=True, null=True)
     id_especialidad_doctor = models.BigIntegerField(blank=True, null=True)
     id_user_doctor = models.ForeignKey(UserDoctor, on_delete=models.CASCADE, db_column='id_user_doctor')
@@ -444,7 +444,7 @@ class Doctor(models.Model):
     cedula = models.CharField(max_length=20, blank=True, null=True)
     tipo_cedula = models.CharField(max_length=20, blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
     id_direccion_doctor = models.ForeignKey(DireccionDoctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_direccion_doctor')
     telefono = models.CharField(max_length=50, blank=True, null=True)
     id_horario = models.BigIntegerField(blank=True, null=True)

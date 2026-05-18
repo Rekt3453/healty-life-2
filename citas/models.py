@@ -7,7 +7,7 @@ class Consultorio(models.Model):
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     id_cm = models.ForeignKey(CentroMedico, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cm')
     consultorios = models.CharField(max_length=255, blank=True, null=True)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
 
     class Meta:
         managed = False
@@ -21,7 +21,7 @@ class Especialidad(models.Model):
     id_especialidad = models.BigAutoField(primary_key=True)
     tipo_especialidad = models.TextField(blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
 
     class Meta:
         managed = False
@@ -84,7 +84,7 @@ class ServicioEspecialidad(models.Model):
         Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor'
     )
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
     id_precios_servicios = models.ForeignKey(
         PreciosServicios, on_delete=models.SET_NULL, null=True, blank=True,
         db_column='id_precios_servicios'
@@ -109,8 +109,8 @@ class PagoCita(models.Model):
     metodo_pago = models.CharField(max_length=100, blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     fecha_consulta = models.DateTimeField(blank=True, null=True)
-    status = models.BooleanField(default=True)
-    id_cita = models.BigIntegerField(blank=True, null=True)  # sin FK constraint en el schema
+    status = models.BooleanField(null=True, blank=True, default=True)
+    id_cita = models.BigIntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -142,7 +142,7 @@ class Cita(models.Model):
     )
     fecha_consulta = models.DateTimeField(blank=True, null=True)
     fecha_emision = models.DateTimeField(blank=True, null=True)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
     id_servicio_especialidad = models.ForeignKey(
         ServicioEspecialidad, on_delete=models.SET_NULL, null=True, blank=True,
         db_column='id_servicio_especialidad'
