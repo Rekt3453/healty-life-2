@@ -33,6 +33,9 @@ urlpatterns = [
     path('dashboard/gerente/registrar-staff/', views.registro_staff, name='registro_staff'),
     path('dashboard/gerente/registrar-doctor/', views.registrar_doctor, name='registrar_doctor'),
     path('dashboard/gerente/registrar-recepcionista/', views.registrar_recepcionista, name='registrar_recepcionista'),
+    path('dashboard/gerente/personal/', views.lista_personal, name='lista_personal'),
+    path('dashboard/gerente/personal/editar-doctor/<int:id_doctor>/', views.editar_doctor_view, name='editar_doctor'),
+    path('dashboard/gerente/personal/editar-recepcionista/<int:id_recepcionista>/', views.editar_recepcionista_view, name='editar_recepcionista'),
     
     # API endpoints para selectores dependientes
     path('ajax/municipios/', views.cargar_municipios, name='cargar_municipios'),

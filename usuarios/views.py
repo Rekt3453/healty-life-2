@@ -11,12 +11,12 @@ from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador,
     Estado, Municipio, Ciudad, Parroquia, PacienteEspecial, Sede,
-    DireccionPaciente,
+    DireccionPaciente, DireccionDoctor, DireccionRecepcionista,
 )
 from usuarios.decorators import rol_requerido
 from .views_new import registro_paciente as nuevo_registro_paciente
 from .views_new import cargar_municipios, cargar_ciudades, cargar_parroquias
-from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas
+from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas, EspecialidadDoctor, Consultorio, Horario
 from .authentication import CustomAuthBackend
 
 def home(request):
@@ -604,6 +604,234 @@ def registro_staff(request):
         print(f"Error en registro_staff: {e}")
         messages.error(request, 'Error al cargar el formulario de registro')
         return redirect('home')
+
+def lista_personal(request):
+    """Lista doctores y recepcionistas de la sede del gerente."""
+    try:
+        user_id = request.session.get('_auth_user_id')
+        if not user_id:
+            messages.error(request, 'Debes iniciar sesión como gerente primero')
+            return redirect('login_gerente')
+        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+        if not user:
+            messages.error(request, 'Gerente no encontrado')
+            return redirect('login_gerente')
+        auth_backend = CustomAuthBackend()
+        if auth_backend.get_rol(user) != 'gerente':
+            messages.error(request, 'Acceso denegado')
+            return redirect('home')
+        sede = user.id_sede
+
+        doctores = Doctor.objects.filter(id_sede=sede).select_related(
+            'id_user_doctor', 'id_direccion_doctor'
+        )
+        recepcionistas = Recepcionista.objects.filter(id_sede=sede).select_related(
+            'id_user_recepcionista', 'id_direccion_recepcionista'
+        )
+
+        espec_ids = {d.id_especialidad_doctor for d in doctores if d.id_especialidad_doctor}
+        especialidades = {}
+        if espec_ids:
+            for e in EspecialidadDoctor.objects.select_related('id_especialidad').filter(pk__in=espec_ids):
+                especialidades[e.pk] = e.id_especialidad.tipo_especialidad if e.id_especialidad else '-'
+        for d in doctores:
+            d.especialidad_nombre = especialidades.get(d.id_especialidad_doctor, '-')
+
+        return render(request, 'usuarios/lista_personal.html', {
+            'doctores': doctores,
+            'recepcionistas': recepcionistas,
+            'sede': sede,
+        })
+    except Exception as e:
+        print(f"Error en lista_personal: {e}")
+        messages.error(request, 'Error al cargar la lista de personal')
+        return redirect('dashboard_gerente')
+
+
+def editar_doctor_view(request, id_doctor):
+    """Editar datos de un doctor existente (solo gerente de su sede)."""
+    try:
+        user_id = request.session.get('_auth_user_id')
+        if not user_id:
+            messages.error(request, 'Debes iniciar sesión como gerente primero')
+            return redirect('login_gerente')
+        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+        if not user:
+            messages.error(request, 'Gerente no encontrado')
+            return redirect('login_gerente')
+        auth_backend = CustomAuthBackend()
+        if auth_backend.get_rol(user) != 'gerente':
+            messages.error(request, 'Acceso denegado')
+            return redirect('home')
+        sede = user.id_sede
+
+        doctor = Doctor.objects.filter(
+            pk=id_doctor, id_sede=sede
+        ).select_related('id_user_doctor', 'id_direccion_doctor').first()
+        if not doctor:
+            messages.error(request, 'Doctor no encontrado o no pertenece a esta sede.')
+            return redirect('lista_personal')
+
+        user_doctor = doctor.id_user_doctor
+        direccion   = doctor.id_direccion_doctor
+
+        from usuarios.forms import EditarDoctorForm
+        if request.method == 'POST':
+            form = EditarDoctorForm(
+                request.POST,
+                doctor_pk=doctor.pk,
+                user_doctor_pk=user_doctor.pk if user_doctor else None,
+                sede_id=sede.pk if sede else None,
+            )
+            if form.is_valid():
+                try:
+                    form.save(doctor, user_doctor, direccion)
+                    messages.success(request, 'Doctor actualizado correctamente.')
+                    return redirect('lista_personal')
+                except Exception as e:
+                    messages.error(request, f'Error al guardar: {str(e)}')
+                    print(f"Error guardando doctor {id_doctor}: {e}")
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+                print(f"Errores editar_doctor: {form.errors}")
+        else:
+            initial = {}
+            if user_doctor:
+                initial.update({
+                    'username': user_doctor.username,
+                    'email':    user_doctor.email,
+                    'status':   user_doctor.status,
+                })
+            initial.update({
+                'nombre_1':   doctor.nombre_1 or '',
+                'nombre_2':   doctor.nombre_2 or '',
+                'apellido_1': doctor.apellido_1 or '',
+                'apellido_2': doctor.apellido_2 or '',
+                'cedula':     doctor.cedula or '',
+                'tipo_cedula': doctor.tipo_cedula or 'V',
+                'sexo':       doctor.sexo or 'M',
+                'telefono':   doctor.telefono or '',
+                'fecha_nacimiento': doctor.fecha_nacimiento.date() if doctor.fecha_nacimiento else None,
+                'id_especialidad_doctor': EspecialidadDoctor.objects.filter(pk=doctor.id_especialidad_doctor).first() if doctor.id_especialidad_doctor else None,
+                'id_consultorio': Consultorio.objects.filter(pk=doctor.id_consultorio).first() if doctor.id_consultorio else None,
+                'id_horario': Horario.objects.filter(pk=doctor.id_horario).first() if doctor.id_horario else None,
+            })
+            if direccion:
+                initial.update({
+                    'id_estado':    direccion.id_estado,
+                    'id_municipio': direccion.id_municipio,
+                    'id_ciudad':    direccion.id_ciudad,
+                    'id_parroquia': direccion.id_parroquia,
+                    'direccion':    direccion.direccion or '',
+                    'referencia':   direccion.referencia or '',
+                    'latitud':      direccion.latitud or '',
+                    'longitud':     direccion.longitud or '',
+                })
+            form = EditarDoctorForm(
+                initial=initial,
+                doctor_pk=doctor.pk,
+                user_doctor_pk=user_doctor.pk if user_doctor else None,
+                sede_id=sede.pk if sede else None,
+            )
+
+        return render(request, 'usuarios/editar_doctor.html', {
+            'form': form, 'doctor': doctor, 'sede': sede,
+        })
+    except Exception as e:
+        print(f"Error en editar_doctor_view: {e}")
+        messages.error(request, 'Error al cargar el formulario de edición')
+        return redirect('lista_personal')
+
+
+def editar_recepcionista_view(request, id_recepcionista):
+    """Editar datos de una recepcionista existente (solo gerente de su sede)."""
+    try:
+        user_id = request.session.get('_auth_user_id')
+        if not user_id:
+            messages.error(request, 'Debes iniciar sesión como gerente primero')
+            return redirect('login_gerente')
+        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+        if not user:
+            messages.error(request, 'Gerente no encontrado')
+            return redirect('login_gerente')
+        auth_backend = CustomAuthBackend()
+        if auth_backend.get_rol(user) != 'gerente':
+            messages.error(request, 'Acceso denegado')
+            return redirect('home')
+        sede = user.id_sede
+
+        recepcionista = Recepcionista.objects.filter(
+            pk=id_recepcionista, id_sede=sede
+        ).select_related('id_user_recepcionista', 'id_direccion_recepcionista').first()
+        if not recepcionista:
+            messages.error(request, 'Recepcionista no encontrada o no pertenece a esta sede.')
+            return redirect('lista_personal')
+
+        user_recepcionista = recepcionista.id_user_recepcionista
+        direccion          = recepcionista.id_direccion_recepcionista
+
+        from usuarios.forms import EditarRecepcionistaForm
+        if request.method == 'POST':
+            form = EditarRecepcionistaForm(
+                request.POST,
+                recepcionista_pk=recepcionista.pk,
+                user_recepcionista_pk=user_recepcionista.pk if user_recepcionista else None,
+            )
+            if form.is_valid():
+                try:
+                    form.save(recepcionista, user_recepcionista, direccion)
+                    messages.success(request, 'Recepcionista actualizada correctamente.')
+                    return redirect('lista_personal')
+                except Exception as e:
+                    messages.error(request, f'Error al guardar: {str(e)}')
+                    print(f"Error guardando recepcionista {id_recepcionista}: {e}")
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+                print(f"Errores editar_recepcionista: {form.errors}")
+        else:
+            initial = {}
+            if user_recepcionista:
+                initial.update({
+                    'username': user_recepcionista.username,
+                    'email':    user_recepcionista.email,
+                    'status':   user_recepcionista.status,
+                })
+            initial.update({
+                'nombre_1':   recepcionista.nombre_1 or '',
+                'nombre_2':   recepcionista.nombre_2 or '',
+                'apellido_1': recepcionista.apellido_1 or '',
+                'apellido_2': recepcionista.apellido_2 or '',
+                'cedula':     recepcionista.cedula or '',
+                'tipo_cedula': recepcionista.tipo_cedula or 'V',
+                'sexo':       recepcionista.sexo or 'M',
+                'telefono':   recepcionista.telefono or '',
+                'fecha_nacimiento': recepcionista.fecha_nacimiento.date() if recepcionista.fecha_nacimiento else None,
+            })
+            if direccion:
+                initial.update({
+                    'id_estado':    direccion.id_estado,
+                    'id_municipio': direccion.id_municipio,
+                    'id_ciudad':    direccion.id_ciudad,
+                    'id_parroquia': direccion.id_parroquia,
+                    'direccion':    direccion.direccion or '',
+                    'referencia':   direccion.referencia or '',
+                    'latitud':      direccion.latitud or '',
+                    'longitud':     direccion.longitud or '',
+                })
+            form = EditarRecepcionistaForm(
+                initial=initial,
+                recepcionista_pk=recepcionista.pk,
+                user_recepcionista_pk=user_recepcionista.pk if user_recepcionista else None,
+            )
+
+        return render(request, 'usuarios/editar_recepcionista.html', {
+            'form': form, 'recepcionista': recepcionista, 'sede': sede,
+        })
+    except Exception as e:
+        print(f"Error en editar_recepcionista_view: {e}")
+        messages.error(request, 'Error al cargar el formulario de edición')
+        return redirect('lista_personal')
+
 
 def registrar_doctor(request):
     """Registro exclusivo de doctores con credenciales propias."""
