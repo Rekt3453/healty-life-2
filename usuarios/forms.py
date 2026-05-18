@@ -199,28 +199,47 @@ class RegistroPacienteForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_estado', 'data-validate': 'select'})
     )
     
-    ciudad = forms.CharField(
-        max_length=100, required=True,
-        label="Ciudad",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Caracas', 'id': 'id_ciudad'})
+    id_municipio = forms.ModelChoiceField(
+        queryset=Municipio.objects.none(),
+        required=True, label="Municipio",
+        empty_label="Seleccione un municipio",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_municipio'})
     )
     
-    municipio = forms.CharField(
-        max_length=100, required=False,
-        label="Municipio",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Libertador', 'id': 'id_municipio'})
+    id_ciudad = forms.ModelChoiceField(
+        queryset=Ciudad.objects.none(),
+        required=True, label="Ciudad",
+        empty_label="Seleccione una ciudad",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_ciudad'})
     )
     
-    parroquia = forms.CharField(
-        max_length=100, required=False,
-        label="Parroquia",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Sucre', 'id': 'id_parroquia'})
+    id_parroquia = forms.ModelChoiceField(
+        queryset=Parroquia.objects.none(),
+        required=True, label="Parroquia",
+        empty_label="Seleccione una parroquia",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_parroquia'})
     )
     
     direccion = forms.CharField(
         max_length=500, required=False,
         label="Dirección",
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Dirección de domicilio (opcional)'})
+    )
+    
+    referencia = forms.CharField(
+        max_length=500, required=False,
+        label="Referencia",
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Punto de referencia (opcional)'})
+    )
+    
+    latitud = forms.CharField(
+        max_length=100, required=False, label="Latitud",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 10.4806'})
+    )
+    
+    longitud = forms.CharField(
+        max_length=100, required=False, label="Longitud",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: -66.9036'})
     )
     
     # ==================== CONDICIÓN ESPECIAL ====================
@@ -314,6 +333,25 @@ class RegistroPacienteForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        estado_id = None
+        if self.data.get('id_estado'):
+            try:
+                estado_id = int(self.data['id_estado'])
+            except (ValueError, TypeError):
+                pass
+        if estado_id:
+            self.fields['id_municipio'].queryset = Municipio.objects.filter(id_estado=estado_id)
+            self.fields['id_ciudad'].queryset = Ciudad.objects.filter(id_estado=estado_id)
+        
+        municipio_id = None
+        if self.data.get('id_municipio'):
+            try:
+                municipio_id = int(self.data['id_municipio'])
+            except (ValueError, TypeError):
+                pass
+        if municipio_id:
+            self.fields['id_parroquia'].queryset = Parroquia.objects.filter(id_municipio=municipio_id)
     
     # ==================== VALIDACIONES ====================
     
@@ -388,50 +426,18 @@ class RegistroPacienteForm(forms.Form):
     # ==================== GUARDADO ====================
     
     def save(self):
-        # Obtener la sede seleccionada
         sede = self.cleaned_data['sede']
         
-        # Buscar o crear ciudad, municipio y parroquia
-        estado = self.cleaned_data['id_estado']
-        ciudad_nombre = self.cleaned_data['ciudad'].upper()
-        municipio_nombre = self.cleaned_data.get('municipio', '').upper()
-        parroquia_nombre = self.cleaned_data.get('parroquia', '').upper()
-        
-        # Buscar o crear ciudad
-        ciudad, _ = Ciudad.objects.get_or_create(
-            ciudad=ciudad_nombre,
-            id_estado=estado,
-            defaults={'status': True}
-        )
-        
-        # Buscar o crear municipio si se proporcionó
-        municipio = None
-        if municipio_nombre:
-            municipio, _ = Municipio.objects.get_or_create(
-                municipio=municipio_nombre,
-                id_estado=estado,
-                defaults={'status': True}
-            )
-        
-        # Buscar o crear parroquia si se proporcionó
-        parroquia = None
-        if parroquia_nombre and municipio:
-            parroquia, _ = Parroquia.objects.get_or_create(
-                parroquia=parroquia_nombre,
-                id_municipio=municipio,
-                defaults={'status': True}
-            )
-        
-        # Crear dirección del paciente
+        # Crear dirección del paciente con los FKs seleccionados
         direccion = DireccionPaciente.objects.create(
-            id_estado=estado,
-            id_municipio=municipio,
-            id_ciudad=ciudad,
-            id_parroquia=parroquia,
+            id_estado=self.cleaned_data['id_estado'],
+            id_municipio=self.cleaned_data['id_municipio'],
+            id_ciudad=self.cleaned_data['id_ciudad'],
+            id_parroquia=self.cleaned_data['id_parroquia'],
             direccion=self.cleaned_data.get('direccion', ''),
-            referencia='',
-            latitud='',
-            longitud=''
+            referencia=self.cleaned_data.get('referencia', '') or '',
+            latitud=self.cleaned_data.get('latitud', '') or '',
+            longitud=self.cleaned_data.get('longitud', '') or '',
         )
         
         # Crear usuario paciente
