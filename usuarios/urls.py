@@ -31,6 +31,8 @@ urlpatterns = [
     
     # Registro de staff (gerente)
     path('dashboard/gerente/registrar-staff/', views.registro_staff, name='registro_staff'),
+    path('dashboard/gerente/registrar-doctor/', views.registrar_doctor, name='registrar_doctor'),
+    path('dashboard/gerente/registrar-recepcionista/', views.registrar_recepcionista, name='registrar_recepcionista'),
     
     # API endpoints para selectores dependientes
     path('ajax/municipios/', views.cargar_municipios, name='cargar_municipios'),

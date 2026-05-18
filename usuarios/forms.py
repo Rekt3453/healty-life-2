@@ -8,6 +8,7 @@ from .models import (
     DireccionPaciente, DireccionDoctor, DireccionRecepcionista, DireccionAdmin,
     Sede, Estado, Municipio, Ciudad, Parroquia, PacienteEspecial
 )
+from citas.models import EspecialidadDoctor, Consultorio, Horario
 
 class DireccionForm(forms.Form):
     """Formulario base para direcciones"""
@@ -770,3 +771,313 @@ class RegistroStaffForm(forms.Form):
             )
             
             return user_recepcionista
+
+
+# ── Formularios separados para Doctor y Recepcionista ────────────────────────
+
+_CSS = 'form-input w-full px-3 py-2 rounded-lg'
+
+_TIPO_CEDULA_CHOICES = [
+    ('V', 'V - Venezolano'), ('E', 'E - Extranjero'), ('J', 'J - Jurídico'),
+    ('C', 'C - Consejo Comunal'), ('G', 'G - Gobierno'),
+    ('P', 'P - Pasaporte'), ('F', 'F - Fallecido'),
+]
+_SEXO_CHOICES = [('M', 'Masculino'), ('F', 'Femenino')]
+
+
+class EspecialidadDoctorChoiceField(forms.ModelChoiceField):
+    """ModelChoiceField que muestra el nombre de la especialidad."""
+    def label_from_instance(self, obj):
+        if obj.id_especialidad and obj.id_especialidad.tipo_especialidad:
+            return obj.id_especialidad.tipo_especialidad
+        return f"Especialidad {obj.pk}"
+
+
+class RegistrarDoctorForm(forms.Form):
+    """Formulario dedicado para registrar un doctor con sus credenciales."""
+
+    # ── Autenticación ──────────────────────────────────────────────────────
+    username = forms.CharField(max_length=150, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    email = forms.EmailField(required=True,
+        widget=forms.EmailInput(attrs={'class': _CSS}))
+    password1 = forms.CharField(label="Contraseña", required=True,
+        widget=forms.PasswordInput(attrs={'class': _CSS}))
+    password2 = forms.CharField(label="Confirmar contraseña", required=True,
+        widget=forms.PasswordInput(attrs={'class': _CSS}))
+
+    # ── Datos personales ───────────────────────────────────────────────────
+    nombre_1 = forms.CharField(max_length=100, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    nombre_2 = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_1 = forms.CharField(max_length=100, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_2 = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    cedula = forms.CharField(max_length=20, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    tipo_cedula = forms.ChoiceField(choices=_TIPO_CEDULA_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    sexo = forms.ChoiceField(choices=_SEXO_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    telefono = forms.CharField(max_length=50, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    fecha_nacimiento = forms.DateField(required=True,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
+
+    # ── Datos profesionales ────────────────────────────────────────────────
+    id_especialidad_doctor = EspecialidadDoctorChoiceField(
+        queryset=EspecialidadDoctor.objects.select_related('id_especialidad').all(),
+        required=False, empty_label="Sin especialidad asignada",
+        widget=forms.Select(attrs={'class': _CSS}))
+    id_consultorio = forms.ModelChoiceField(
+        queryset=Consultorio.objects.filter(status__in=[True, None]),
+        required=False, empty_label="Sin consultorio asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+    id_horario = forms.ModelChoiceField(
+        queryset=Horario.objects.all(),
+        required=False, empty_label="Sin horario asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+
+    # ── Dirección ──────────────────────────────────────────────────────────
+    id_estado = forms.ModelChoiceField(queryset=Estado.objects.all(),
+        required=True, empty_label="Seleccione un estado",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_estado_doc'}))
+    id_municipio = forms.ModelChoiceField(queryset=Municipio.objects.none(),
+        required=True, empty_label="Seleccione un municipio",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_municipio_doc'}))
+    id_ciudad = forms.ModelChoiceField(queryset=Ciudad.objects.none(),
+        required=True, empty_label="Seleccione una ciudad",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_ciudad_doc'}))
+    id_parroquia = forms.ModelChoiceField(queryset=Parroquia.objects.none(),
+        required=True, empty_label="Seleccione una parroquia",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_parroquia_doc'}))
+    direccion = forms.CharField(required=True,
+        widget=forms.Textarea(attrs={'rows': 3, 'class': _CSS}))
+    referencia = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'rows': 2, 'class': _CSS}))
+    latitud = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    longitud = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+
+    def __init__(self, *args, sede_id=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if sede_id:
+            self.fields['id_consultorio'].queryset = Consultorio.objects.filter(
+                id_sede_id=sede_id, status__in=[True, None])
+            self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
+        if 'id_estado' in self.data:
+            try:
+                estado_id = int(self.data['id_estado'])
+                self.fields['id_municipio'].queryset = Municipio.objects.filter(id_estado=estado_id)
+                self.fields['id_ciudad'].queryset = Ciudad.objects.filter(id_estado=estado_id)
+            except (ValueError, TypeError):
+                pass
+        if 'id_municipio' in self.data:
+            try:
+                municipio_id = int(self.data['id_municipio'])
+                self.fields['id_parroquia'].queryset = Parroquia.objects.filter(id_municipio=municipio_id)
+            except (ValueError, TypeError):
+                pass
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get('password1')
+        p2 = self.cleaned_data.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError("Las contraseñas no coinciden.")
+        return p2
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if UserDoctor.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if UserDoctor.objects.filter(email=email).exists():
+            raise forms.ValidationError("Este correo ya está registrado para un doctor.")
+        return email
+
+    def clean_cedula(self):
+        cedula = self.cleaned_data.get('cedula')
+        if Doctor.objects.filter(cedula=cedula).exists():
+            raise forms.ValidationError("Esta cédula ya está registrada.")
+        return cedula
+
+    def save(self, sede):
+        from django.utils import timezone
+        direccion = DireccionDoctor.objects.create(
+            id_estado=self.cleaned_data['id_estado'],
+            id_municipio=self.cleaned_data['id_municipio'],
+            id_ciudad=self.cleaned_data['id_ciudad'],
+            id_parroquia=self.cleaned_data['id_parroquia'],
+            direccion=self.cleaned_data['direccion'],
+            referencia=self.cleaned_data.get('referencia') or '',
+            latitud=self.cleaned_data.get('latitud') or '',
+            longitud=self.cleaned_data.get('longitud') or '',
+        )
+        user_doctor = UserDoctor.objects.create_user(
+            username=self.cleaned_data['username'],
+            correo=self.cleaned_data['email'],
+            password=self.cleaned_data['password1'],
+            id_sede=sede,
+        )
+        espec_obj   = self.cleaned_data.get('id_especialidad_doctor')
+        consul_obj  = self.cleaned_data.get('id_consultorio')
+        horario_obj = self.cleaned_data.get('id_horario')
+        Doctor.objects.create(
+            nombre_1=self.cleaned_data['nombre_1'],
+            nombre_2=self.cleaned_data.get('nombre_2') or '',
+            apellido_1=self.cleaned_data['apellido_1'],
+            apellido_2=self.cleaned_data.get('apellido_2') or '',
+            id_user_doctor=user_doctor,
+            cedula=self.cleaned_data['cedula'],
+            tipo_cedula=self.cleaned_data['tipo_cedula'],
+            sexo=self.cleaned_data['sexo'],
+            telefono=self.cleaned_data['telefono'],
+            fecha_nacimiento=self.cleaned_data['fecha_nacimiento'],
+            id_sede=sede,
+            id_direccion_doctor=direccion,
+            fecha_registro=timezone.now(),
+            status=True,
+            id_especialidad_doctor=espec_obj.pk if espec_obj else None,
+            id_consultorio=consul_obj.pk if consul_obj else None,
+            id_horario=horario_obj.pk if horario_obj else None,
+        )
+        return user_doctor
+
+
+class RegistrarRecepcionistaForm(forms.Form):
+    """Formulario dedicado para registrar una recepcionista."""
+
+    # ── Autenticación ──────────────────────────────────────────────────────
+    username = forms.CharField(max_length=150, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    email = forms.EmailField(required=True,
+        widget=forms.EmailInput(attrs={'class': _CSS}))
+    password1 = forms.CharField(label="Contraseña", required=True,
+        widget=forms.PasswordInput(attrs={'class': _CSS}))
+    password2 = forms.CharField(label="Confirmar contraseña", required=True,
+        widget=forms.PasswordInput(attrs={'class': _CSS}))
+
+    # ── Datos personales ───────────────────────────────────────────────────
+    nombre_1 = forms.CharField(max_length=100, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    nombre_2 = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_1 = forms.CharField(max_length=100, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_2 = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    cedula = forms.CharField(max_length=20, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    tipo_cedula = forms.ChoiceField(choices=_TIPO_CEDULA_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    sexo = forms.ChoiceField(choices=_SEXO_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    telefono = forms.CharField(max_length=50, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    fecha_nacimiento = forms.DateField(required=True,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
+
+    # ── Dirección ──────────────────────────────────────────────────────────
+    id_estado = forms.ModelChoiceField(queryset=Estado.objects.all(),
+        required=True, empty_label="Seleccione un estado",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_estado_rec'}))
+    id_municipio = forms.ModelChoiceField(queryset=Municipio.objects.none(),
+        required=True, empty_label="Seleccione un municipio",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_municipio_rec'}))
+    id_ciudad = forms.ModelChoiceField(queryset=Ciudad.objects.none(),
+        required=True, empty_label="Seleccione una ciudad",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_ciudad_rec'}))
+    id_parroquia = forms.ModelChoiceField(queryset=Parroquia.objects.none(),
+        required=True, empty_label="Seleccione una parroquia",
+        widget=forms.Select(attrs={'class': _CSS, 'id': 'id_parroquia_rec'}))
+    direccion = forms.CharField(required=True,
+        widget=forms.Textarea(attrs={'rows': 3, 'class': _CSS}))
+    referencia = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'rows': 2, 'class': _CSS}))
+    latitud = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    longitud = forms.CharField(max_length=100, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'id_estado' in self.data:
+            try:
+                estado_id = int(self.data['id_estado'])
+                self.fields['id_municipio'].queryset = Municipio.objects.filter(id_estado=estado_id)
+                self.fields['id_ciudad'].queryset = Ciudad.objects.filter(id_estado=estado_id)
+            except (ValueError, TypeError):
+                pass
+        if 'id_municipio' in self.data:
+            try:
+                municipio_id = int(self.data['id_municipio'])
+                self.fields['id_parroquia'].queryset = Parroquia.objects.filter(id_municipio=municipio_id)
+            except (ValueError, TypeError):
+                pass
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get('password1')
+        p2 = self.cleaned_data.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError("Las contraseñas no coinciden.")
+        return p2
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if UserRecepcionista.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if UserRecepcionista.objects.filter(email=email).exists():
+            raise forms.ValidationError("Este correo ya está registrado para una recepcionista.")
+        return email
+
+    def clean_cedula(self):
+        cedula = self.cleaned_data.get('cedula')
+        if Recepcionista.objects.filter(cedula=cedula).exists():
+            raise forms.ValidationError("Esta cédula ya está registrada.")
+        return cedula
+
+    def save(self, sede):
+        from django.utils import timezone
+        direccion = DireccionRecepcionista.objects.create(
+            id_estado=self.cleaned_data['id_estado'],
+            id_municipio=self.cleaned_data['id_municipio'],
+            id_ciudad=self.cleaned_data['id_ciudad'],
+            id_parroquia=self.cleaned_data['id_parroquia'],
+            direccion=self.cleaned_data['direccion'],
+            referencia=self.cleaned_data.get('referencia') or '',
+            latitud=self.cleaned_data.get('latitud') or '',
+            longitud=self.cleaned_data.get('longitud') or '',
+        )
+        user_recepcionista = UserRecepcionista.objects.create_user(
+            username=self.cleaned_data['username'],
+            correo=self.cleaned_data['email'],
+            password=self.cleaned_data['password1'],
+            id_sede=sede,
+        )
+        Recepcionista.objects.create(
+            nombre_1=self.cleaned_data['nombre_1'],
+            nombre_2=self.cleaned_data.get('nombre_2') or '',
+            apellido_1=self.cleaned_data['apellido_1'],
+            apellido_2=self.cleaned_data.get('apellido_2') or '',
+            id_user_recepcionista=user_recepcionista,
+            cedula=self.cleaned_data['cedula'],
+            tipo_cedula=self.cleaned_data['tipo_cedula'],
+            sexo=self.cleaned_data['sexo'],
+            telefono=self.cleaned_data['telefono'],
+            fecha_nacimiento=self.cleaned_data['fecha_nacimiento'],
+            id_sede=sede,
+            id_direccion_recepcionista=direccion,
+            fecha_registro=timezone.now(),
+            status=True,
+        )
+        return user_recepcionista

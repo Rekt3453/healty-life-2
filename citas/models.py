@@ -1,5 +1,4 @@
 from django.db import models
-<<<<<<< Updated upstream
 from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico
 
 
@@ -13,30 +12,24 @@ class Consultorio(models.Model):
     class Meta:
         managed = False
         db_table = 'consultorio'
+        verbose_name = 'Consultorio'
+        verbose_name_plural = 'Consultorios'
 
     def __str__(self):
         return self.consultorios or f"Consultorio {self.id_consultorio}"
 
 
 class Especialidad(models.Model):
-=======
-from usuarios.models import Sede, PacienteDatosPersonales, Doctor
-
-# Modelos existentes en usuarios que se usarán
-# Sede, PacienteDatosPersonales, Doctor ya están definidos en usuarios.models
-
-class Especialidad(models.Model):
-    """Modelo de especialidades médicas"""
->>>>>>> Stashed changes
     id_especialidad = models.BigAutoField(primary_key=True)
     tipo_especialidad = models.TextField(blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     status = models.BooleanField(null=True, blank=True, default=True)
-<<<<<<< Updated upstream
 
     class Meta:
         managed = False
         db_table = 'especialidades'
+        verbose_name = 'Especialidad'
+        verbose_name_plural = 'Especialidades'
 
     def __str__(self):
         return self.tipo_especialidad or f"Especialidad {self.id_especialidad}"
@@ -104,6 +97,8 @@ class ServicioEspecialidad(models.Model):
     class Meta:
         managed = False
         db_table = 'servicios_especialidad'
+        verbose_name = 'Servicio Especialidad'
+        verbose_name_plural = 'Servicios Especialidad'
 
     def __str__(self):
         return self.servicios or f"Servicio {self.id_servicios_especialidad}"
@@ -126,6 +121,8 @@ class PagoCita(models.Model):
     class Meta:
         managed = False
         db_table = 'pagos_cita'
+        verbose_name = 'Pago de Cita'
+        verbose_name_plural = 'Pagos de Citas'
 
     def __str__(self):
         return f"Pago {self.id_pagos_cita}"
@@ -162,9 +159,20 @@ class Cita(models.Model):
     class Meta:
         managed = False
         db_table = 'citas'
+        verbose_name = 'Cita'
+        verbose_name_plural = 'Citas'
+        ordering = ['-fecha_consulta']
 
     def __str__(self):
         return f"Cita {self.id_citas}"
+
+    @property
+    def estado(self):
+        return 'activa' if self.status else 'cancelada'
+
+    @property
+    def fecha(self):
+        return self.fecha_consulta.date() if self.fecha_consulta else None
 
 
 # ── Modelos auxiliares ────────────────────────────────────────────────────────
@@ -222,7 +230,7 @@ class HistorialMedicoPaciente(models.Model):
     )
     id_enfermedades = models.BigIntegerField(blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(null=True, blank=True, default=True)
 
     class Meta:
         managed = False
@@ -230,106 +238,3 @@ class HistorialMedicoPaciente(models.Model):
 
     def __str__(self):
         return f"Historial {self.id_historial_medico}"
-=======
-    
-    class Meta:
-        managed = False
-        db_table = 'especialidades'
-        verbose_name = 'Especialidad'
-        verbose_name_plural = 'Especialidades'
-    
-    def __str__(self):
-        return self.tipo_especialidad or f"Especialidad {self.id_especialidad}"
-
-class Consultorio(models.Model):
-    """Modelo de consultorios"""
-    id_consultorio = models.BigAutoField(primary_key=True)
-    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    id_cm = models.BigIntegerField(null=True, blank=True)
-    consultorios = models.CharField(max_length=255, blank=True, null=True)
-    status = models.BooleanField(null=True, blank=True, default=True)
-    
-    class Meta:
-        managed = False
-        db_table = 'consultorio'
-        verbose_name = 'Consultorio'
-        verbose_name_plural = 'Consultorios'
-    
-    def __str__(self):
-        return self.consultorios or f"Consultorio {self.id_consultorio}"
-
-class ServicioEspecialidad(models.Model):
-    """Modelo de servicios por especialidad (tabla servicios_especialidad)"""
-    id_servicios_especialidad = models.BigAutoField(primary_key=True)
-    servicios = models.CharField(max_length=255, blank=True, null=True)
-    id_especialidad = models.ForeignKey(Especialidad, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_especialidad')
-    id_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor')
-    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    status = models.BooleanField(null=True, blank=True, default=True)
-    id_precios_servicios = models.BigIntegerField(null=True, blank=True)
-    
-    class Meta:
-        managed = False
-        db_table = 'servicios_especialidad'
-        verbose_name = 'Servicio Especialidad'
-        verbose_name_plural = 'Servicios Especialidad'
-    
-    def __str__(self):
-        return f"{self.servicios} - {self.id_especialidad}"
-
-class PagoCita(models.Model):
-    """Modelo de pagos de citas"""
-    id_pagos_cita = models.BigAutoField(primary_key=True)
-    id_paciente = models.ForeignKey(PacienteDatosPersonales, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_paciente')
-    monto_pagar = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    referencia_pago = models.CharField(max_length=255, blank=True, null=True)
-    metodo_pago = models.CharField(max_length=50, blank=True, null=True)
-    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    fecha_consulta = models.DateTimeField(null=True, blank=True)
-    status = models.BooleanField(null=True, blank=True, default=True)
-    id_cita = models.BigIntegerField(null=True, blank=True)
-    
-    class Meta:
-        managed = False
-        db_table = 'pagos_cita'
-        verbose_name = 'Pago de Cita'
-        verbose_name_plural = 'Pagos de Citas'
-    
-    def __str__(self):
-        return f"Pago {self.id_pagos_cita} - ${self.monto_pagar or 0}"
-
-class Cita(models.Model):
-    """Modelo de citas médicas"""
-    id_citas = models.BigAutoField(primary_key=True)
-    id_consultorio = models.ForeignKey(Consultorio, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_consultorio')
-    id_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor')
-    id_especialidades = models.ForeignKey(Especialidad, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_especialidades')
-    motivo = models.TextField(blank=True, null=True)
-    id_paciente = models.ForeignKey(PacienteDatosPersonales, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_paciente')
-    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    id_pago_cita = models.ForeignKey(PagoCita, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_pago_cita')
-    fecha_consulta = models.DateTimeField(null=True, blank=True)
-    fecha_emision = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    status = models.BooleanField(null=True, blank=True, default=True)
-    id_servicio_especialidad = models.ForeignKey(ServicioEspecialidad, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_servicio_especialidad')
-    
-    class Meta:
-        managed = False
-        db_table = 'citas'
-        verbose_name = 'Cita'
-        verbose_name_plural = 'Citas'
-        ordering = ['-fecha_consulta']
-    
-    def __str__(self):
-        return f"Cita {self.id_citas} - {self.fecha_consulta}"
-    
-    @property
-    def estado(self):
-        """Propiedad para compatibilidad con código existente"""
-        return 'activa' if self.status else 'cancelada'
-    
-    @property
-    def fecha(self):
-        """Propiedad para compatibilidad con código existente"""
-        return self.fecha_consulta.date() if self.fecha_consulta else None
->>>>>>> Stashed changes
