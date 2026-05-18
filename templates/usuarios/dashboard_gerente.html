@@ -226,6 +226,24 @@
 
         <!-- Action Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="action-card rounded-xl p-6 shadow-lg md:col-span-3 border-l-4 border-indigo-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Ver Personal</h3>
+                            <p class="text-gray-500 text-sm">Consultar, editar y gestionar doctores y recepcionistas de la sede</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'lista_personal' %}" class="btn-primary py-2 px-6 rounded-lg text-white font-semibold shadow text-sm whitespace-nowrap">
+                        Ver Personal
+                    </a>
+                </div>
+            </div>
             <div class="action-card rounded-xl p-6 shadow-lg">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
