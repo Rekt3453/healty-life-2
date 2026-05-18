@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+<<<<<<< Updated upstream
 from django.views.decorators.http import require_GET
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -12,10 +13,18 @@ from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio,
 )
+=======
+from datetime import datetime
+from usuarios.decorators import rol_requerido
+from usuarios.models import PacienteDatosPersonales, UserPaciente, Sede
+from .models import Cita, ServicioEspecialidad, Consultorio, Especialidad, Doctor, PagoCita
+from .forms import SolicitudCitaForm, AsignarMedicoForm, CrearPagoForm, CancelarCitaForm
+>>>>>>> Stashed changes
 
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
 def solicitar_cita(request):
+<<<<<<< Updated upstream
     """Flujo: Sede → Especialidad → Doctor → Fecha/Hora → Servicio → Motivo."""
     user = request.user
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
@@ -72,6 +81,165 @@ def solicitar_cita(request):
                     f"✅ Cita solicitada para el {fecha} a las {hora}. Espera confirmación."
                 )
                 return redirect('dashboard_paciente')
+=======
+    """Vista para solicitar cita desde dashboard del paciente"""
+    try:
+        # Obtener datos del paciente desde la sesión
+        user_paciente = UserPaciente.objects.get(username=request.user.username)
+        paciente_datos = PacienteDatosPersonales.objects.get(id_user_paciente=user_paciente)
+        
+        id_paciente = paciente_datos.id_datos_paciente
+        id_sede = paciente_datos.id_sede_id if paciente_datos.id_sede else None
+        
+    except (UserPaciente.DoesNotExist, PacienteDatosPersonales.DoesNotExist):
+        messages.error(request, 'No se encontraron datos del paciente.')
+        return redirect('dashboard_paciente')
+    
+    if request.method == 'POST':
+        form = SolicitudCitaForm(
+            request.POST,
+            id_sede=id_sede,
+            id_paciente=id_paciente
+        )
+        
+        if form.is_valid():
+            try:
+                # Obtener datos del formulario
+                especialidad = form.cleaned_data['especialidad']
+                servicio = form.cleaned_data['servicio']
+                doctor = form.cleaned_data['doctor']
+                consultorio = form.cleaned_data['consultorio']
+                fecha_consulta = form.cleaned_data['fecha_consulta']
+                motivo = form.cleaned_data['motivo']
+                
+                # Crear pago de cita (con monto pendiente por defecto)
+                pago = PagoCita.objects.create(
+                    id_paciente_id=id_paciente,
+                    id_sede_id=id_sede,
+                    fecha_consulta=fecha_consulta,
+                    monto_pagar=servicio.id_precios_servicios or 0,  # Usar precio del servicio si existe
+                    metodo_pago='pendiente',
+                    status=True
+                )
+                
+                # Crear la cita
+                cita = Cita.objects.create(
+                    id_paciente_id=id_paciente,
+                    id_sede_id=id_sede,
+                    id_doctor=doctor,
+                    id_especialidades=especialidad,
+                    id_servicio_especialidad=servicio,
+                    id_consultorio=consultorio,
+                    id_pago_cita=pago,
+                    fecha_consulta=fecha_consulta,
+                    motivo=motivo,
+                    status=True
+                )
+                
+                # Actualizar el pago con el ID de la cita
+                pago.id_cita = cita.id_citas
+                pago.save()
+                
+                messages.success(request, f'Cita solicitada exitosamente para el {fecha_consulta}.')
+                return redirect('mis_citas')
+                
+            except Exception as e:
+                messages.error(request, f'Error al crear la cita: {str(e)}')
+                return redirect('solicitar_cita')
+    else:
+        form = SolicitudCitaForm(
+            id_sede=id_sede,
+            id_paciente=id_paciente
+        )
+    
+    context = {
+        'form': form,
+        'id_sede': id_sede,
+        'id_paciente': id_paciente
+    }
+    
+    return render(request, 'citas/solicitar_cita.html', context)
+
+@login_required
+@rol_requerido('paciente')
+def mis_citas(request):
+    """Vista para ver las citas del paciente"""
+    try:
+        user_paciente = UserPaciente.objects.get(username=request.user.username)
+        paciente_datos = PacienteDatosPersonales.objects.get(id_user_paciente=user_paciente)
+        
+        citas = Cita.objects.filter(
+            id_paciente=paciente_datos
+        ).order_by('-fecha_consulta')
+        
+    except (UserPaciente.DoesNotExist, PacienteDatosPersonales.DoesNotExist):
+        messages.error(request, 'No se encontraron datos del paciente.')
+        return redirect('dashboard_paciente')
+    
+    context = {
+        'citas': citas
+    }
+    
+    return render(request, 'citas/mis_citas.html', context)
+
+@login_required
+@rol_requerido('paciente')
+def detalle_cita(request, cita_id):
+    """Vista para ver detalle de una cita"""
+    try:
+        user_paciente = UserPaciente.objects.get(username=request.user.username)
+        paciente_datos = PacienteDatosPersonales.objects.get(id_user_paciente=user_paciente)
+        
+        cita = get_object_or_404(Cita, id_citas=cita_id, id_paciente=paciente_datos)
+        
+    except (UserPaciente.DoesNotExist, PacienteDatosPersonales.DoesNotExist):
+        messages.error(request, 'No se encontraron datos del paciente.')
+        return redirect('dashboard_paciente')
+    
+    context = {
+        'cita': cita
+    }
+    
+    return render(request, 'citas/detalle_cita.html', context)
+
+@login_required
+@rol_requerido('paciente')
+def cancelar_cita(request, cita_id):
+    """Vista para cancelar una cita"""
+    try:
+        user_paciente = UserPaciente.objects.get(username=request.user.username)
+        paciente_datos = PacienteDatosPersonales.objects.get(id_user_paciente=user_paciente)
+        
+        cita = get_object_or_404(Cita, id_citas=cita_id, id_paciente=paciente_datos)
+        
+        if request.method == 'POST':
+            form = CancelarCitaForm(request.POST)
+            if form.is_valid():
+                # Actualizar estado de la cita
+                cita.status = False
+                cita.save()
+                
+                # Actualizar estado del pago si existe
+                if cita.id_pago_cita:
+                    cita.id_pago_cita.status = False
+                    cita.id_pago_cita.save()
+                
+                messages.success(request, 'Cita cancelada exitosamente.')
+                return redirect('mis_citas')
+        else:
+            form = CancelarCitaForm()
+        
+        context = {
+            'cita': cita,
+            'form': form
+        }
+        
+        return render(request, 'citas/cancelar_cita.html', context)
+        
+    except (UserPaciente.DoesNotExist, PacienteDatosPersonales.DoesNotExist):
+        messages.error(request, 'No se encontraron datos del paciente.')
+        return redirect('dashboard_paciente')
+>>>>>>> Stashed changes
 
             except Exception as e:
                 messages.error(request, f"Error al registrar la cita: {e}")
@@ -86,6 +254,7 @@ def solicitar_cita(request):
 
 @rol_requerido('recepcionista', 'gerente')
 def gestionar_citas(request):
+<<<<<<< Updated upstream
     """Recepcionista/gerente: listado de citas activas."""
     try:
         citas = Cita.objects.filter(status=True).select_related(
@@ -348,3 +517,133 @@ def cancelar_cita_paciente(request, cita_id):
             messages.warning(request, "La cita ya estaba cancelada.")
         return redirect('mis_citas')
     return render(request, 'citas/cancelar_cita.html', {'cita': cita})
+=======
+    """Vista para recepcionista: gestionar todas las citas"""
+    citas = Cita.objects.all().order_by('-fecha_consulta')
+    
+    context = {
+        'citas': citas
+    }
+    
+    return render(request, 'citas/gestionar_citas.html', context)
+
+@login_required
+@rol_requerido('recepcionista')
+def asignar_medico_cita(request, cita_id):
+    """Vista para asignar médico a una cita (recepcionista)"""
+    cita = get_object_or_404(Cita, id_citas=cita_id)
+    
+    if request.method == 'POST':
+        form = AsignarMedicoForm(request.POST)
+        if form.is_valid():
+            cita.id_doctor = form.cleaned_data['doctor']
+            if form.cleaned_data['consultorio']:
+                cita.id_consultorio = form.cleaned_data['consultorio']
+            cita.save()
+            messages.success(request, f'Médico asignado a la cita {cita.id_citas}.')
+            return redirect('gestionar_citas')
+    else:
+        form = AsignarMedicoForm()
+    
+    context = {
+        'cita': cita,
+        'form': form
+    }
+    
+    return render(request, 'citas/asignar_medico.html', context)
+
+@login_required
+@rol_requerido('doctor')
+def citas_doctor(request):
+    """Vista para doctor: ver sus citas"""
+    try:
+        from usuarios.models import UserDoctor
+        user_doctor = UserDoctor.objects.get(username=request.user.username)
+        doctor = Doctor.objects.get(id_user_doctor=user_doctor)
+        
+        citas = Cita.objects.filter(
+            id_doctor=doctor
+        ).order_by('-fecha_consulta')
+        
+    except (UserDoctor.DoesNotExist, Doctor.DoesNotExist):
+        messages.error(request, 'No se encontraron datos del doctor.')
+        return redirect('dashboard_medico')
+    
+    context = {
+        'citas': citas
+    }
+    
+    return render(request, 'citas/citas_doctor.html', context)
+
+# API endpoints para selectores dependientes
+def api_servicios_por_especialidad(request):
+    """API para obtener servicios filtrados por especialidad y sede"""
+    especialidad_id = request.GET.get('especialidad_id')
+    sede_id = request.GET.get('sede_id')
+    
+    if not especialidad_id:
+        return JsonResponse({'servicios': []})
+    
+    servicios = ServicioEspecialidad.objects.filter(
+        id_especialidad_id=especialidad_id,
+        status=True
+    )
+    
+    if sede_id:
+        servicios = servicios.filter(id_sede_id=sede_id)
+    
+    servicios_list = []
+    for servicio in servicios:
+        servicios_list.append({
+            'id': servicio.id_servicios_especialidad,
+            'nombre': servicio.servicios,
+            'doctor_id': servicio.id_doctor_id if servicio.id_doctor else None
+        })
+    
+    return JsonResponse({'servicios': servicios_list})
+
+def api_doctores_por_servicio(request):
+    """API para obtener doctores asociados a un servicio"""
+    servicio_id = request.GET.get('servicio_id')
+    
+    if not servicio_id:
+        return JsonResponse({'doctores': []})
+    
+    try:
+        servicio = ServicioEspecialidad.objects.get(id_servicios_especialidad=servicio_id)
+        
+        if servicio.id_doctor:
+            doctor = servicio.id_doctor
+            doctores_list = [{
+                'id': doctor.id_doctor,
+                'nombre': f"{doctor.nombre_1} {doctor.apellido_1}"
+            }]
+        else:
+            doctores_list = []
+        
+        return JsonResponse({'doctores': doctores_list})
+        
+    except ServicioEspecialidad.DoesNotExist:
+        return JsonResponse({'doctores': []})
+
+def api_consultorios_por_sede(request):
+    """API para obtener consultorios filtrados por sede"""
+    sede_id = request.GET.get('sede_id')
+    
+    if not sede_id:
+        return JsonResponse({'consultorios': []})
+    
+    consultorios = Consultorio.objects.filter(
+        id_sede_id=sede_id,
+        status=True
+    )
+    
+    consultorios_list = []
+    for consultorio in consultorios:
+        consultorios_list.append({
+            'id': consultorio.id_consultorio,
+            'nombre': consultorio.consultorios
+        })
+    
+    return JsonResponse({'consultorios': consultorios_list})
+>>>>>>> Stashed changes
