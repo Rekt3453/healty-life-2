@@ -1,0 +1,276 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Recepcionista - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <style>
+        .hero-section { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); min-height: 100vh; }
+        .form-card { backdrop-filter: blur(10px); background: rgba(255,255,255,0.97); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+        .form-input { transition: all 0.3s ease; border: 2px solid #e5e7eb; }
+        .form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); outline: none; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(59,130,246,0.4); }
+        .section-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .field-error { color: #dc2626; font-size: 0.75rem; margin-top: 0.25rem; }
+    </style>
+</head>
+<body class="bg-gray-50">
+<div class="hero-section relative">
+    <header class="relative z-10">
+        <nav class="container mx-auto px-4 py-5">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
+                    </svg>
+                    <span class="text-xl font-bold text-white">Healthy Life</span>
+                </div>
+                <a href="{% url 'dashboard_gerente' %}" class="text-white hover:text-blue-100 flex items-center space-x-2 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    <span>Volver al Dashboard</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="relative z-10 container mx-auto px-4 py-8 pb-16">
+        <div class="max-w-4xl mx-auto">
+            <div class="form-card rounded-2xl p-8">
+
+                <!-- Título -->
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-1">Registrar Recepcionista</h1>
+                    <p class="text-gray-500 text-sm">Sede: <span class="font-semibold text-blue-700">{{ sede }}</span></p>
+                </div>
+
+                <!-- Mensajes -->
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                    <div class="border rounded-lg p-4 flex items-center space-x-3
+                        {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
+                        {% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
+                        {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+                        <span class="text-sm font-medium">{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Sección 1: Cuenta de acceso -->
+                    <div class="section-card">
+                        <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                            </svg>
+                            Credenciales de Acceso
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre de usuario *</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}<p class="field-error">{{ form.username.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico *</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}<p class="field-error">{{ form.email.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña *</label>
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}<p class="field-error">{{ form.password1.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Confirmar contraseña *</label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}<p class="field-error">{{ form.password2.errors|join:", " }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 2: Datos personales -->
+                    <div class="section-card">
+                        <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Datos Personales
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Primer nombre *</label>
+                                {{ form.nombre_1 }}
+                                {% if form.nombre_1.errors %}<p class="field-error">{{ form.nombre_1.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Segundo nombre</label>
+                                {{ form.nombre_2 }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Primer apellido *</label>
+                                {{ form.apellido_1 }}
+                                {% if form.apellido_1.errors %}<p class="field-error">{{ form.apellido_1.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Segundo apellido</label>
+                                {{ form.apellido_2 }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de cédula *</label>
+                                {{ form.tipo_cedula }}
+                                {% if form.tipo_cedula.errors %}<p class="field-error">{{ form.tipo_cedula.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Cédula *</label>
+                                {{ form.cedula }}
+                                {% if form.cedula.errors %}<p class="field-error">{{ form.cedula.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Sexo *</label>
+                                {{ form.sexo }}
+                                {% if form.sexo.errors %}<p class="field-error">{{ form.sexo.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono *</label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}<p class="field-error">{{ form.telefono.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de nacimiento *</label>
+                                {{ form.fecha_nacimiento }}
+                                {% if form.fecha_nacimiento.errors %}<p class="field-error">{{ form.fecha_nacimiento.errors|join:", " }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 3: Dirección -->
+                    <div class="section-card">
+                        <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Dirección
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Estado *</label>
+                                {{ form.id_estado }}
+                                {% if form.id_estado.errors %}<p class="field-error">{{ form.id_estado.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Municipio *</label>
+                                {{ form.id_municipio }}
+                                {% if form.id_municipio.errors %}<p class="field-error">{{ form.id_municipio.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Ciudad *</label>
+                                {{ form.id_ciudad }}
+                                {% if form.id_ciudad.errors %}<p class="field-error">{{ form.id_ciudad.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Parroquia *</label>
+                                {{ form.id_parroquia }}
+                                {% if form.id_parroquia.errors %}<p class="field-error">{{ form.id_parroquia.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Dirección *</label>
+                                {{ form.direccion }}
+                                {% if form.direccion.errors %}<p class="field-error">{{ form.direccion.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Referencia</label>
+                                {{ form.referencia }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Latitud</label>
+                                {{ form.latitud }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Longitud</label>
+                                {{ form.longitud }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="flex space-x-4 mt-2">
+                        <button type="submit" class="btn-primary flex-1 py-3 px-4 rounded-lg text-white font-semibold text-lg shadow-lg">
+                            Registrar Recepcionista
+                        </button>
+                        <a href="{% url 'dashboard_gerente' %}" class="flex-1 py-3 px-4 rounded-lg text-gray-700 font-semibold text-lg border border-gray-300 text-center hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const AJAX_MUNICIPIOS = "{% url 'cargar_municipios' %}";
+const AJAX_CIUDADES   = "{% url 'cargar_ciudades' %}";
+const AJAX_PARROQUIAS = "{% url 'cargar_parroquias' %}";
+
+function poblarSelect(selectEl, data, valueKey, labelKey, placeholder) {
+    selectEl.innerHTML = `<option value="">${placeholder}</option>`;
+    data.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item[valueKey];
+        opt.textContent = item[labelKey];
+        selectEl.appendChild(opt);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const estadoSel    = document.querySelector('[name="id_estado"]');
+    const municipioSel = document.querySelector('[name="id_municipio"]');
+    const ciudadSel    = document.querySelector('[name="id_ciudad"]');
+    const parroquiaSel = document.querySelector('[name="id_parroquia"]');
+
+    if (estadoSel) {
+        estadoSel.addEventListener('change', function () {
+            const estadoId = this.value;
+            municipioSel.innerHTML = '<option value="">Cargando...</option>';
+            ciudadSel.innerHTML    = '<option value="">Seleccione una ciudad</option>';
+            parroquiaSel.innerHTML = '<option value="">Seleccione una parroquia</option>';
+            if (!estadoId) return;
+            fetch(`${AJAX_MUNICIPIOS}?estado_id=${estadoId}`)
+                .then(r => r.json())
+                .then(data => poblarSelect(municipioSel, data, 'id_municipio', 'municipio', 'Seleccione un municipio'));
+            fetch(`${AJAX_CIUDADES}?estado_id=${estadoId}`)
+                .then(r => r.json())
+                .then(data => poblarSelect(ciudadSel, data, 'id_ciudad', 'ciudad', 'Seleccione una ciudad'));
+        });
+    }
+
+    if (municipioSel) {
+        municipioSel.addEventListener('change', function () {
+            const municipioId = this.value;
+            parroquiaSel.innerHTML = '<option value="">Cargando...</option>';
+            if (!municipioId) return;
+            fetch(`${AJAX_PARROQUIAS}?municipio_id=${municipioId}`)
+                .then(r => r.json())
+                .then(data => poblarSelect(parroquiaSel, data, 'id_parroquia', 'parroquia', 'Seleccione una parroquia'));
+        });
+    }
+});
+</script>
+</body>
+</html>
