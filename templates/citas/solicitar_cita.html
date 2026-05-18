@@ -152,6 +152,7 @@
                         </div>
                     {% endif %}
 
+<<<<<<< Updated upstream
                     <!-- Formulario con selects encadenados AJAX -->
                     <form method="POST" class="space-y-5" id="form-cita">
                         {% csrf_token %}
@@ -222,6 +223,63 @@
                             <textarea name="motivo" rows="3" required
                                       class="form-input w-full px-4 py-3 rounded-lg text-gray-900"
                                       placeholder="Describe brevemente el motivo de tu consulta..."></textarea>
+=======
+                    <!-- Formulario -->
+                    <form method="POST" class="space-y-6" id="citaForm" data-sede-id="{{ id_sede|default:'' }}">
+                        {% csrf_token %}
+                        
+                        <!-- Paso 1: Especialidad -->
+                        <div>
+                            <label for="{{ form.especialidad.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                1. Especialidad Médica
+                            </label>
+                            {{ form.especialidad }}
+                            <p class="mt-1 text-sm text-gray-500">Selecciona la especialidad que necesitas</p>
+                        </div>
+                        
+                        <!-- Paso 2: Servicio -->
+                        <div>
+                            <label for="{{ form.servicio.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                2. Servicio
+                            </label>
+                            {{ form.servicio }}
+                            <p class="mt-1 text-sm text-gray-500">Selecciona el servicio específico</p>
+                        </div>
+                        
+                        <!-- Paso 3: Doctor -->
+                        <div>
+                            <label for="{{ form.doctor.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                3. Doctor
+                            </label>
+                            {{ form.doctor }}
+                            <p class="mt-1 text-sm text-gray-500">Selecciona el doctor disponible</p>
+                        </div>
+                        
+                        <!-- Paso 4: Consultorio -->
+                        <div>
+                            <label for="{{ form.consultorio.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                4. Consultorio
+                            </label>
+                            {{ form.consultorio }}
+                            <p class="mt-1 text-sm text-gray-500">Selecciona el consultorio disponible</p>
+                        </div>
+                        
+                        <!-- Paso 5: Fecha y hora -->
+                        <div>
+                            <label for="{{ form.fecha_consulta.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                5. Fecha y Hora de la Consulta
+                            </label>
+                            {{ form.fecha_consulta }}
+                            <p class="mt-1 text-sm text-gray-500">Selecciona la fecha y hora deseada</p>
+                        </div>
+
+                        <!-- Paso 6: Motivo -->
+                        <div>
+                            <label for="{{ form.motivo.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                6. Motivo de la Consulta
+                            </label>
+                            {{ form.motivo }}
+>>>>>>> Stashed changes
                         </div>
 
                         <div class="flex space-x-4">
@@ -364,6 +422,71 @@
                 })
                 .catch(() => spinnerOff('spinner-hora'));
         });
+        
+        // Selectores dependientes AJAX
+        const especialidadSelect = document.getElementById('id_especialidad');
+        const servicioSelect = document.getElementById('id_servicio');
+        const doctorSelect = document.getElementById('id_doctor');
+        const consultorioSelect = document.getElementById('id_consultorio');
+        const form = document.getElementById('citaForm');
+        const sedeId = form.getAttribute('data-sede-id') || null;
+        
+        // Cargar servicios cuando cambia la especialidad
+        especialidadSelect.addEventListener('change', function() {
+            const especialidadId = this.value;
+            if (!especialidadId) {
+                servicioSelect.innerHTML = '<option value="">Seleccionar especialidad primero</option>';
+                doctorSelect.innerHTML = '<option value="">Seleccionar servicio primero</option>';
+                return;
+            }
+            
+            let url = `/citas/api/servicios-por-especialidad/?especialidad_id=${especialidadId}`;
+            if (sedeId) {
+                url += `&sede_id=${sedeId}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    servicioSelect.innerHTML = '<option value="">Seleccionar servicio</option>';
+                    data.servicios.forEach(servicio => {
+                        servicioSelect.innerHTML += `<option value="${servicio.id}">${servicio.nombre}</option>`;
+                    });
+                })
+                .catch(error => console.error('Error al cargar servicios:', error));
+        });
+        
+        // Cargar doctor cuando cambia el servicio
+        servicioSelect.addEventListener('change', function() {
+            const servicioId = this.value;
+            if (!servicioId) {
+                doctorSelect.innerHTML = '<option value="">Seleccionar servicio primero</option>';
+                return;
+            }
+            
+            fetch(`/citas/api/doctores-por-servicio/?servicio_id=${servicioId}`)
+                .then(response => response.json())
+                .then(data => {
+                    doctorSelect.innerHTML = '<option value="">Seleccionar doctor</option>';
+                    data.doctores.forEach(doctor => {
+                        doctorSelect.innerHTML += `<option value="${doctor.id}">${doctor.nombre}</option>`;
+                    });
+                })
+                .catch(error => console.error('Error al cargar doctores:', error));
+        });
+        
+        // Cargar consultorios cuando cambia la sede (si está disponible)
+        if (sedeId) {
+            fetch(`/citas/api/consultorios-por-sede/?sede_id=${sedeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    consultorioSelect.innerHTML = '<option value="">Seleccionar consultorio</option>';
+                    data.consultorios.forEach(consultorio => {
+                        consultorioSelect.innerHTML += `<option value="${consultorio.id}">${consultorio.nombre}</option>`;
+                    });
+                })
+                .catch(error => console.error('Error al cargar consultorios:', error));
+        }
     </script>
 </body>
 </html>
