@@ -2,8 +2,15 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Vistas principales
+    # Solicitar / agendar cita (paciente)
     path('solicitar/', views.solicitar_cita, name='solicitar_cita'),
+    path('agendar/', views.solicitar_cita, name='agendar_cita'),
+    # Citas del paciente
+    path('mis-citas/', views.mis_citas, name='mis_citas'),
+    path('mis-facturas/', views.mis_facturas, name='mis_facturas'),
+    path('<int:cita_id>/detalle/', views.detalle_cita, name='detalle_cita'),
+    path('<int:cita_id>/cancelar/', views.cancelar_cita_paciente, name='cancelar_cita'),
+    # Gestión (recepcionista/gerente)
     path('gestionar/', views.gestionar_citas, name='gestionar_citas'),
     path('<int:cita_id>/aprobar/', views.aprobar_cita, name='aprobar_cita'),
     path('rechazar/<int:cita_id>/', views.rechazar_cita, name='rechazar_cita'),

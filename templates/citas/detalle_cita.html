@@ -5,8 +5,8 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="mb-6">
-        <a href="javascript:history.back()" class="text-blue-600 hover:text-blue-800 font-medium">
-            ← Volver
+        <a href="{% url 'mis_citas' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+            ← Volver a mis citas
         </a>
     </div>
 
@@ -15,17 +15,17 @@
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-2xl font-bold">{{ cita.servicio.nombre }}</h1>
-                    <p class="text-blue-100 mt-1">{{ cita.servicio.especialidad.nombre }}</p>
+                    <h1 class="text-2xl font-bold">
+                        {% if cita.id_servicio_especialidad %}{{ cita.id_servicio_especialidad.servicios }}
+                        {% elif cita.id_especialidades %}{{ cita.id_especialidades.tipo_especialidad }}
+                        {% else %}Consulta médica{% endif %}
+                    </h1>
+                    {% if cita.id_especialidades %}
+                        <p class="text-blue-100 mt-1">{{ cita.id_especialidades.tipo_especialidad }}</p>
+                    {% endif %}
                 </div>
-                <span class="px-3 py-1 rounded-full text-sm font-medium
-                    {% if cita.estado == 'confirmada' %}bg-green-500 text-white
-                    {% elif cita.estado == 'pendiente' %}bg-yellow-500 text-white
-                    {% elif cita.estado == 'cancelada' %}bg-red-500 text-white
-                    {% elif cita.estado == 'completada' %}bg-blue-500 text-white
-                    {% elif cita.estado == 'en_progreso' %}bg-purple-500 text-white
-                    {% else %}bg-gray-500 text-white{% endif %}">
-                    {{ cita.get_estado_display }}
+                <span class="px-3 py-1 rounded-full text-sm font-medium {% if cita.status %}bg-green-500{% else %}bg-red-500{% endif %} text-white">
+                    {% if cita.status %}Activa{% else %}Cancelada{% endif %}
                 </span>
             </div>
         </div>
@@ -36,17 +36,27 @@
                 <!-- Detalles de la cita -->
                 <div class="space-y-4">
                     <h2 class="text-lg font-semibold text-gray-900">Detalles de la Cita</h2>
-                    
+
                     <div class="flex items-center text-gray-600">
                         <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                         <div>
                             <div class="font-medium">Fecha y Hora</div>
-                            <div>{{ cita.fecha_hora|date:"d/m/Y H:i" }}</div>
+                            <div>{{ cita.fecha_consulta|date:"d/m/Y H:i"|default:"Sin asignar" }}</div>
                         </div>
                     </div>
-                    
+
+                    <div class="flex items-center text-gray-600">
+                        <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">Fecha de solicitud</div>
+                            <div>{{ cita.fecha_emision|date:"d/m/Y H:i"|default:"—" }}</div>
+                        </div>
+                    </div>
+
                     <div class="flex items-center text-gray-600">
                         <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -54,25 +64,26 @@
                         </svg>
                         <div>
                             <div class="font-medium">Sede</div>
-                            <div>{{ cita.sede.nombre }}</div>
-                            <div class="text-sm text-gray-500">{{ cita.sede.direccion }}</div>
+                            <div>{% if cita.id_sede %}{{ cita.id_sede.nombre_sede }}{% else %}—{% endif %}</div>
                         </div>
                     </div>
-                    
-                    <div class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Duración</div>
-                            <div>{{ cita.servicio.duracion_minutos }} minutos</div>
+
+                    {% if cita.id_consultorio %}
+                        <div class="flex items-center text-gray-600">
+                            <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <div>
+                                <div class="font-medium">Consultorio</div>
+                                <div>{{ cita.id_consultorio.consultorios }}</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    {% if cita.notas_paciente %}
+                    {% endif %}
+
+                    {% if cita.motivo %}
                         <div class="bg-gray-50 p-3 rounded-lg">
-                            <div class="font-medium text-gray-900 mb-1">Notas del paciente:</div>
-                            <div class="text-gray-600">{{ cita.notas_paciente }}</div>
+                            <div class="font-medium text-gray-900 mb-1">Motivo de consulta:</div>
+                            <div class="text-gray-600">{{ cita.motivo }}</div>
                         </div>
                     {% endif %}
                 </div>
@@ -80,89 +91,47 @@
                 <!-- Información del médico -->
                 <div class="space-y-4">
                     <h2 class="text-lg font-semibold text-gray-900">Médico</h2>
-                    
-                    <div class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Dr. {{ cita.medico.user_profile.nombre_completo }}</div>
-                            <div class="text-sm">{{ cita.medico.especialidad.nombre }}</div>
-                            <div class="text-sm text-gray-500">{{ cita.medico.experiencia_anios }} años de experiencia</div>
+
+                    {% if cita.id_doctor %}
+                        <div class="flex items-center text-gray-600">
+                            <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <div>
+                                <div class="font-medium">{{ cita.id_doctor.nombre_completo }}</div>
+                                {% if cita.id_especialidades %}
+                                    <div class="text-sm">{{ cita.id_especialidades.tipo_especialidad }}</div>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Matrícula</div>
-                            <div>{{ cita.medico.numero_matricula }}</div>
-                        </div>
-                    </div>
+                    {% else %}
+                        <p class="text-gray-500">Médico por asignar</p>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Información de facturación -->
-            {% if factura %}
+            <!-- Información de pago -->
+            {% if cita.id_pago_cita %}
                 <div class="mt-6 pt-6 border-t">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Información de Facturación</h2>
-                    
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Estado del Pago</h2>
                     <div class="bg-gray-50 rounded-lg p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
-                                <div class="text-sm text-gray-600">Número de Factura</div>
-                                <div class="font-medium">{{ factura.numero_factura }}</div>
+                                <span class="text-gray-600">N° de pago:</span>
+                                <span class="font-medium ml-2">{{ cita.id_pago_cita.id_pagos_cita }}</span>
                             </div>
                             <div>
-                                <div class="text-sm text-gray-600">Monto Total</div>
-                                <div class="font-medium text-lg">${{ factura.monto_total }}</div>
+                                <span class="text-gray-600">Estado:</span>
+                                <span class="ml-2 px-2 py-1 text-xs rounded-full {% if cita.id_pago_cita.status %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {% if cita.id_pago_cita.status %}Pagado{% else %}Pendiente{% endif %}
+                                </span>
                             </div>
-                            <div>
-                                <div class="text-sm text-gray-600">Estado</div>
-                                <div class="font-medium">
-                                    <span class="px-2 py-1 text-xs rounded-full
-                                        {% if factura.estado == 'pagada' %}bg-green-100 text-green-800
-                                        {% elif factura.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
-                                        {% elif factura.estado == 'vencida' %}bg-red-100 text-red-800
-                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ factura.get_estado_display }}
-                                    </span>
+                            {% if cita.id_pago_cita.monto_pagar %}
+                                <div>
+                                    <span class="text-gray-600">Monto:</span>
+                                    <span class="font-medium ml-2">{{ cita.id_pago_cita.monto_pagar }}</span>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4 flex space-x-2">
-                            <a href="{% url 'descargar_factura_pdf' factura.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                📄 Descargar PDF
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-
-            <!-- Historia clínica -->
-            {% if historia %}
-                <div class="mt-6 pt-6 border-t">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Historia Clínica</h2>
-                    
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <div class="text-sm text-gray-600">Fecha de Consulta</div>
-                                <div class="font-medium">{{ historia.fecha_consulta|date:"d/m/Y H:i" }}</div>
-                            </div>
-                            <div>
-                                <div class="text-sm text-gray-600">Diagnóstico</div>
-                                <div class="font-medium">{{ historia.diagnostico|truncatewords:10 }}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <a href="{% url 'ver_historia_clinica' historia.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Ver historia clínica completa
-                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -171,29 +140,14 @@
             <!-- Acciones -->
             <div class="mt-6 pt-6 border-t">
                 <div class="flex flex-wrap gap-3">
-                    {% if cita.estado == 'pendiente' or cita.estado == 'confirmada' %}
-                        {% if puede_cancelar %}
-                            <a href="{% url 'cancelar_cita' cita.pk %}" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                                Cancelar Cita
-                            </a>
-                        {% else %}
-                            <span class="px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed">
-                                No se puede cancelar (menos de 2h)
-                            </span>
-                        {% endif %}
-                    {% endif %}
-                    
-                    {% if cita.estado == 'completada' and user.userprofile.rol == 'medico and not historia %}
-                        <a href="{% url 'crear_historia_clinica' cita.pk %}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                            Crear Historia Clínica
+                    {% if cita.status %}
+                        <a href="{% url 'cancelar_cita' cita.id_citas %}" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                            Cancelar Cita
                         </a>
                     {% endif %}
-                    
-                    {% if factura and factura.estado == 'pendiente' %}
-                        <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                            Pagar Factura
-                        </button>
-                    {% endif %}
+                    <a href="{% url 'mis_citas' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                        Volver
+                    </a>
                 </div>
             </div>
         </div>

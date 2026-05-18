@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from django.core.paginator import Paginator
+from django.utils import timezone
 from datetime import date, datetime, time, timedelta
 from usuarios.decorators import rol_requerido
 from usuarios.models import PacienteDatosPersonales, Doctor
 from .models import (
-    Cita, Sede, Especialidad, Horario,
+    Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio,
 )
 
@@ -16,17 +18,17 @@ from .models import (
 def solicitar_cita(request):
     """Flujo: Sede → Especialidad → Doctor → Fecha/Hora → Servicio → Motivo."""
     user = request.user
-
-    # Buscar perfil de datos personales (opcional — puede ser None si aún no existe)
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
 
     if request.method == 'POST':
         sede_id         = request.POST.get('sede')
         especialidad_id = request.POST.get('especialidad')
-        doctor_id       = request.POST.get('doctor')
+        # Acepta 'doctor' o 'medico' (nombre alternativo usado en el template)
+        doctor_id       = request.POST.get('doctor') or request.POST.get('medico')
         servicio_id     = request.POST.get('servicio') or None
         fecha           = request.POST.get('fecha')
-        hora            = request.POST.get('hora')
+        # Acepta 'hora' o 'hora_solicitada'
+        hora            = request.POST.get('hora') or request.POST.get('hora_solicitada')
         motivo          = request.POST.get('motivo', '').strip()
 
         if not all([sede_id, especialidad_id, doctor_id, fecha, hora, motivo]):
@@ -45,14 +47,23 @@ def solicitar_cita(request):
                         id_servicios_especialidad=servicio_id
                     ).first()
 
+                # Crear registro de pago pendiente (status=False) antes de la cita
+                pago = PagoCita.objects.create(
+                    id_paciente=paciente,
+                    id_sede=sede,
+                    fecha_consulta=fecha_hora,
+                    status=False,
+                )
+
                 Cita.objects.create(
-                    id_paciente=paciente,   # puede ser None si no tiene datos personales aún
+                    id_paciente=paciente,
                     id_doctor=doctor,
                     id_sede=sede,
                     id_especialidades=especialidad,
                     id_servicio_especialidad=servicio_obj,
+                    id_pago_cita=pago,
                     fecha_consulta=fecha_hora,
-                    fecha_emision=datetime.now(),
+                    fecha_emision=timezone.now(),
                     motivo=motivo,
                     status=True,
                 )
@@ -65,7 +76,7 @@ def solicitar_cita(request):
             except Exception as e:
                 messages.error(request, f"Error al registrar la cita: {e}")
 
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+    sedes = Sede.objects.filter(status__in=[True, None]).order_by('nombre_sede')
     return render(request, 'citas/solicitar_cita.html', {
         'sedes': sedes,
         'hoy': date.today().isoformat(),
@@ -122,40 +133,77 @@ def ajax_especialidades(request):
         return JsonResponse([], safe=False)
     try:
         esp = Especialidad.objects.filter(
-            id_sede_id=sede_id, status=True
+            id_sede_id=sede_id, status__in=[True, None]
         ).values('id_especialidad', 'tipo_especialidad')
         data = [{'id': e['id_especialidad'], 'nombre': e['tipo_especialidad']} for e in esp]
-    except Exception:
-        data = []
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, safe=False, status=500)
     return JsonResponse(data, safe=False)
 
 
 @require_GET
 def ajax_doctores(request):
-    """Doctores por especialidad y sede (vía EspecialidadDoctor)."""
+    """Doctores por especialidad y sede.
+
+    Etapa 1: busca mediante ServicioEspecialidad (relación directa).
+    Etapa 2 (fallback): si no hay servicios, busca doctores directamente
+    por id_sede y vínculo vía EspecialidadDoctor.
+    """
     especialidad_id = request.GET.get('especialidad_id')
     sede_id         = request.GET.get('sede_id')
     if not especialidad_id or not sede_id:
         return JsonResponse([], safe=False)
-    try:
-        esp_doc_ids = EspecialidadDoctor.objects.filter(
-            id_especialidad_id=especialidad_id
-        ).values_list('id_especialidad_doctor', flat=True)
-        doctores = Doctor.objects.filter(
-            id_especialidad_doctor__in=esp_doc_ids,
-            id_sede_id=sede_id,
-            status=True,
-        )
-        data = [
+
+    def _serializar(qs):
+        return [
             {
                 'id': d.id_doctor,
                 'nombre': f"Dr/a. {(d.nombre_1 or '')} {(d.apellido_1 or '')}".strip(),
             }
-            for d in doctores
+            for d in qs
         ]
-    except Exception:
-        data = []
-    return JsonResponse(data, safe=False)
+
+    try:
+        # ─ Etapa 1: vía ServicioEspecialidad ───────────────────────────────
+        doctor_ids = list(
+            ServicioEspecialidad.objects.filter(
+                id_especialidad_id=especialidad_id,
+                id_sede_id=sede_id,
+                status__in=[True, None],
+            ).values_list('id_doctor_id', flat=True).distinct()
+        )
+
+        if doctor_ids:
+            doctores = Doctor.objects.filter(
+                id_doctor__in=doctor_ids,
+                status__in=[True, None],
+            )
+            return JsonResponse(_serializar(doctores), safe=False)
+
+        # ─ Etapa 2: fallback directo por sede + EspecialidadDoctor ─────────
+        espec_doctor_ids = list(
+            EspecialidadDoctor.objects.filter(
+                id_especialidad_id=especialidad_id
+            ).values_list('id_especialidad_doctor', flat=True)
+        )
+
+        if espec_doctor_ids:
+            doctores = Doctor.objects.filter(
+                id_sede_id=sede_id,
+                id_especialidad_doctor__in=espec_doctor_ids,
+                status__in=[True, None],
+            )
+        else:
+            # Último recurso: todos los doctores de la sede
+            doctores = Doctor.objects.filter(
+                id_sede_id=sede_id,
+                status__in=[True, None],
+            )
+
+        return JsonResponse(_serializar(doctores), safe=False)
+
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, safe=False, status=500)
 
 
 @require_GET
@@ -199,9 +247,104 @@ def ajax_servicios(request):
         return JsonResponse([], safe=False)
     try:
         servicios = ServicioEspecialidad.objects.filter(
-            id_doctor_id=doctor_id, status=True
+            id_doctor_id=doctor_id, status__in=[True, None]
         ).values('id_servicios_especialidad', 'servicios')
         data = [{'id': s['id_servicios_especialidad'], 'nombre': s['servicios']} for s in servicios]
-    except Exception:
-        data = []
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, safe=False, status=500)
     return JsonResponse(data, safe=False)
+
+
+# ─── Vistas del paciente ───────────────────────────────────────────────────────
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def mis_citas(request):
+    """Lista paginada de citas del paciente autenticado."""
+    user = request.user
+    paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+
+    citas_qs = Cita.objects.none()
+    if paciente:
+        citas_qs = Cita.objects.filter(id_paciente=paciente).select_related(
+            'id_doctor', 'id_especialidades', 'id_sede', 'id_servicio_especialidad'
+        ).order_by('-fecha_emision')
+
+    estado_filtro = request.GET.get('estado', '')
+    if estado_filtro == 'activa':
+        citas_qs = citas_qs.filter(status=True)
+    elif estado_filtro == 'cancelada':
+        citas_qs = citas_qs.filter(status=False)
+
+    paginator = Paginator(citas_qs, 10)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    estados_choices = [('activa', 'Activa'), ('cancelada', 'Cancelada')]
+    return render(request, 'citas/mis_citas.html', {
+        'page_obj':       page_obj,
+        'estados_choices': estados_choices,
+        'estado_actual':  estado_filtro,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def mis_facturas(request):
+    """Lista paginada de pagos/facturas del paciente autenticado."""
+    user = request.user
+    paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+
+    pagos_qs = PagoCita.objects.none()
+    if paciente:
+        pagos_qs = PagoCita.objects.filter(id_paciente=paciente).order_by('-fecha_consulta')
+
+    estado_filtro = request.GET.get('estado', '')
+    if estado_filtro == 'pagado':
+        pagos_qs = pagos_qs.filter(status=True)
+    elif estado_filtro == 'pendiente':
+        pagos_qs = pagos_qs.filter(status=False)
+
+    paginator = Paginator(pagos_qs, 10)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    estados_choices = [('pagado', 'Pagado'), ('pendiente', 'Pendiente')]
+    return render(request, 'citas/mis_facturas.html', {
+        'page_obj':       page_obj,
+        'estados_choices': estados_choices,
+        'estado_actual':  estado_filtro,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def detalle_cita(request, cita_id):
+    """Detalle de una cita específica del paciente."""
+    user = request.user
+    paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+    cita = get_object_or_404(
+        Cita.objects.select_related(
+            'id_doctor', 'id_especialidades', 'id_sede',
+            'id_servicio_especialidad', 'id_consultorio', 'id_pago_cita'
+        ),
+        id_citas=cita_id,
+        id_paciente=paciente,
+    )
+    return render(request, 'citas/detalle_cita.html', {'cita': cita})
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def cancelar_cita_paciente(request, cita_id):
+    """Cancela (status=False) una cita activa del paciente."""
+    user = request.user
+    paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+    cita = get_object_or_404(Cita, id_citas=cita_id, id_paciente=paciente)
+    if request.method == 'POST':
+        if cita.status:
+            cita.status = False
+            cita.save()
+            messages.info(request, f"Cita #{cita_id} cancelada correctamente.")
+        else:
+            messages.warning(request, "La cita ya estaba cancelada.")
+        return redirect('mis_citas')
+    return render(request, 'citas/cancelar_cita.html', {'cita': cita})
