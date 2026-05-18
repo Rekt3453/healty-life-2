@@ -1081,3 +1081,338 @@ class RegistrarRecepcionistaForm(forms.Form):
             status=True,
         )
         return user_recepcionista
+
+
+# ── Formularios de edición de Doctor y Recepcionista ─────────────────────────
+
+class EditarDoctorForm(forms.Form):
+    """Editar datos de un doctor existente (no crea registros nuevos)."""
+
+    # ── Cuenta de acceso ───────────────────────────────────────────────────
+    username = forms.CharField(max_length=150, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    email = forms.EmailField(required=True,
+        widget=forms.EmailInput(attrs={'class': _CSS}))
+    status = forms.BooleanField(required=False, label="Usuario activo",
+        widget=forms.CheckboxInput(attrs={'class': 'h-5 w-5 text-green-600 rounded border-gray-300'}))
+    password1 = forms.CharField(label="Nueva contraseña", required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Dejar vacío para no cambiar',
+        }))
+    password2 = forms.CharField(label="Confirmar contraseña", required=False,
+        widget=forms.PasswordInput(attrs={'class': _CSS}))
+
+    # ── Datos personales ───────────────────────────────────────────────────
+    nombre_1   = forms.CharField(max_length=100, required=True,  widget=forms.TextInput(attrs={'class': _CSS}))
+    nombre_2   = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_1 = forms.CharField(max_length=100, required=True,  widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_2 = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+    cedula     = forms.CharField(max_length=20,  required=True,  widget=forms.TextInput(attrs={'class': _CSS}))
+    tipo_cedula = forms.ChoiceField(choices=_TIPO_CEDULA_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    sexo = forms.ChoiceField(choices=_SEXO_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    telefono = forms.CharField(max_length=50, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    fecha_nacimiento = forms.DateField(required=True,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
+
+    # ── Profesionales ──────────────────────────────────────────────────────
+    id_especialidad_doctor = EspecialidadDoctorChoiceField(
+        queryset=EspecialidadDoctor.objects.select_related('id_especialidad').all(),
+        required=False, empty_label="Sin especialidad asignada",
+        widget=forms.Select(attrs={'class': _CSS}))
+    id_consultorio = forms.ModelChoiceField(
+        queryset=Consultorio.objects.filter(status__in=[True, None]),
+        required=False, empty_label="Sin consultorio asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+    id_horario = forms.ModelChoiceField(
+        queryset=Horario.objects.all(),
+        required=False, empty_label="Sin horario asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+
+    # ── Dirección ──────────────────────────────────────────────────────────
+    id_estado    = forms.ModelChoiceField(queryset=Estado.objects.all(), required=True,
+        empty_label="Seleccione un estado",    widget=forms.Select(attrs={'class': _CSS}))
+    id_municipio = forms.ModelChoiceField(queryset=Municipio.objects.none(), required=True,
+        empty_label="Seleccione un municipio", widget=forms.Select(attrs={'class': _CSS}))
+    id_ciudad    = forms.ModelChoiceField(queryset=Ciudad.objects.none(), required=True,
+        empty_label="Seleccione una ciudad",   widget=forms.Select(attrs={'class': _CSS}))
+    id_parroquia = forms.ModelChoiceField(queryset=Parroquia.objects.none(), required=True,
+        empty_label="Seleccione una parroquia", widget=forms.Select(attrs={'class': _CSS}))
+    direccion  = forms.CharField(required=True,  widget=forms.Textarea(attrs={'rows': 3, 'class': _CSS}))
+    referencia = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 2, 'class': _CSS}))
+    latitud    = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+    longitud   = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+
+    def __init__(self, *args, doctor_pk=None, user_doctor_pk=None, sede_id=None, **kwargs):
+        self._doctor_pk = doctor_pk
+        self._user_doctor_pk = user_doctor_pk
+        initial = kwargs.get('initial', {})
+        super().__init__(*args, **kwargs)
+
+        if sede_id:
+            self.fields['id_consultorio'].queryset = Consultorio.objects.filter(
+                id_sede_id=sede_id, status__in=[True, None])
+            self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
+
+        estado_id = None
+        if self.data.get('id_estado'):
+            try:
+                estado_id = int(self.data['id_estado'])
+            except (ValueError, TypeError):
+                pass
+        elif initial.get('id_estado'):
+            est = initial['id_estado']
+            estado_id = est.pk if hasattr(est, 'pk') else int(est)
+        if estado_id:
+            self.fields['id_municipio'].queryset = Municipio.objects.filter(id_estado=estado_id)
+            self.fields['id_ciudad'].queryset    = Ciudad.objects.filter(id_estado=estado_id)
+
+        municipio_id = None
+        if self.data.get('id_municipio'):
+            try:
+                municipio_id = int(self.data['id_municipio'])
+            except (ValueError, TypeError):
+                pass
+        elif initial.get('id_municipio'):
+            mun = initial['id_municipio']
+            municipio_id = mun.pk if hasattr(mun, 'pk') else int(mun)
+        if municipio_id:
+            self.fields['id_parroquia'].queryset = Parroquia.objects.filter(id_municipio=municipio_id)
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get('password1')
+        p2 = self.cleaned_data.get('password2')
+        if p1 and not p2:
+            raise forms.ValidationError("Por favor confirma la nueva contraseña.")
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError("Las contraseñas no coinciden.")
+        return p2
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        qs = UserDoctor.objects.filter(username=username)
+        if self._user_doctor_pk:
+            qs = qs.exclude(pk=self._user_doctor_pk)
+        if qs.exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        qs = UserDoctor.objects.filter(email=email)
+        if self._user_doctor_pk:
+            qs = qs.exclude(pk=self._user_doctor_pk)
+        if qs.exists():
+            raise forms.ValidationError("Este correo ya está registrado para un doctor.")
+        return email
+
+    def clean_cedula(self):
+        cedula = self.cleaned_data.get('cedula')
+        qs = Doctor.objects.filter(cedula=cedula)
+        if self._doctor_pk:
+            qs = qs.exclude(pk=self._doctor_pk)
+        if qs.exists():
+            raise forms.ValidationError("Esta cédula ya está registrada.")
+        return cedula
+
+    def save(self, doctor, user_doctor, direccion=None):
+        cd = self.cleaned_data
+        address_data = {
+            'id_estado':    cd['id_estado'],
+            'id_municipio': cd['id_municipio'],
+            'id_ciudad':    cd['id_ciudad'],
+            'id_parroquia': cd['id_parroquia'],
+            'direccion':    cd['direccion'],
+            'referencia':   cd.get('referencia') or '',
+            'latitud':      cd.get('latitud') or '',
+            'longitud':     cd.get('longitud') or '',
+        }
+        if direccion:
+            for k, v in address_data.items():
+                setattr(direccion, k, v)
+            direccion.save()
+        else:
+            direccion = DireccionDoctor.objects.create(**address_data)
+
+        user_doctor.username = cd['username']
+        user_doctor.email    = cd['email']
+        user_doctor.status   = cd['status']
+        if cd.get('password1'):
+            user_doctor.set_password(cd['password1'])
+        user_doctor.save()
+
+        espec_obj   = cd.get('id_especialidad_doctor')
+        consul_obj  = cd.get('id_consultorio')
+        horario_obj = cd.get('id_horario')
+        doctor.nombre_1   = cd['nombre_1']
+        doctor.nombre_2   = cd.get('nombre_2') or ''
+        doctor.apellido_1 = cd['apellido_1']
+        doctor.apellido_2 = cd.get('apellido_2') or ''
+        doctor.cedula          = cd['cedula']
+        doctor.tipo_cedula     = cd['tipo_cedula']
+        doctor.sexo            = cd['sexo']
+        doctor.telefono        = cd['telefono']
+        doctor.fecha_nacimiento = cd['fecha_nacimiento']
+        doctor.id_especialidad_doctor = espec_obj.pk if espec_obj else None
+        doctor.id_consultorio         = consul_obj.pk if consul_obj else None
+        doctor.id_horario             = horario_obj.pk if horario_obj else None
+        doctor.id_direccion_doctor    = direccion
+        doctor.save()
+        return doctor
+
+
+class EditarRecepcionistaForm(forms.Form):
+    """Editar datos de una recepcionista existente (no crea registros nuevos)."""
+
+    # ── Cuenta de acceso ───────────────────────────────────────────────────
+    username = forms.CharField(max_length=150, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    email = forms.EmailField(required=True,
+        widget=forms.EmailInput(attrs={'class': _CSS}))
+    status = forms.BooleanField(required=False, label="Usuario activo",
+        widget=forms.CheckboxInput(attrs={'class': 'h-5 w-5 text-blue-600 rounded border-gray-300'}))
+    password1 = forms.CharField(label="Nueva contraseña", required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Dejar vacío para no cambiar',
+        }))
+    password2 = forms.CharField(label="Confirmar contraseña", required=False,
+        widget=forms.PasswordInput(attrs={'class': _CSS}))
+
+    # ── Datos personales ───────────────────────────────────────────────────
+    nombre_1   = forms.CharField(max_length=100, required=True,  widget=forms.TextInput(attrs={'class': _CSS}))
+    nombre_2   = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_1 = forms.CharField(max_length=100, required=True,  widget=forms.TextInput(attrs={'class': _CSS}))
+    apellido_2 = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+    cedula     = forms.CharField(max_length=20,  required=True,  widget=forms.TextInput(attrs={'class': _CSS}))
+    tipo_cedula = forms.ChoiceField(choices=_TIPO_CEDULA_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    sexo = forms.ChoiceField(choices=_SEXO_CHOICES, required=True,
+        widget=forms.Select(attrs={'class': _CSS}))
+    telefono = forms.CharField(max_length=50, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS}))
+    fecha_nacimiento = forms.DateField(required=True,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
+
+    # ── Dirección ──────────────────────────────────────────────────────────
+    id_estado    = forms.ModelChoiceField(queryset=Estado.objects.all(), required=True,
+        empty_label="Seleccione un estado",    widget=forms.Select(attrs={'class': _CSS}))
+    id_municipio = forms.ModelChoiceField(queryset=Municipio.objects.none(), required=True,
+        empty_label="Seleccione un municipio", widget=forms.Select(attrs={'class': _CSS}))
+    id_ciudad    = forms.ModelChoiceField(queryset=Ciudad.objects.none(), required=True,
+        empty_label="Seleccione una ciudad",   widget=forms.Select(attrs={'class': _CSS}))
+    id_parroquia = forms.ModelChoiceField(queryset=Parroquia.objects.none(), required=True,
+        empty_label="Seleccione una parroquia", widget=forms.Select(attrs={'class': _CSS}))
+    direccion  = forms.CharField(required=True,  widget=forms.Textarea(attrs={'rows': 3, 'class': _CSS}))
+    referencia = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 2, 'class': _CSS}))
+    latitud    = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+    longitud   = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
+
+    def __init__(self, *args, recepcionista_pk=None, user_recepcionista_pk=None, **kwargs):
+        self._recepcionista_pk      = recepcionista_pk
+        self._user_recepcionista_pk = user_recepcionista_pk
+        initial = kwargs.get('initial', {})
+        super().__init__(*args, **kwargs)
+
+        estado_id = None
+        if self.data.get('id_estado'):
+            try:
+                estado_id = int(self.data['id_estado'])
+            except (ValueError, TypeError):
+                pass
+        elif initial.get('id_estado'):
+            est = initial['id_estado']
+            estado_id = est.pk if hasattr(est, 'pk') else int(est)
+        if estado_id:
+            self.fields['id_municipio'].queryset = Municipio.objects.filter(id_estado=estado_id)
+            self.fields['id_ciudad'].queryset    = Ciudad.objects.filter(id_estado=estado_id)
+
+        municipio_id = None
+        if self.data.get('id_municipio'):
+            try:
+                municipio_id = int(self.data['id_municipio'])
+            except (ValueError, TypeError):
+                pass
+        elif initial.get('id_municipio'):
+            mun = initial['id_municipio']
+            municipio_id = mun.pk if hasattr(mun, 'pk') else int(mun)
+        if municipio_id:
+            self.fields['id_parroquia'].queryset = Parroquia.objects.filter(id_municipio=municipio_id)
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get('password1')
+        p2 = self.cleaned_data.get('password2')
+        if p1 and not p2:
+            raise forms.ValidationError("Por favor confirma la nueva contraseña.")
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError("Las contraseñas no coinciden.")
+        return p2
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        qs = UserRecepcionista.objects.filter(username=username)
+        if self._user_recepcionista_pk:
+            qs = qs.exclude(pk=self._user_recepcionista_pk)
+        if qs.exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        qs = UserRecepcionista.objects.filter(email=email)
+        if self._user_recepcionista_pk:
+            qs = qs.exclude(pk=self._user_recepcionista_pk)
+        if qs.exists():
+            raise forms.ValidationError("Este correo ya está registrado para una recepcionista.")
+        return email
+
+    def clean_cedula(self):
+        cedula = self.cleaned_data.get('cedula')
+        qs = Recepcionista.objects.filter(cedula=cedula)
+        if self._recepcionista_pk:
+            qs = qs.exclude(pk=self._recepcionista_pk)
+        if qs.exists():
+            raise forms.ValidationError("Esta cédula ya está registrada.")
+        return cedula
+
+    def save(self, recepcionista, user_recepcionista, direccion=None):
+        cd = self.cleaned_data
+        address_data = {
+            'id_estado':    cd['id_estado'],
+            'id_municipio': cd['id_municipio'],
+            'id_ciudad':    cd['id_ciudad'],
+            'id_parroquia': cd['id_parroquia'],
+            'direccion':    cd['direccion'],
+            'referencia':   cd.get('referencia') or '',
+            'latitud':      cd.get('latitud') or '',
+            'longitud':     cd.get('longitud') or '',
+        }
+        if direccion:
+            for k, v in address_data.items():
+                setattr(direccion, k, v)
+            direccion.save()
+        else:
+            direccion = DireccionRecepcionista.objects.create(**address_data)
+
+        user_recepcionista.username = cd['username']
+        user_recepcionista.email    = cd['email']
+        user_recepcionista.status   = cd['status']
+        if cd.get('password1'):
+            user_recepcionista.set_password(cd['password1'])
+        user_recepcionista.save()
+
+        recepcionista.nombre_1   = cd['nombre_1']
+        recepcionista.nombre_2   = cd.get('nombre_2') or ''
+        recepcionista.apellido_1 = cd['apellido_1']
+        recepcionista.apellido_2 = cd.get('apellido_2') or ''
+        recepcionista.cedula          = cd['cedula']
+        recepcionista.tipo_cedula     = cd['tipo_cedula']
+        recepcionista.sexo            = cd['sexo']
+        recepcionista.telefono        = cd['telefono']
+        recepcionista.fecha_nacimiento = cd['fecha_nacimiento']
+        recepcionista.id_direccion_recepcionista = direccion
+        recepcionista.save()
+        return recepcionista
