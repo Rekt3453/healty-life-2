@@ -605,6 +605,88 @@ def registro_staff(request):
         messages.error(request, 'Error al cargar el formulario de registro')
         return redirect('home')
 
+def registrar_doctor(request):
+    """Registro exclusivo de doctores con credenciales propias."""
+    try:
+        user_id = request.session.get('_auth_user_id')
+        if not user_id:
+            messages.error(request, 'Debes iniciar sesión como gerente primero')
+            return redirect('login_gerente')
+        from usuarios.models import UserAdmin
+        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+        if not user:
+            messages.error(request, 'Gerente no encontrado')
+            return redirect('login_gerente')
+        auth_backend = CustomAuthBackend()
+        if auth_backend.get_rol(user) != 'gerente':
+            messages.error(request, 'Acceso denegado')
+            return redirect('home')
+        sede = user.id_sede
+        if request.method == 'POST':
+            from usuarios.forms import RegistrarDoctorForm
+            form = RegistrarDoctorForm(request.POST, sede_id=sede.id_sede if sede else None)
+            if form.is_valid():
+                try:
+                    user_doctor = form.save(sede)
+                    messages.success(request, f'Doctor {user_doctor.username} registrado exitosamente.')
+                    return redirect('dashboard_gerente')
+                except Exception as e:
+                    messages.error(request, f'Error al registrar el doctor: {str(e)}')
+                    print(f"Error guardando doctor: {e}")
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+                print(f"Errores formulario doctor: {form.errors}")
+        else:
+            from usuarios.forms import RegistrarDoctorForm
+            form = RegistrarDoctorForm(sede_id=sede.id_sede if sede else None)
+        return render(request, 'usuarios/registrar_doctor.html', {'form': form, 'sede': sede})
+    except Exception as e:
+        print(f"Error en registrar_doctor: {e}")
+        messages.error(request, 'Error al cargar el formulario')
+        return redirect('home')
+
+
+def registrar_recepcionista(request):
+    """Registro exclusivo de recepcionistas con credenciales propias."""
+    try:
+        user_id = request.session.get('_auth_user_id')
+        if not user_id:
+            messages.error(request, 'Debes iniciar sesión como gerente primero')
+            return redirect('login_gerente')
+        from usuarios.models import UserAdmin
+        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+        if not user:
+            messages.error(request, 'Gerente no encontrado')
+            return redirect('login_gerente')
+        auth_backend = CustomAuthBackend()
+        if auth_backend.get_rol(user) != 'gerente':
+            messages.error(request, 'Acceso denegado')
+            return redirect('home')
+        sede = user.id_sede
+        if request.method == 'POST':
+            from usuarios.forms import RegistrarRecepcionistaForm
+            form = RegistrarRecepcionistaForm(request.POST)
+            if form.is_valid():
+                try:
+                    user_rec = form.save(sede)
+                    messages.success(request, f'Recepcionista {user_rec.username} registrada exitosamente.')
+                    return redirect('dashboard_gerente')
+                except Exception as e:
+                    messages.error(request, f'Error al registrar la recepcionista: {str(e)}')
+                    print(f"Error guardando recepcionista: {e}")
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+                print(f"Errores formulario recepcionista: {form.errors}")
+        else:
+            from usuarios.forms import RegistrarRecepcionistaForm
+            form = RegistrarRecepcionistaForm()
+        return render(request, 'usuarios/registrar_recepcionista.html', {'form': form, 'sede': sede})
+    except Exception as e:
+        print(f"Error en registrar_recepcionista: {e}")
+        messages.error(request, 'Error al cargar el formulario')
+        return redirect('home')
+
+
 # ==================== VISTAS AJAX PARA SELECTORES DEPENDIENTES ====================
 
 def cargar_municipios(request):
