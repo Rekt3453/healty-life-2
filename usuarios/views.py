@@ -925,8 +925,22 @@ def registrar_recepcionista(request):
             form = RegistrarRecepcionistaForm(request.POST)
             if form.is_valid():
                 try:
+                    password_plana = form.cleaned_data['password1']
                     user_rec = form.save(sede)
-                    messages.success(request, f'Recepcionista {user_rec.username} registrada exitosamente.')
+                    try:
+                        from .email_config import enviar_correo_recepcionista
+                        enviar_correo_recepcionista({
+                            'primer_nombre':   form.cleaned_data.get('nombre_1', ''),
+                            'segundo_nombre':  form.cleaned_data.get('nombre_2', ''),
+                            'primer_apellido': form.cleaned_data.get('apellido_1', ''),
+                            'segundo_apellido': form.cleaned_data.get('apellido_2', ''),
+                            'email':    form.cleaned_data.get('email', ''),
+                            'username': user_rec.username,
+                            'password': password_plana,
+                        })
+                    except Exception as mail_err:
+                        print(f'WARN: No se pudo enviar correo a la recepcionista: {mail_err}')
+                    messages.success(request, f'Recepcionista {user_rec.username} registrada. Se envió un correo con sus credenciales.')
                     return redirect('dashboard_gerente')
                 except Exception as e:
                     messages.error(request, f'Error al registrar la recepcionista: {str(e)}')
