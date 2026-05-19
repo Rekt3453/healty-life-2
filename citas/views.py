@@ -84,12 +84,74 @@ def solicitar_cita(request):
     })
 
 
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def citas_pendientes_medico(request):
+    """Citas pendientes y asignadas para el médico autenticado."""
+    from usuarios.authentication import CustomAuthBackend
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+
+    citas_pendientes = Cita.objects.none()
+    citas_asignadas  = Cita.objects.none()
+    if datos_medico:
+        base_qs = Cita.objects.filter(id_doctor=datos_medico).select_related(
+            'id_paciente', 'id_especialidades', 'id_sede'
+        ).order_by('fecha_consulta')
+        citas_pendientes = base_qs.filter(status=True,  fecha_consulta__gte=datetime.now())
+        citas_asignadas  = base_qs.filter(status=False, fecha_consulta__gte=datetime.now())
+
+    return render(request, 'citas/citas_pendientes_medico.html', {
+        'citas_pendientes': citas_pendientes,
+        'citas_asignadas':  citas_asignadas,
+        'datos_medico':     datos_medico,
+    })
+
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def confirmar_cita(request, cita_id):
+    """Médico confirma/acepta una cita pendiente."""
+    from usuarios.authentication import CustomAuthBackend
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+    cita = get_object_or_404(Cita, id_citas=cita_id, id_doctor=datos_medico)
+    if request.method == 'POST':
+        cita.status = True
+        cita.save()
+        messages.success(request, f"Cita #{cita_id} confirmada.")
+    return redirect('citas_pendientes_medico')
+
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def gestionar_horarios(request):
+    """Vista de gestión de horarios del médico (solo lectura por ahora)."""
+    from usuarios.authentication import CustomAuthBackend
+    from usuarios.models import Doctor
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+
+    horario = None
+    if datos_medico and datos_medico.id_horario:
+        try:
+            horario = Horario.objects.get(id_horario=datos_medico.id_horario)
+        except Horario.DoesNotExist:
+            pass
+
+    return render(request, 'citas/gestionar_horarios.html', {
+        'datos_medico': datos_medico,
+        'horario':      horario,
+    })
+
+
 @rol_requerido('recepcionista', 'gerente')
 def gestionar_citas(request):
-    """Recepcionista/gerente: listado de citas activas."""
+    """Recepcionista/gerente: citas activas pendientes de aprobación de pago."""
     try:
-        citas = Cita.objects.filter(status=True).select_related(
-            'id_paciente', 'id_doctor', 'id_sede', 'id_especialidades', 'id_servicio_especialidad'
+        citas = Cita.objects.filter(
+            status=True,
+            id_pago_cita__status=False
+        ).select_related(
+            'id_paciente', 'id_doctor', 'id_sede',
+            'id_especialidades', 'id_servicio_especialidad', 'id_pago_cita'
         ).order_by('-fecha_consulta')
         total = citas.count()
     except Exception:
@@ -101,14 +163,54 @@ def gestionar_citas(request):
     })
 
 
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def calendario_citas(request):
+    """Lista/calendario de citas del médico autenticado."""
+    from usuarios.authentication import CustomAuthBackend
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+
+    citas_qs = Cita.objects.none()
+    if datos_medico:
+        citas_qs = Cita.objects.filter(id_doctor=datos_medico).select_related(
+            'id_paciente', 'id_especialidades', 'id_sede'
+        ).order_by('fecha_consulta')
+
+    estado_filtro = request.GET.get('estado', '')
+    fecha_filtro  = request.GET.get('fecha', '')
+    if estado_filtro == 'activa':
+        citas_qs = citas_qs.filter(status=True)
+    elif estado_filtro == 'cancelada':
+        citas_qs = citas_qs.filter(status=False)
+    if fecha_filtro:
+        try:
+            from datetime import datetime as _dt
+            fecha_obj = _dt.strptime(fecha_filtro, '%Y-%m-%d').date()
+            citas_qs = citas_qs.filter(fecha_consulta__date=fecha_obj)
+        except ValueError:
+            pass
+
+    paginator = Paginator(citas_qs, 15)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'citas/calendario_citas.html', {
+        'page_obj':       page_obj,
+        'estado_actual':  estado_filtro,
+        'fecha_actual':   fecha_filtro,
+        'hoy':            date.today().isoformat(),
+        'datos_medico':   datos_medico,
+    })
+
+
 @rol_requerido('recepcionista', 'gerente')
 def aprobar_cita(request, cita_id):
-    """Aprobar cita (status=True ya está, sólo confirma)."""
+    """Aprobar cita: marca el pago como confirmado (status=True)."""
     if request.method == 'POST':
         cita = get_object_or_404(Cita, id_citas=cita_id)
-        cita.status = True
-        cita.save()
-        messages.success(request, f"✅ Cita #{cita_id} aprobada.")
+        if cita.id_pago_cita:
+            cita.id_pago_cita.status = True
+            cita.id_pago_cita.save()
+        messages.success(request, f"✅ Cita #{cita_id} aprobada correctamente.")
     return redirect('gestionar_citas')
 
 

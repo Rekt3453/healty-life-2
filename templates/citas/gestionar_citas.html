@@ -174,42 +174,39 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for cita in citas_pendientes %}
                         <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.paciente.username }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.servicio.nombre }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.sede.nombre }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.hora_solicitada }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {% if cita.medico %}
-                                    {{ cita.medico.username }}
+                                {% if cita.id_paciente.nombre_completo %}
+                                    {{ cita.id_paciente.nombre_completo }}
+                                {% elif cita.id_paciente %}
+                                    {{ cita.id_paciente }}
+                                {% else %}
+                                    <span class="text-gray-400 italic">Sin paciente</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_servicio_especialidad }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_sede.nombre_sede }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|date:"d/m/Y" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|time:"H:i" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% if cita.id_doctor %}
+                                    {{ cita.id_doctor.nombre_completo|default:cita.id_doctor }}
                                 {% else %}
                                     <span class="text-gray-400 italic">No asignado</span>
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {% if cita.estado == 'pendiente' %}
-                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">Pendiente</span>
-                                {% elif cita.estado == 'asignada' %}
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Asignada</span>
-                                {% elif cita.estado == 'aprobada' %}
-                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Aprobada</span>
-                                {% elif cita.estado == 'rechazada' %}
-                                    <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Rechazada</span>
+                                {% if cita.status %}
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Activa</span>
                                 {% else %}
-                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">{{ cita.estado }}</span>
+                                    <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Cancelada</span>
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                {% if cita.estado == 'pendiente' %}
-                                    <a href="{% url 'asignar_medico' cita.id %}" class="btn-action inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full hover:bg-blue-200">
-                                        Asignar Médico
-                                    </a>
-                                {% elif cita.estado == 'asignada' and cita.medico %}
-                                    <span class="text-xs text-gray-500">Esperando confirmación del médico</span>
-                                {% endif %}
-                                {% if cita.medico and cita.estado in 'pendiente asignada' %}
-                                    <form method="POST" action="{% url 'aprobar_cita' cita.id %}" class="inline">
+                                {% if not cita.id_doctor %}
+                                    <span class="text-xs text-gray-500">Sin médico asignado</span>
+                                {% else %}
+                                    <form method="POST" action="{% url 'aprobar_cita' cita.id_citas %}" class="inline">
                                         {% csrf_token %}
                                         <button type="submit" class="btn-action px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200"
                                                 onclick="return confirm('¿Aprobar esta cita?')">
@@ -217,7 +214,7 @@
                                         </button>
                                     </form>
                                 {% endif %}
-                                <form method="POST" action="{% url 'rechazar_cita' cita.id %}" class="inline">
+                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-action px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200" onclick="return confirm('¿Rechazar esta cita?')">
                                         Rechazar
