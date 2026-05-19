@@ -261,6 +261,99 @@ def enviar_correo_doctor(datos_doctor):
         return False
 
 
+TEMPLATE_RECEPCIONISTA = """\
+Estimado(a) {nombre_completo},
+
+¡Bienvenido(a) al equipo de {site_name}! 🏥✨
+
+Tu cuenta de recepcionista ha sido creada exitosamente por el área administrativa.
+
+📋 **Datos de tu cuenta:**
+
+👤 Usuario: {username}
+📧 Correo Electrónico: {email}
+🔐 Contraseña: {password}
+
+⚠️ **IMPORTANTE:** Por seguridad, te recomendamos cambiar tu contraseña después de tu primer inicio de sesión.
+
+🚀 **Accede a tu portal de recepcionista aquí:**
+
+{login_url}
+
+Una vez que inicies sesión, podrás:
+
+✅ Gestionar y aprobar citas de pacientes
+✅ Consultar el listado de citas activas
+✅ Registrar y actualizar información de pacientes
+✅ Coordinar con el equipo médico
+
+📞 **¿Necesitas ayuda?**
+
+Contáctanos a través de los canales de soporte internos de {site_name}.
+
+¡Bienvenido(a) al equipo! 💚
+
+🏥 **{site_name} - Tu Salud, Nuestra Prioridad** 🌟
+
+---
+Este es un correo automático, por favor no respondas a este mensaje.
+"""
+
+def enviar_correo_recepcionista(datos_recepcionista):
+    """
+    Envía correo de bienvenida a una nueva recepcionista registrada.
+
+    Args:
+        datos_recepcionista (dict):
+            - primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
+            - email, username, password
+    Returns:
+        bool
+    """
+    if not SMTP_USER or not SMTP_PASS:
+        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        return False
+
+    nombre_completo = datos_recepcionista.get('primer_nombre', '')
+    if datos_recepcionista.get('segundo_nombre'):
+        nombre_completo += ' ' + datos_recepcionista['segundo_nombre']
+    nombre_completo += ' ' + datos_recepcionista.get('primer_apellido', '')
+    if datos_recepcionista.get('segundo_apellido'):
+        nombre_completo += ' ' + datos_recepcionista['segundo_apellido']
+
+    template_data = {
+        'nombre_completo': nombre_completo.strip(),
+        'site_name':  SITE_NAME,
+        'site_url':   SITE_URL,
+        'login_url':  f"{SITE_URL}/login/recepcionista/",
+        'username':   datos_recepcionista.get('username', ''),
+        'email':      datos_recepcionista.get('email', ''),
+        'password':   datos_recepcionista.get('password', ''),
+    }
+
+    msg = MIMEMultipart()
+    msg["From"]    = SMTP_USER
+    msg["To"]      = datos_recepcionista.get('email', '')
+    msg["Subject"] = f"🏥 Bienvenido(a) al equipo de {SITE_NAME}"
+    if CC_ADDR:
+        msg["Cc"] = CC_ADDR
+    msg.attach(MIMEText(TEMPLATE_RECEPCIONISTA.format(**template_data), "plain"))
+
+    try:
+        context = ssl.create_default_context()
+        with smtplib.SMTP(SMTP_HOST_IP, SMTP_PORT, timeout=60) as server:
+            if SMTP_HOST_NAME:
+                server._host = SMTP_HOST_NAME
+            server.starttls(context=context)
+            server.login(SMTP_USER, SMTP_PASS)
+            server.send_message(msg)
+            print(f"OK: Correo de bienvenida recepcionista enviado a {datos_recepcionista.get('email')}")
+            return True
+    except Exception as e:
+        print(f"ERROR: No se pudo enviar correo a la recepcionista: {e}")
+        return False
+
+
 def enviar_correo_confirmacion_simple(primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, 
                                      email, username, password, cedula):
     """
