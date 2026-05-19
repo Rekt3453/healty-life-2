@@ -86,33 +86,35 @@ class CustomAuthBackend(BaseBackend):
     
     def get_user(self, user_id):
         """
-        Obtiene el usuario por ID
+        Obtiene el usuario por ID priorizando la tabla correcta según el
+        hint guardado en sesión por UserModelHintMiddleware.
         """
         try:
-            # Intentar en todas las tablas de usuarios
-            user_paciente = UserPaciente.objects.get(pk=user_id)
-            return user_paciente
-        except UserPaciente.DoesNotExist:
-            pass
-            
-        try:
-            user_doctor = UserDoctor.objects.get(pk=user_id)
-            return user_doctor
-        except UserDoctor.DoesNotExist:
-            pass
-            
-        try:
-            user_recepcionista = UserRecepcionista.objects.get(pk=user_id)
-            return user_recepcionista
-        except UserRecepcionista.DoesNotExist:
-            pass
-            
-        try:
-            user_admin = UserAdmin.objects.get(pk=user_id)
-            return user_admin
-        except UserAdmin.DoesNotExist:
-            pass
-            
+            from .middleware import get_user_model_hint
+            hint = get_user_model_hint()
+        except Exception:
+            hint = None
+
+        _MODEL_MAP = {
+            'UserPaciente':      UserPaciente,
+            'UserDoctor':        UserDoctor,
+            'UserRecepcionista': UserRecepcionista,
+            'UserAdmin':         UserAdmin,
+        }
+        default_order = [UserPaciente, UserDoctor, UserRecepcionista, UserAdmin]
+
+        if hint and hint in _MODEL_MAP:
+            priority = _MODEL_MAP[hint]
+            order = [priority] + [m for m in default_order if m is not priority]
+        else:
+            order = default_order
+
+        for Model in order:
+            try:
+                return Model.objects.get(pk=user_id)
+            except (Model.DoesNotExist, ValueError, TypeError):
+                pass
+
         return None
     
     def get_rol(self, user):

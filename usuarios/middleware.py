@@ -7,6 +7,33 @@ from .models import (
 
 _thread_locals = local()
 
+
+def get_user_model_hint():
+    """Devuelve el nombre del modelo de usuario guardado por UserModelHintMiddleware."""
+    return getattr(_thread_locals, 'user_model_hint', None)
+
+
+class UserModelHintMiddleware:
+    """
+    Debe ir ANTES de AuthenticationMiddleware en MIDDLEWARE.
+    Lee _hl_user_model de la sesión y lo guarda en thread-local para que
+    CustomAuthBackend.get_user() sepa en qué tabla buscar sin colisionar PKs.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        hint = None
+        try:
+            if hasattr(request, 'session'):
+                hint = request.session.get('_hl_user_model')
+        except Exception:
+            pass
+        _thread_locals.user_model_hint = hint
+        response = self.get_response(request)
+        _thread_locals.user_model_hint = None
+        return response
+
 def get_current_sede():
     """
     Obtener la sede actual del contexto del hilo

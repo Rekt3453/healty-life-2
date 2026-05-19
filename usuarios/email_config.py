@@ -3,21 +3,26 @@ Configuración de correo electrónico para Healthy Life
 Sistema de envío de correos de confirmación de registro
 """
 
-import ssl, smtplib
+import os, ssl, smtplib
+from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# ── CONFIGURACIÓN SMTP ───────────────────────────────────────────────
-# IMPORTANTE: Debes configurar estos valores con tus credenciales reales
-# Para Gmail: smtp.gmail.com, puerto 587
-# Para Outlook: smtp.office365.com, puerto 587
-# Para Yahoo: smtp.mail.yahoo.com, puerto 587
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / '.env')
+except ImportError:
+    pass
 
-SMTP_HOST_IP   = "smtp.gmail.com"  # Servidor SMTP de Gmail
-SMTP_HOST_NAME = "smtp.gmail.com"  # Nombre del certificado (generalmente igual al host)
-SMTP_PORT      = 587  # STARTTLS (puerto estándar para TLS)
-SMTP_USER      = "jose1angel2morales@gmail.com"  # Tu correo electrónico completo
-SMTP_PASS      = "rppr hyic crvx rscp"  # Tu contraseña de aplicación de Gmail
+# ── CONFIGURACIÓN SMTP ───────────────────────────────────────────────
+# Las credenciales se leen desde el archivo .env en la raíz del proyecto
+# Para Gmail: agrega PASSWORD_APP (contraseña de aplicación, no la cuenta)
+
+SMTP_HOST_IP   = os.environ.get('EMAIL_HOST',     'smtp.gmail.com')
+SMTP_HOST_NAME = os.environ.get('EMAIL_HOST',     'smtp.gmail.com')
+SMTP_PORT      = int(os.environ.get('EMAIL_PORT', '587'))
+SMTP_USER      = os.environ.get('EMAIL_HOST_USER',     '')
+SMTP_PASS      = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
 # ── DESTINATARIOS EN COPIA ───────────────────────────────────────────
 CC_ADDR  = ""  # Correo en copia visible (opcional)
@@ -161,6 +166,100 @@ def enviar_correo_confirmacion(datos_paciente):
     except Exception as e:
         print(f"ERROR: Error al enviar correo a {datos_paciente.get('email')}: {str(e)}")
         return False
+
+TEMPLATE_DOCTOR = """\
+Estimado(a) Dr./Dra. {nombre_completo},
+
+¡Bienvenido(a) al equipo médico de {site_name}! 🏥✨
+
+Tu cuenta de médico ha sido creada exitosamente por el área administrativa.
+
+📋 **Datos de tu cuenta:**
+
+👤 Usuario: {username}
+📧 Correo Electrónico: {email}
+🔐 Contraseña: {password}
+
+⚠️ **IMPORTANTE:** Por seguridad, te recomendamos cambiar tu contraseña después de tu primer inicio de sesión.
+
+🚀 **Accede a tu portal médico aquí:**
+
+{login_url}
+
+Una vez que inicies sesión, podrás:
+
+✅ Ver y gestionar tus citas asignadas
+✅ Confirmar citas pendientes
+✅ Consultar tu calendario de atención
+✅ Gestionar tus horarios disponibles
+
+📞 **¿Necesitas ayuda?**
+
+Contáctanos a través de los canales de soporte internos de {site_name}.
+
+¡Bienvenido al equipo! 💚
+
+🏥 **{site_name} - Tu Salud, Nuestra Prioridad** 🌟
+
+---
+Este es un correo automático, por favor no respondas a este mensaje.
+"""
+
+def enviar_correo_doctor(datos_doctor):
+    """
+    Envía correo de bienvenida a un nuevo médico registrado.
+
+    Args:
+        datos_doctor (dict):
+            - primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
+            - email, username, password
+    Returns:
+        bool
+    """
+    if not SMTP_USER or not SMTP_PASS:
+        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        return False
+
+    nombre_completo = datos_doctor.get('primer_nombre', '')
+    if datos_doctor.get('segundo_nombre'):
+        nombre_completo += ' ' + datos_doctor['segundo_nombre']
+    nombre_completo += ' ' + datos_doctor.get('primer_apellido', '')
+    if datos_doctor.get('segundo_apellido'):
+        nombre_completo += ' ' + datos_doctor['segundo_apellido']
+
+    from datetime import datetime
+    template_data = {
+        'nombre_completo': nombre_completo.strip(),
+        'site_name':  SITE_NAME,
+        'site_url':   SITE_URL,
+        'login_url':  f"{SITE_URL}/login/medico/",
+        'username':   datos_doctor.get('username', ''),
+        'email':      datos_doctor.get('email', ''),
+        'password':   datos_doctor.get('password', ''),
+    }
+
+    msg = MIMEMultipart()
+    msg["From"]    = SMTP_USER
+    msg["To"]      = datos_doctor.get('email', '')
+    msg["Subject"] = f"🏥 Bienvenido al equipo médico de {SITE_NAME}"
+    if CC_ADDR:
+        msg["Cc"] = CC_ADDR
+    msg.attach(MIMEText(TEMPLATE_DOCTOR.format(**template_data), "plain"))
+
+    try:
+        context = ssl.create_default_context()
+        with smtplib.SMTP(SMTP_HOST_IP, SMTP_PORT, timeout=60) as server:
+            if SMTP_HOST_NAME:
+                server._host = SMTP_HOST_NAME
+            server.starttls(context=context)
+            server.login(SMTP_USER, SMTP_PASS)
+            server.send_message(msg)
+            print(f"OK: Correo de bienvenida médico enviado a {datos_doctor.get('email')}")
+            return True
+    except Exception as e:
+        print(f"ERROR: No se pudo enviar correo al médico: {e}")
+        return False
+
 
 def enviar_correo_confirmacion_simple(primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, 
                                      email, username, password, cedula):
