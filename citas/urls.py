@@ -10,6 +10,11 @@ urlpatterns = [
     path('mis-facturas/', views.mis_facturas, name='mis_facturas'),
     path('<int:cita_id>/detalle/', views.detalle_cita, name='detalle_cita'),
     path('<int:cita_id>/cancelar/', views.cancelar_cita_paciente, name='cancelar_cita'),
+    # Vistas del médico
+    path('calendario/', views.calendario_citas, name='calendario_citas'),
+    path('medico/pendientes/', views.citas_pendientes_medico, name='citas_pendientes_medico'),
+    path('medico/horarios/', views.gestionar_horarios, name='gestionar_horarios'),
+    path('medico/<int:cita_id>/confirmar/', views.confirmar_cita, name='confirmar_cita'),
     # Gestión (recepcionista/gerente)
     path('gestionar/', views.gestionar_citas, name='gestionar_citas'),
     path('<int:cita_id>/aprobar/', views.aprobar_cita, name='aprobar_cita'),

@@ -18,6 +18,7 @@ from .views_new import registro_paciente as nuevo_registro_paciente
 from .views_new import cargar_municipios, cargar_ciudades, cargar_parroquias
 from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas, EspecialidadDoctor, Consultorio, Horario
 from .authentication import CustomAuthBackend
+from .email_config import enviar_correo_confirmacion
 
 def home(request):
     return render(request, 'home.html')
@@ -41,13 +42,9 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
             
             # Permitir cualquier rol que coincida exactamente
             if user_rol == rol_esperado:
-                # Guardar user_id en sesión manualmente
-                request.session['_auth_user_id'] = user.id_user_paciente if hasattr(user, 'id_user_paciente') else user.id_user_doctor if hasattr(user, 'id_user_doctor') else user.id_user_recepcionista if hasattr(user, 'id_user_recepcionista') else user.id_user_admin
-                request.session.save()
-                
                 login(request, user, backend='usuarios.authentication.CustomAuthBackend')
+                request.session['_hl_user_model'] = type(user).__name__
                 messages.success(request, f"Bienvenido {user.username}")
-                print(f"DEBUG: Login exitoso, redirigiendo a: {dashboard_name}")
                 return redirect(dashboard_name)
             else:
                 messages.error(request, f"Esta cuenta no tiene perfil de {rol_esperado}. Tu rol es: {user_rol}")
@@ -102,23 +99,41 @@ def registro_paciente(request):
                 es_menor = edad < 18
                 es_paciente_especial = es_menor or tiene_condicion
                 
+                # Enviar correo de bienvenida
+                try:
+                    datos_paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+                    password_plana = form.cleaned_data.get('password1', '')
+                    enviar_correo_confirmacion({
+                        'primer_nombre':   datos_paciente.nombre_1   if datos_paciente else '',
+                        'segundo_nombre':  datos_paciente.nombre_2   if datos_paciente else '',
+                        'primer_apellido': datos_paciente.apellido_1 if datos_paciente else '',
+                        'segundo_apellido':datos_paciente.apellido_2 if datos_paciente else '',
+                        'email':    user.email,
+                        'username': user.username,
+                        'password': password_plana,
+                        'cedula':   datos_paciente.cedula if datos_paciente else '',
+                    })
+                except Exception as mail_err:
+                    print(f'WARN: No se pudo enviar correo de bienvenida: {mail_err}')
+
                 # Usar el backend personalizado para login
                 auth_backend = CustomAuthBackend()
                 login(request, user, backend='usuarios.authentication.CustomAuthBackend')
-                
+
                 # Mensaje personalizado según tipo de paciente
                 if es_paciente_especial:
                     if es_menor:
                         messages.success(request,
-                            "✅ Cuenta creada con éxito. Has sido registrado como paciente especial (menor de edad). "
-                            "Los datos de tu tutor han sido guardados.")
+                            "Cuenta creada con éxito. Has sido registrado como paciente especial (menor de edad). "
+                            "Los datos de tu tutor han sido guardados. Revisa tu correo electrónico.")
                     else:
                         messages.success(request,
-                            "✅ Cuenta creada con éxito. Has sido registrado como paciente especial por tu condición médica.")
+                            "Cuenta creada con éxito. Has sido registrado como paciente especial. "
+                            "Revisa tu correo electrónico.")
                 else:
                     messages.success(request,
-                        "✅ Cuenta creada con éxito. Bienvenido al sistema.")
-                
+                        "Cuenta creada con éxito. Bienvenido al sistema. Revisa tu correo electrónico.")
+
                 return redirect('dashboard_paciente')
                 
             except Exception as e:
@@ -366,7 +381,7 @@ def login_view(request):
     
     return render(request, 'usuarios/login.html')
 
-@login_required
+@login_required(login_url='/login/paciente/')
 def dashboard_paciente(request):
     # Verificar que el usuario sea paciente
     auth_backend = CustomAuthBackend()
@@ -403,7 +418,7 @@ def dashboard_paciente(request):
         'total_citas': total_citas,
     })
 
-@login_required
+@login_required(login_url='/login/medico/')
 def dashboard_medico(request):
     # Verificar que el usuario sea médico
     auth_backend = CustomAuthBackend()
@@ -546,7 +561,7 @@ def login_admin(request):
     """Login para administradores (alias de login_gerente en esta instalación)"""
     return login_rol(request, 'gerente', 'usuarios/login_gerente.html', 'dashboard_gerente')
 
-@login_required
+@login_required(login_url='/login/gerente/')
 def dashboard_root(request):
     """Dashboard root — redirige al panel de gerente (no existen roles super_admin/root)"""
     auth_backend = CustomAuthBackend()
@@ -855,8 +870,22 @@ def registrar_doctor(request):
             form = RegistrarDoctorForm(request.POST, sede_id=sede.id_sede if sede else None)
             if form.is_valid():
                 try:
+                    password_plana = form.cleaned_data['password1']
                     user_doctor = form.save(sede)
-                    messages.success(request, f'Doctor {user_doctor.username} registrado exitosamente.')
+                    try:
+                        from .email_config import enviar_correo_doctor
+                        enviar_correo_doctor({
+                            'primer_nombre':  form.cleaned_data.get('nombre_1', ''),
+                            'segundo_nombre': form.cleaned_data.get('nombre_2', ''),
+                            'primer_apellido': form.cleaned_data.get('apellido_1', ''),
+                            'segundo_apellido': form.cleaned_data.get('apellido_2', ''),
+                            'email':    form.cleaned_data.get('email', ''),
+                            'username': user_doctor.username,
+                            'password': password_plana,
+                        })
+                    except Exception as mail_err:
+                        print(f'WARN: No se pudo enviar correo al médico: {mail_err}')
+                    messages.success(request, f'Doctor {user_doctor.username} registrado. Se envió un correo con sus credenciales.')
                     return redirect('dashboard_gerente')
                 except Exception as e:
                     messages.error(request, f'Error al registrar el doctor: {str(e)}')
