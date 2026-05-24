@@ -112,6 +112,21 @@ class DireccionRecepcionista(models.Model):
         verbose_name = 'Dirección de Recepcionista'
         verbose_name_plural = 'Direcciones de Recepcionistas'
 
+class DireccionSuperadmin(models.Model):
+    id_direccion_superadmin = models.BigAutoField(primary_key=True)
+    id_estado = models.ForeignKey(Estado, on_delete=models.CASCADE, db_column='id_estado')
+    id_municipio = models.ForeignKey(Municipio, on_delete=models.CASCADE, db_column='id_municipio')
+    id_parroquia = models.ForeignKey(Parroquia, on_delete=models.CASCADE, db_column='id_parroquia')
+    id_ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE, db_column='id_ciudad')
+    direccion = models.TextField()
+    referencia = models.TextField(blank=True, null=True)
+    latitud = models.CharField(max_length=100, blank=True, null=True)
+    longitud = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'direccion_superadmin'
+
 class DireccionAdmin(models.Model):
     id_direccion_admin = models.AutoField(primary_key=True)
     id_estado = models.ForeignKey(Estado, on_delete=models.CASCADE, db_column='id_estado')
@@ -259,10 +274,10 @@ class UserPaciente(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.password = hashlib.md5(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.password == hashlib.md5(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -297,10 +312,10 @@ class UserDoctor(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.password = hashlib.md5(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.password == hashlib.md5(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -335,10 +350,10 @@ class UserRecepcionista(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.password = hashlib.md5(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.password == hashlib.md5(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -373,10 +388,10 @@ class UserAdmin(models.Model):
         return self.username
 
     def set_password(self, password):
-        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.password = hashlib.md5(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.password == hashlib.md5(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -609,10 +624,10 @@ class UserSuperAdmin(models.Model):
         return self.username or f'SuperAdmin {self.id_superadmin}'
 
     def set_password(self, password):
-        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.md5(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.md5(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -647,10 +662,10 @@ class UserRoot(models.Model):
         return self.username or f'Root {self.id_user_root}'
 
     def set_password(self, password):
-        self.contrasena = hashlib.sha256(password.encode()).hexdigest()
+        self.contrasena = hashlib.md5(password.encode()).hexdigest()
 
     def check_password(self, password):
-        return self.contrasena == hashlib.sha256(password.encode()).hexdigest()
+        return self.contrasena == hashlib.md5(password.encode()).hexdigest()
 
     @property
     def is_authenticated(self):
@@ -681,12 +696,8 @@ class Superadmin(models.Model):
     apellido_2 = models.TextField(blank=True, null=True)
     cedula = models.CharField(max_length=50, blank=True, null=True)
     tipo_cedula = models.CharField(max_length=50, blank=True, null=True)
-    fecha_nacimiento = models.DateTimeField(blank=True, null=True)
-    fecha_registro = models.DateTimeField(null=True, blank=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
-    sexo = models.CharField(max_length=20, blank=True, null=True)
     status = models.BooleanField(default=True)
-    telefono = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
