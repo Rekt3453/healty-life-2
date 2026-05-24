@@ -1,23 +1,26 @@
-from threading import local
 from .authentication import CustomAuthBackend
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador
 )
 
-_thread_locals = local()
 
-
-def get_user_model_hint():
-    """Devuelve el nombre del modelo de usuario guardado por UserModelHintMiddleware."""
-    return getattr(_thread_locals, 'user_model_hint', None)
+def get_user_model_hint(request=None):
+    """
+    Devuelve el hint de modelo guardado en el request por UserModelHintMiddleware.
+    Acepta request=None para compatibilidad con llamadas antiguas (devuelve None).
+    """
+    if request is None:
+        return None
+    return getattr(request, '_user_model_hint', None)
 
 
 class UserModelHintMiddleware:
     """
     Debe ir ANTES de AuthenticationMiddleware en MIDDLEWARE.
-    Lee _hl_user_model de la sesión y lo guarda en thread-local para que
-    CustomAuthBackend.get_user() sepa en qué tabla buscar sin colisionar PKs.
+    Lee _hl_user_model de la sesión y lo guarda en request._user_model_hint
+    para que CustomAuthBackend.get_user() sepa en qué tabla buscar.
+    Usa el request (sin thread-local) para evitar race conditions en producción.
     """
     def __init__(self, get_response):
         self.get_response = get_response
@@ -29,34 +32,34 @@ class UserModelHintMiddleware:
                 hint = request.session.get('_hl_user_model')
         except Exception:
             pass
-        _thread_locals.user_model_hint = hint
-        response = self.get_response(request)
-        _thread_locals.user_model_hint = None
-        return response
+        request._user_model_hint = hint
+        return self.get_response(request)
 
-def get_current_sede():
+def get_current_sede(request=None):
     """
-    Obtener la sede actual del contexto del hilo
+    Devuelve el id de sede del request actual.
+    El valor lo establece SedeMiddleware en request.sede_id_actual.
     """
-    return getattr(_thread_locals, 'sede_id', None)
+    if request is None:
+        return None
+    return getattr(request, 'sede_id_actual', None)
 
-def set_current_sede(sede_id):
-    """
-    Establecer la sede actual en el contexto del hilo
-    """
-    _thread_locals.sede_id = sede_id
+def set_current_sede(sede_id, request=None):
+    """No-op conservado por compatibilidad. SedeMiddleware escribe directamente en request."""
+    pass
 
-def get_current_sede_object():
+def get_current_sede_object(request=None):
     """
-    Obtener el objeto Sede actual del contexto del hilo
+    Devuelve el objeto Sede del request actual.
+    El valor lo establece SedeMiddleware en request.sede_actual.
     """
-    return getattr(_thread_locals, 'sede_object', None)
+    if request is None:
+        return None
+    return getattr(request, 'sede_actual', None)
 
-def set_current_sede_object(sede):
-    """
-    Establecer el objeto Sede actual en el contexto del hilo
-    """
-    _thread_locals.sede_object = sede
+def set_current_sede_object(sede, request=None):
+    """No-op conservado por compatibilidad. SedeMiddleware escribe directamente en request."""
+    pass
 
 class SedeMiddleware:
     """
@@ -69,74 +72,27 @@ class SedeMiddleware:
         self.auth_backend = CustomAuthBackend()
     
     def __call__(self, request):
-        # Limpiar el contexto anterior
-        set_current_sede(None)
-        set_current_sede_object(None)
-        
-        # Si el usuario está autenticado, establecer su sede
+        request.sede_actual    = None
+        request.sede_id_actual = None
+
         if request.user.is_authenticated:
             try:
-                # Determinar el tipo de usuario y obtener su sede
-                user_rol = self.auth_backend.get_rol(request.user)
                 sede = None
-                
-                if user_rol == 'paciente':
-                    # Obtener sede desde UserPaciente
+                user_rol = self.auth_backend.get_rol(request.user)
+
+                if user_rol in ('paciente', 'medico', 'recepcionista', 'gerente'):
                     if hasattr(request.user, 'id_sede'):
                         sede = request.user.id_sede
                     else:
-                        # Intentar desde datos personales
-                        datos_paciente = self.auth_backend.get_datos_personales(request.user)
-                        if datos_paciente and hasattr(datos_paciente, 'id_sede'):
-                            sede = datos_paciente.id_sede
-                            
-                elif user_rol == 'medico':
-                    # Obtener sede desde UserDoctor
-                    if hasattr(request.user, 'id_sede'):
-                        sede = request.user.id_sede
-                    else:
-                        # Intentar desde datos personales
-                        datos_medico = self.auth_backend.get_datos_personales(request.user)
-                        if datos_medico and hasattr(datos_medico, 'id_sede'):
-                            sede = datos_medico.id_sede
-                            
-                elif user_rol == 'recepcionista':
-                    # Obtener sede desde UserRecepcionista
-                    if hasattr(request.user, 'id_sede'):
-                        sede = request.user.id_sede
-                    else:
-                        # Intentar desde datos personales
-                        datos_recepcionista = self.auth_backend.get_datos_personales(request.user)
-                        if datos_recepcionista and hasattr(datos_recepcionista, 'id_sede'):
-                            sede = datos_recepcionista.id_sede
-                            
-                elif user_rol == 'gerente':
-                    # Obtener sede desde UserAdmin
-                    if hasattr(request.user, 'id_sede'):
-                        sede = request.user.id_sede
-                    else:
-                        # Intentar desde datos personales
-                        datos_admin = self.auth_backend.get_datos_personales(request.user)
-                        if datos_admin and hasattr(datos_admin, 'id_sede'):
-                            sede = datos_admin.id_sede
-                
-                # Establecer la sede en el contexto
+                        datos = self.auth_backend.get_datos_personales(request.user)
+                        if datos and hasattr(datos, 'id_sede'):
+                            sede = datos.id_sede
+
                 if sede:
-                    set_current_sede(sede.id_sede if hasattr(sede, 'id_sede') else sede.id)
-                    set_current_sede_object(sede)
-                    
-                    # Agregar la sede al request para fácil acceso
-                    request.sede_actual = sede
-                    
+                    request.sede_actual    = sede
+                    request.sede_id_actual = getattr(sede, 'id_sede', None) or getattr(sede, 'id', None)
+
             except Exception as e:
-                # En caso de error, no interrumpir el flujo
-                print(f"Error en SedeMiddleware: {e}")
-                pass
-        
-        response = self.get_response(request)
-        
-        # Limpiar el contexto después de la respuesta
-        set_current_sede(None)
-        set_current_sede_object(None)
-        
-        return response
+                print(f'Error en SedeMiddleware: {e}')
+
+        return self.get_response(request)

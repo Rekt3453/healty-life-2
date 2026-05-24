@@ -571,7 +571,6 @@ class RegistroStaffForm(forms.Form):
             ('C', 'C - Consejo Comunal'),
             ('G', 'G - Gobierno'),
             ('P', 'P - Pasaporte'),
-            ('F', 'F - Fallecido'),
         ],
         required=True,
         widget=forms.Select(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
