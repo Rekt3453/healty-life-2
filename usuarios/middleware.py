@@ -1,4 +1,4 @@
-from .authentication import CustomAuthBackend
+from .authentication import CustomAuthBackend, _hint_local
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador
@@ -18,9 +18,19 @@ def get_user_model_hint(request=None):
 class UserModelHintMiddleware:
     """
     Debe ir ANTES de AuthenticationMiddleware en MIDDLEWARE.
-    Lee _hl_user_model de la sesión y lo guarda en request._user_model_hint
-    para que CustomAuthBackend.get_user() sepa en qué tabla buscar.
-    Usa el request (sin thread-local) para evitar race conditions en producción.
+
+    1. Lee '_hl_user_model' de la sesión (guardado durante el login).
+    2. Lo escribe en request._user_model_hint (acceso por request).
+    3. Lo escribe en el thread-local _hint_local.model ANTES de llamar a
+       get_response, de modo que AuthenticationMiddleware pueda invocar
+       CustomAuthBackend.get_user() con el hint correcto.
+    4. Limpia el thread-local en un bloque finally para no contaminar
+       el siguiente request que reutilice el mismo hilo (Gunicorn/uWSGI).
+
+    Esto resuelve la colisión de PK entre tablas de usuarios: sin el hint,
+    get_user(N) devolvería el primer modelo cuya tabla tenga pk=N,
+    que en muchos casos sería UserPaciente aunque el usuario logueado
+    sea un UserDoctor (ambas secuencias empiezan en 1).
     """
     def __init__(self, get_response):
         self.get_response = get_response
@@ -32,8 +42,18 @@ class UserModelHintMiddleware:
                 hint = request.session.get('_hl_user_model')
         except Exception:
             pass
+
+        # Guardar el hint en el request (para usos directos en vistas)
         request._user_model_hint = hint
-        return self.get_response(request)
+
+        # Pasar el hint al thread-local para que CustomAuthBackend.get_user()
+        # lo consuma sin necesitar acceso al objeto request.
+        _hint_local.model = hint
+        try:
+            return self.get_response(request)
+        finally:
+            # Limpiar al terminar el request para no contaminar el siguiente
+            _hint_local.model = None
 
 def get_current_sede(request=None):
     """

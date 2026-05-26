@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.utils import timezone
 from datetime import date, datetime, time, timedelta
 from usuarios.decorators import rol_requerido
@@ -95,18 +96,35 @@ def solicitar_cita(request):
 @login_required(login_url='/login/medico/')
 @rol_requerido('medico')
 def citas_pendientes_medico(request):
-    """Citas pendientes y asignadas para el médico autenticado."""
+    """Citas pendientes y asignadas para el médico autenticado.
+
+    Pendientes  → activas, pago aún NO aprobado por recepcionista.
+    Asignadas   → activas, pago YA aprobado por recepcionista (listas para consulta).
+
+    Se eliminó el filtro de fecha porque excluía citas pasadas y usaba
+    datetime.now() sin zona horaria (bug de TZ con USE_TZ=True).
+    """
     from usuarios.authentication import CustomAuthBackend
     datos_medico = CustomAuthBackend().get_datos_personales(request.user)
 
     citas_pendientes = Cita.objects.none()
     citas_asignadas  = Cita.objects.none()
     if datos_medico:
-        base_qs = Cita.objects.filter(id_doctor=datos_medico).select_related(
-            'id_paciente', 'id_especialidades', 'id_sede'
+        # Base: todas las citas activas de este médico
+        base_qs = Cita.objects.filter(
+            id_doctor=datos_medico,
+            status=True,
+        ).select_related(
+            'id_paciente', 'id_especialidades', 'id_sede', 'id_pago_cita'
         ).order_by('fecha_consulta')
-        citas_pendientes = base_qs.filter(status=True,  fecha_consulta__gte=datetime.now())
-        citas_asignadas  = base_qs.filter(status=False, fecha_consulta__gte=datetime.now())
+
+        # Pendientes: pago inexistente o no confirmado por recepcionista
+        citas_pendientes = base_qs.filter(
+            Q(id_pago_cita__isnull=True) | Q(id_pago_cita__status=False)
+        )
+
+        # Asignadas: pago confirmado → recepcionista aceptó la cita
+        citas_asignadas = base_qs.filter(id_pago_cita__status=True)
 
     return render(request, 'citas/citas_pendientes_medico.html', {
         'citas_pendientes': citas_pendientes,
@@ -212,12 +230,18 @@ def calendario_citas(request):
 
 @rol_requerido('recepcionista', 'gerente')
 def aprobar_cita(request, cita_id):
-    """Aprobar cita: marca el pago como confirmado (status=True)."""
+    """Aprobar cita: confirma el pago y activa la cita para que el médico la vea."""
     if request.method == 'POST':
         cita = get_object_or_404(Cita, id_citas=cita_id)
+        # 1) Confirmar el pago vinculado
         if cita.id_pago_cita:
             cita.id_pago_cita.status = True
             cita.id_pago_cita.save()
+        # 2) Safety net: garantizar que la cita esté activa (status=True)
+        #    para que el queryset del médico la incluya correctamente
+        if not cita.status:
+            cita.status = True
+            cita.save()
         messages.success(request, f"✅ Cita #{cita_id} aprobada correctamente.")
     return redirect('gestionar_citas')
 
@@ -458,3 +482,116 @@ def cancelar_cita_paciente(request, cita_id):
             messages.warning(request, "La cita ya estaba cancelada.")
         return redirect('mis_citas')
     return render(request, 'citas/cancelar_cita.html', {'cita': cita})
+
+
+# ─── Vista de receta médica ────────────────────────────────────────────────────
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def realizar_receta(request, cita_id):
+    """
+    GET:  Muestra el formulario de receta médica para la cita indicada.
+          Verifica que el doctor autenticado sea el asignado a la cita.
+    POST: Valida el formulario. Dentro de una transacción atómica:
+          - Crea un registro en cada tabla hija solo si el campo tiene texto.
+          - Crea el registro principal en recipes con todas las FK.
+          - Actualiza paciente_datos_personales.id_recipe con la receta nueva.
+    """
+    from django.db import transaction
+    from usuarios.authentication import CustomAuthBackend
+    from .models import (
+        RecipesOrdenesMedicas, RecipeTratamiento, RecipeReposo,
+        RecipeMedicamentosEspeciales, RecipeEstudios, RecipeDiagnostico, Recipe,
+    )
+    from .forms import RecetaForm
+
+    # Obtener el perfil del médico autenticado
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+    if not datos_medico:
+        messages.error(request, "No se encontraron datos del médico.")
+        return redirect('citas_pendientes_medico')
+
+    # La cita debe pertenecer al médico logueado; si no, devuelve 404
+    cita = get_object_or_404(
+        Cita.objects.select_related('id_paciente', 'id_sede', 'id_especialidades'),
+        id_citas=cita_id,
+        id_doctor=datos_medico,
+    )
+    paciente = cita.id_paciente
+    sede     = cita.id_sede
+
+    if request.method == 'POST':
+        form = RecetaForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            try:
+                with transaction.atomic():
+                    # Crear registros hijos solo si el campo tiene contenido
+                    ordenes_obj = (
+                        RecipesOrdenesMedicas.objects.create(ordenes_medicas=cd['ordenes_medicas'])
+                        if cd.get('ordenes_medicas') else None
+                    )
+                    tratamiento_obj = (
+                        RecipeTratamiento.objects.create(tratamiento_necesario=cd['tratamiento'])
+                        if cd.get('tratamiento') else None
+                    )
+                    reposo_obj = (
+                        RecipeReposo.objects.create(reposo=cd['reposo'])
+                        if cd.get('reposo') else None
+                    )
+                    meds_obj = (
+                        RecipeMedicamentosEspeciales.objects.create(
+                            medicamentos_especiales=cd['medicamentos_especiales']
+                        )
+                        if cd.get('medicamentos_especiales') else None
+                    )
+                    estudios_obj = (
+                        RecipeEstudios.objects.create(estudios_realizar=cd['estudios'])
+                        if cd.get('estudios') else None
+                    )
+                    diagnostico_obj = (
+                        RecipeDiagnostico.objects.create(diagnostico=cd['diagnostico'])
+                        if cd.get('diagnostico') else None
+                    )
+
+                    # Crear el registro principal que relaciona todo
+                    recipe = Recipe.objects.create(
+                        id_doctor=datos_medico,
+                        id_cita=cita,
+                        id_paciente=paciente,
+                        id_sede=sede,
+                        id_Recipes_ordenes_medicas=ordenes_obj,
+                        id_Recipe_tratamiento=tratamiento_obj,
+                        id_Recipe_reposo=reposo_obj,
+                        id_Recipe_medicamentos_especiales=meds_obj,
+                        id_Recipe_estudios=estudios_obj,
+                        id_Recipe_diagnostico=diagnostico_obj,
+                        status=True,
+                        fecha_emision=timezone.now(),
+                    )
+
+                    # Actualizar el id_recipe del paciente con la receta más reciente
+                    if paciente:
+                        PacienteDatosPersonales.objects.filter(
+                            pk=paciente.pk
+                        ).update(id_recipe=recipe.pk)
+
+                messages.success(
+                    request,
+                    f"✅ Receta #{recipe.pk} generada exitosamente para "
+                    f"{paciente.nombre_completo if paciente else 'el paciente'}."
+                )
+                return redirect('citas_pendientes_medico')
+
+            except Exception as exc:
+                messages.error(request, f"Error al guardar la receta: {exc}")
+                print(f"ERROR realizar_receta cita_id={cita_id}: {exc}")
+    else:
+        form = RecetaForm()
+
+    return render(request, 'citas/realizar_receta.html', {
+        'form':         form,
+        'cita':         cita,
+        'paciente':     paciente,
+        'datos_medico': datos_medico,
+    })

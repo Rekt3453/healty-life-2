@@ -151,3 +151,71 @@ class CancelarCitaForm(forms.Form):
         }),
         required=True
     )
+
+
+class RecetaForm(forms.Form):
+    """
+    Formulario para generar una receta médica completa.
+    Contiene seis apartados independientes, todos opcionales.
+    El doctor puede dejar en blanco los que no apliquen.
+    """
+    # Apartado 1: Órdenes médicas (radiografías, tomografías, etc.)
+    ordenes_medicas = forms.CharField(
+        label="Órdenes Médicas",
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none',
+            'rows': 4,
+            'placeholder': 'Ej: Radiografía de tórax AP y lateral, Eco abdominal...',
+        }),
+        required=False,
+    )
+    # Apartado 2: Tratamiento (medicamentos y posología)
+    tratamiento = forms.CharField(
+        label="Tratamiento",
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none',
+            'rows': 4,
+            'placeholder': 'Ej: Paracetamol 500 mg cada 8 h por 5 días...',
+        }),
+        required=False,
+    )
+    # Apartado 3: Reposo
+    reposo = forms.CharField(
+        label="Reposo",
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none',
+            'rows': 3,
+            'placeholder': 'Ej: Reposo relativo por 3 días a partir de hoy...',
+        }),
+        required=False,
+    )
+    # Apartado 4: Medicamentos especiales (prescripción médica controlada)
+    medicamentos_especiales = forms.CharField(
+        label="Medicamentos Especiales",
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none',
+            'rows': 4,
+            'placeholder': 'Ej: Tramadol 50 mg (controlado) 1 cápsula cada 8 h...',
+        }),
+        required=False,
+    )
+    # Apartado 5: Estudios a realizar (análisis clínicos)
+    estudios = forms.CharField(
+        label="Estudios a Realizar",
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none',
+            'rows': 4,
+            'placeholder': 'Ej: Hemograma completo, glucosa en ayunas, perfil lipídico...',
+        }),
+        required=False,
+    )
+    # Apartado 6: Diagnóstico general
+    diagnostico = forms.CharField(
+        label="Diagnóstico General",
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none',
+            'rows': 4,
+            'placeholder': 'Diagnóstico del médico...',
+        }),
+        required=False,
+    )

@@ -240,3 +240,145 @@ class HistorialMedicoPaciente(models.Model):
 
     def __str__(self):
         return f"Historial {self.id_historial_medico}"
+
+
+# ── Modelos de Recetas ────────────────────────────────────────────────────────
+# Cada tabla hija almacena un único apartado de la receta médica.
+# managed = False garantiza que no se generen migraciones.
+
+class RecipesOrdenesMedicas(models.Model):
+    """Órdenes médicas: radiografías, tomografías, etc. → tabla recipes_ordenes_medicas"""
+    id_recipe_ordenes = models.BigAutoField(primary_key=True)
+    ordenes_medicas = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipes_ordenes_medicas'
+
+    def __str__(self):
+        return f"Órdenes {self.id_recipe_ordenes}"
+
+
+class RecipeTratamiento(models.Model):
+    """Tratamiento prescrito: medicamentos y posología → tabla recipe_tratamiento"""
+    id_recipe_tratamiento = models.BigAutoField(primary_key=True)
+    tratamiento_necesario = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_tratamiento'
+
+    def __str__(self):
+        return f"Tratamiento {self.id_recipe_tratamiento}"
+
+
+class RecipeReposo(models.Model):
+    """Indicación de reposo y días → tabla recipe_reposo"""
+    id_recipe_reposo = models.BigAutoField(primary_key=True)
+    reposo = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_reposo'
+
+    def __str__(self):
+        return f"Reposo {self.id_recipe_reposo}"
+
+
+class RecipeMedicamentosEspeciales(models.Model):
+    """Medicamentos con prescripción especial/controlada → tabla recipe_medicamentos_especiales"""
+    id_recipe_medicamento_especiales = models.BigAutoField(primary_key=True)
+    medicamentos_especiales = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_medicamentos_especiales'
+
+    def __str__(self):
+        return f"Med. Especiales {self.id_recipe_medicamento_especiales}"
+
+
+class RecipeEstudios(models.Model):
+    """Estudios de laboratorio: sangre, orina, heces, etc. → tabla recipe_estudios"""
+    id_recipe_estudios = models.BigAutoField(primary_key=True)
+    estudios_realizar = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_estudios'
+
+    def __str__(self):
+        return f"Estudios {self.id_recipe_estudios}"
+
+
+class RecipeDiagnostico(models.Model):
+    """Diagnóstico general del médico → tabla recipe_diagnostico"""
+    id_recipe_diagnostico = models.BigAutoField(primary_key=True)
+    diagnostico = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_diagnostico'
+
+    def __str__(self):
+        return f"Diagnóstico {self.id_recipe_diagnostico}"
+
+
+class Recipe(models.Model):
+    """
+    Registro principal de la receta médica.
+    Relaciona al doctor, la cita, el paciente y la sede con todos los
+    apartados de la receta (FK a cada tabla hija).
+    → tabla recipes
+    """
+    id_recipes = models.BigAutoField(primary_key=True)
+    id_doctor = models.ForeignKey(
+        Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor'
+    )
+    id_cita = models.ForeignKey(
+        Cita, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cita'
+    )
+    id_paciente = models.ForeignKey(
+        PacienteDatosPersonales, on_delete=models.SET_NULL,
+        null=True, blank=True, db_column='id_paciente'
+    )
+    # FK a los apartados de la receta (db_column respeta los nombres mixtos del esquema)
+    id_Recipe_estudios = models.ForeignKey(
+        RecipeEstudios, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_estudios'
+    )
+    id_Recipe_medicamentos_especiales = models.ForeignKey(
+        RecipeMedicamentosEspeciales, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_medicamentos_especiales'
+    )
+    id_Recipe_tratamiento = models.ForeignKey(
+        RecipeTratamiento, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_tratamiento'
+    )
+    id_Recipe_reposo = models.ForeignKey(
+        RecipeReposo, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_reposo'
+    )
+    id_Recipes_ordenes_medicas = models.ForeignKey(
+        RecipesOrdenesMedicas, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipes_ordenes_medicas'
+    )
+    id_Recipe_diagnostico = models.ForeignKey(
+        RecipeDiagnostico, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_diagnostico'
+    )
+    id_sede = models.ForeignKey(
+        Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede'
+    )
+    status = models.BooleanField(null=True, blank=True, default=True)
+    fecha_emision = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipes'
+        verbose_name = 'Receta'
+        verbose_name_plural = 'Recetas'
+        ordering = ['-fecha_emision']
+
+    def __str__(self):
+        return f"Receta #{self.id_recipes}"

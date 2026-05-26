@@ -15,6 +15,7 @@ urlpatterns = [
     path('medico/pendientes/', views.citas_pendientes_medico, name='citas_pendientes_medico'),
     path('medico/horarios/', views.gestionar_horarios, name='gestionar_horarios'),
     path('medico/<int:cita_id>/confirmar/', views.confirmar_cita, name='confirmar_cita'),
+    path('medico/<int:cita_id>/receta/', views.realizar_receta, name='realizar_receta'),
     # Gestión (recepcionista/gerente)
     path('gestionar/', views.gestionar_citas, name='gestionar_citas'),
     path('<int:cita_id>/aprobar/', views.aprobar_cita, name='aprobar_cita'),
