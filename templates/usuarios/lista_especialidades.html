@@ -73,6 +73,7 @@
                 <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
                     <tr>
                         <th class="px-4 py-3 rounded-tl-lg">Especialidad</th>
+                        <th class="px-4 py-3">Clasificación</th>
                         <th class="px-4 py-3">Estado</th>
                         <th class="px-4 py-3 rounded-tr-lg text-right">Acciones</th>
                     </tr>
@@ -82,13 +83,30 @@
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-4 py-3 font-medium text-gray-900">{{ esp.tipo_especialidad }}</td>
                         <td class="px-4 py-3">
+                            {% if esp.clasificacion_especialidad %}
+                            <span class="text-xs font-semibold px-2 py-1 rounded-full
+                                {% if esp.clasificacion_especialidad == 'Pediatría' %}bg-blue-100 text-blue-700
+                                {% elif esp.clasificacion_especialidad == 'Adultos' %}bg-purple-100 text-purple-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ esp.clasificacion_especialidad }}
+                            </span>
+                            {% else %}
+                            <span class="text-xs text-gray-400 italic">Sin clasificar</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
                             {% if esp.status %}
                             <span class="badge-active text-xs font-semibold px-2 py-1 rounded-full">Activa</span>
                             {% else %}
                             <span class="badge-inactive text-xs font-semibold px-2 py-1 rounded-full">Inactiva</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3 text-right">
+                        <td class="px-4 py-3 text-right space-x-2">
+                            <a href="{% url 'editar_especialidad' esp.id_especialidad %}"
+                               class="text-xs font-semibold px-3 py-1.5 rounded-lg transition
+                                      bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                                Editar
+                            </a>
                             <a href="{% url 'toggle_especialidad_status' esp.id_especialidad %}"
                                onclick="return confirm('¿Confirmas cambiar el estado de esta especialidad?')"
                                class="text-xs font-semibold px-3 py-1.5 rounded-lg transition

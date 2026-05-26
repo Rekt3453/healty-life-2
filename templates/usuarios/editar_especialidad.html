@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva Especialidad - Healthy Life</title>
+    <title>Editar Especialidad - Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #f1f5f9; }
@@ -23,7 +23,7 @@
 <div class="page-header text-white py-6 px-6 mb-8">
     <div class="max-w-2xl mx-auto flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-bold">Nueva Especialidad</h1>
+            <h1 class="text-2xl font-bold">Editar Especialidad</h1>
             <p class="text-green-100 text-sm mt-1">Sede: {{ sede }}</p>
         </div>
         <a href="{% url 'lista_especialidades' %}"
@@ -53,13 +53,15 @@
     {% endif %}
 
     <div class="card p-8">
-        <p class="text-gray-600 text-sm mb-6">
-            Al crear una especialidad se registrará automáticamente en el catálogo de especialidades
-            para doctores de esta sede.
+        <p class="text-gray-500 text-sm mb-6">
+            Modifica el nombre y/o la clasificación de la especialidad
+            <strong class="text-gray-700">{{ especialidad.tipo_especialidad }}</strong>.
         </p>
 
         <form method="post" novalidate>
             {% csrf_token %}
+
+            <!-- Nombre de la especialidad -->
             <div class="mb-6">
                 <label for="tipo_especialidad" class="block text-sm font-semibold text-gray-700 mb-2">
                     Nombre de la Especialidad <span class="text-red-500">*</span>
@@ -68,11 +70,11 @@
                        class="form-input"
                        placeholder="Ej: Cardiología, Ortopedia, Neurología…"
                        required autofocus
-                       value="{{ request.POST.tipo_especialidad|default:'' }}">
+                       value="{{ request.POST.tipo_especialidad|default:especialidad.tipo_especialidad }}">
                 <p class="text-gray-400 text-xs mt-1">Solo letras, tildes y espacios.</p>
             </div>
 
-            <!-- Clasificación: campo obligatorio, tres opciones fijas -->
+            <!-- Clasificación -->
             <div class="mb-6">
                 <label for="clasificacion_especialidad" class="block text-sm font-semibold text-gray-700 mb-2">
                     Clasificación <span class="text-red-500">*</span>
@@ -82,7 +84,12 @@
                     <option value="">Seleccionar clasificación…</option>
                     {% for valor, etiqueta in clasificacion_choices %}
                     <option value="{{ valor }}"
-                        {% if request.POST.clasificacion_especialidad == valor %}selected{% endif %}>
+                        {# Repopular: en POST usa el valor enviado; en GET usa el valor actual de la BD #}
+                        {% if request.method == 'POST' %}
+                            {% if request.POST.clasificacion_especialidad == valor %}selected{% endif %}
+                        {% else %}
+                            {% if especialidad.clasificacion_especialidad == valor %}selected{% endif %}
+                        {% endif %}>
                         {{ etiqueta }}
                     </option>
                     {% endfor %}
@@ -95,7 +102,7 @@
             <div class="flex items-center space-x-3">
                 <button type="submit"
                         class="bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition">
-                    Guardar Especialidad
+                    Guardar Cambios
                 </button>
                 <a href="{% url 'lista_especialidades' %}"
                    class="text-gray-600 hover:text-gray-800 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:border-gray-400 transition">
@@ -104,7 +111,7 @@
             </div>
         </form>
     </div>
-</div>
 
+</div>
 </body>
 </html>

@@ -28,6 +28,11 @@ urlpatterns = [
     path('perfil/paciente/', views.perfil_paciente, name='perfil_paciente'),
     path('perfil/', views.perfil_paciente, name='perfil'),
 
+    # Pacientes especiales (menores de edad gestionados por el tutor)
+    path('dashboard/paciente/registrar-menor/', views.registrar_paciente_especial, name='registrar_paciente_especial'),
+    path('dashboard/paciente/mis-menores/', views.lista_pacientes_especiales, name='lista_pacientes_especiales'),
+    path('dashboard/paciente/mis-menores/editar/<int:id_paciente_especial>/', views.editar_paciente_especial, name='editar_paciente_especial'),
+
     # Dashboards
     path('dashboard/paciente/', views.dashboard_paciente, name='dashboard_paciente'),
     path('dashboard/medico/', views.dashboard_medico, name='dashboard_medico'),
@@ -56,6 +61,7 @@ urlpatterns = [
     path('dashboard/gerente/especialidades/', views.lista_especialidades, name='lista_especialidades'),
     path('dashboard/gerente/especialidades/crear/', views.crear_especialidad, name='crear_especialidad'),
     path('dashboard/gerente/especialidades/<int:id_especialidad>/toggle/', views.toggle_especialidad_status, name='toggle_especialidad_status'),
+    path('dashboard/gerente/especialidades/<int:id_especialidad>/editar/', views.editar_especialidad, name='editar_especialidad'),
 
     # Horarios
     path('dashboard/gerente/horarios/', views.lista_horarios, name='lista_horarios'),

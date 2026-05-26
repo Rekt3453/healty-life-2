@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import date, datetime, time, timedelta
 from usuarios.decorators import rol_requerido
-from usuarios.models import PacienteDatosPersonales, Doctor
+from usuarios.models import PacienteDatosPersonales, Doctor, PacienteEspecial
 from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio,
@@ -17,28 +17,41 @@ from .models import (
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
 def solicitar_cita(request):
-    """Flujo: Sede → Especialidad → Doctor → Fecha/Hora → Servicio → Motivo."""
-    user = request.user
+    """Flujo: Paciente Objetivo → Sede → Especialidad → Doctor → Fecha/Hora → Servicio → Motivo.
+
+    Si el tutor selecciona un paciente especial (menor), se valida en el servidor
+    que la especialidad elegida tenga clasificación 'Pediatría' o 'General'.
+    El motivo lleva un prefijo automático con el nombre del menor.
+    """
+    user     = request.user
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
 
-    if request.method == 'POST':
-        sede_id         = request.POST.get('sede')
-        especialidad_id = request.POST.get('especialidad')
-        # Acepta 'doctor' o 'medico' (nombre alternativo usado en el template)
-        doctor_id       = request.POST.get('doctor') or request.POST.get('medico')
-        servicio_id     = request.POST.get('servicio') or None
-        fecha           = request.POST.get('fecha')
-        # Acepta 'hora' o 'hora_solicitada'
-        hora            = request.POST.get('hora') or request.POST.get('hora_solicitada')
-        motivo          = request.POST.get('motivo', '').strip()
+    # Obtener los menores activos del tutor para el selector
+    menores = []
+    if paciente:
+        menores = list(
+            PacienteEspecial.objects.filter(
+                id_paciente_tutor=paciente, status=True
+            ).order_by('nombre_1', 'apellido_1')
+        )
 
-        if not all([sede_id, especialidad_id, doctor_id, fecha, hora, motivo]):
+    if request.method == 'POST':
+        sede_id          = request.POST.get('sede')
+        especialidad_id  = request.POST.get('especialidad')
+        doctor_id        = request.POST.get('doctor') or request.POST.get('medico')
+        servicio_id      = request.POST.get('servicio') or None
+        fecha            = request.POST.get('fecha')
+        hora             = request.POST.get('hora') or request.POST.get('hora_solicitada')
+        motivo_raw       = request.POST.get('motivo', '').strip()
+        # paciente_objetivo: 'self' | 'especial_<id>'
+        paciente_objetivo = request.POST.get('paciente_objetivo', 'self')
+
+        if not all([sede_id, especialidad_id, doctor_id, fecha, hora, motivo_raw]):
             messages.error(request, "Todos los campos obligatorios deben completarse.")
         else:
             try:
                 fecha_hora = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
 
-                # Validación: no se permiten citas en fechas/horas pasadas
                 if fecha_hora < datetime.now():
                     messages.error(
                         request,
@@ -50,13 +63,55 @@ def solicitar_cita(request):
                     especialidad = get_object_or_404(Especialidad, id_especialidad=especialidad_id)
                     doctor       = get_object_or_404(Doctor, id_doctor=doctor_id)
 
+                    # Resolver a quién pertenece la cita y construir el motivo
+                    menor_obj = None
+                    if paciente_objetivo.startswith('especial_'):
+                        # La cita es en nombre de un paciente especial (menor)
+                        try:
+                            menor_id  = int(paciente_objetivo.split('_', 1)[1])
+                            menor_obj = PacienteEspecial.objects.get(
+                                id_paciente_especial=menor_id,
+                                id_paciente_tutor=paciente,
+                                status=True,
+                            )
+                        except (PacienteEspecial.DoesNotExist, ValueError):
+                            messages.error(request, "El paciente especial seleccionado no es válido.")
+                            raise ValueError("menor inválido")
+
+                        # Validación servidor: clasificación de especialidad para menores
+                        clasificacion = especialidad.clasificacion_especialidad or ''
+                        permitidas_menor = _CLASIFICACIONES_POR_TIPO['menor']
+                        if clasificacion not in permitidas_menor:
+                            messages.error(
+                                request,
+                                f"Para un menor de edad debes seleccionar una especialidad de "
+                                f"Pediatría o General. La especialidad ‘{especialidad.tipo_especialidad}’ "
+                                f"está clasificada como ‘{clasificacion or 'Sin clasificar'}’."
+                            )
+                            raise ValueError("especialidad no válida para menor")
+
+                        nombre_menor = f"{menor_obj.nombre_1} {menor_obj.apellido_1}"
+                        motivo = f"[Cita para {nombre_menor}] {motivo_raw}"
+                    else:
+                        # Validación servidor: clasificación de especialidad para adultos
+                        clasificacion = especialidad.clasificacion_especialidad or ''
+                        permitidas_adulto = _CLASIFICACIONES_POR_TIPO['adulto']
+                        if clasificacion and clasificacion not in permitidas_adulto:
+                            messages.error(
+                                request,
+                                f"Para un paciente adulto debes seleccionar una especialidad de "
+                                f"Adultos o General. La especialidad ‘{especialidad.tipo_especialidad}’ "
+                                f"está clasificada como ‘{clasificacion}’."
+                            )
+                            raise ValueError("especialidad no válida para adulto")
+                        motivo = motivo_raw
+
                     servicio_obj = None
                     if servicio_id:
                         servicio_obj = ServicioEspecialidad.objects.filter(
                             id_servicios_especialidad=servicio_id
                         ).first()
 
-                    # Crear registro de pago pendiente (status=False) antes de la cita
                     pago = PagoCita.objects.create(
                         id_paciente=paciente,
                         id_sede=sede,
@@ -76,20 +131,26 @@ def solicitar_cita(request):
                         motivo=motivo,
                         status=True,
                     )
+
+                    nombre_destino = nombre_menor if menor_obj else "ti"
                     messages.success(
                         request,
-                        f"✅ Cita solicitada para el {fecha} a las {hora}. Espera confirmación."
+                        f"✅ Cita solicitada para {nombre_destino} el {fecha} a las {hora}. "
+                        f"Espera confirmación."
                     )
                     return redirect('dashboard_paciente')
 
+            except ValueError:
+                pass  # los mensajes de error ya fueron añadidos arriba
             except Exception as e:
                 messages.error(request, f"Error al registrar la cita: {e}")
 
     sedes = Sede.objects.filter(status__in=[True, None]).order_by('nombre_sede')
     return render(request, 'citas/solicitar_cita.html', {
-        'sedes': sedes,
-        'hoy': date.today().isoformat(),
+        'sedes':   sedes,
+        'hoy':     date.today().isoformat(),
         'paciente': paciente,
+        'menores': menores,   # lista de PacienteEspecial del tutor
     })
 
 
@@ -259,17 +320,35 @@ def rechazar_cita(request, cita_id):
 
 # ─── Endpoints AJAX ─────────────────────────────────────────────
 
+# Mapa de clasificaciones permitidas por tipo de paciente
+_CLASIFICACIONES_POR_TIPO = {
+    'adulto': ['Adultos', 'General'],
+    'menor':  ['Pediatría', 'General'],
+}
+
 @require_GET
 def ajax_especialidades(request):
-    """Especialidades activas en una sede."""
-    sede_id = request.GET.get('sede_id')
+    """Especialidades activas en una sede, filtradas por tipo de paciente.
+
+    Parámetro tipo_paciente:
+      'adulto' → clasificaciones ['Adultos', 'General']
+      'menor'  → clasificaciones ['Pediatría', 'General']
+      omitido  → igual que 'adulto' (comportamiento por defecto seguro)
+    """
+    sede_id      = request.GET.get('sede_id')
+    tipo_paciente = request.GET.get('tipo_paciente', 'adulto').strip().lower()
     if not sede_id:
         return JsonResponse([], safe=False)
     try:
-        esp = Especialidad.objects.filter(
-            id_sede_id=sede_id, status__in=[True, None]
-        ).values('id_especialidad', 'tipo_especialidad')
-        data = [{'id': e['id_especialidad'], 'nombre': e['tipo_especialidad']} for e in esp]
+        qs = Especialidad.objects.filter(id_sede_id=sede_id, status__in=[True, None])
+        # Aplicar filtro de clasificación según el tipo de paciente
+        clasificaciones = _CLASIFICACIONES_POR_TIPO.get(tipo_paciente)
+        if clasificaciones:
+            qs = qs.filter(clasificacion_especialidad__in=clasificaciones)
+        data = [
+            {'id': e['id_especialidad'], 'nombre': e['tipo_especialidad']}
+            for e in qs.values('id_especialidad', 'tipo_especialidad')
+        ]
     except Exception as exc:
         return JsonResponse({'error': str(exc)}, safe=False, status=500)
     return JsonResponse(data, safe=False)
@@ -495,7 +574,7 @@ def realizar_receta(request, cita_id):
     POST: Valida el formulario. Dentro de una transacción atómica:
           - Crea un registro en cada tabla hija solo si el campo tiene texto.
           - Crea el registro principal en recipes con todas las FK.
-          - Actualiza paciente_datos_personales.id_recipe con la receta nueva.
+          La relación inversa paciente→recetas se obtiene vía Recipe.objects.filter(id_paciente=...).
     """
     from django.db import transaction
     from usuarios.authentication import CustomAuthBackend
@@ -569,12 +648,6 @@ def realizar_receta(request, cita_id):
                         status=True,
                         fecha_emision=timezone.now(),
                     )
-
-                    # Actualizar el id_recipe del paciente con la receta más reciente
-                    if paciente:
-                        PacienteDatosPersonales.objects.filter(
-                            pk=paciente.pk
-                        ).update(id_recipe=recipe.pk)
 
                 messages.success(
                     request,

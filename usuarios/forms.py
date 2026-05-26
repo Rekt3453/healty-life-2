@@ -1500,3 +1500,168 @@ class EditarRecepcionistaForm(forms.Form):
         recepcionista.id_horario = horario_obj.pk if horario_obj else None
         recepcionista.save()
         return recepcionista
+
+
+# ── Utilidad compartida: validar que una fecha de nacimiento corresponda a menor de edad ──
+
+def _validar_menor_de_edad(fecha):
+    """
+    Lanza forms.ValidationError si 'fecha' correspond a una persona de 18 años o más.
+    También rechaza fechas futuras.
+    Reutilizada por RegistrarPacienteEspecialForm y EditarPacienteEspecialForm.
+    """
+    if not fecha:
+        return fecha
+    hoy = date.today()
+    if fecha > hoy:
+        raise forms.ValidationError("La fecha de nacimiento no puede ser en el futuro.")
+    edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+    if edad >= 18:
+        raise forms.ValidationError(
+            f"El paciente especial debe ser menor de 18 años "
+            f"(edad ingresada: {edad} años)."
+        )
+    return fecha
+
+
+# ── Formulario de registro de paciente especial (menor de edad) ──────────────
+
+class RegistrarPacienteEspecialForm(forms.Form):
+    """
+    Formulario para que el tutor-paciente registre a un menor de edad.
+    No incluye credenciales de acceso; el menor es gestionado por el tutor.
+    Los campos id_paciente_tutor, id_sede, fecha_registro y status se
+    asignan automáticamente en la vista.
+
+    Validación de edad: bloqueante — se rechaza si la persona tiene 18 años o más.
+    """
+    _CSS = (
+        'form-input w-full px-3 py-2 rounded-lg border border-gray-300 '
+        'focus:outline-none focus:ring-2 focus:ring-green-500'
+    )
+    SEXO_CHOICES = [
+        ('',  'Seleccionar...'),
+        ('M', 'Masculino'),
+        ('F', 'Femenino'),
+        ('O', 'Otro'),
+    ]
+
+    nombre_1 = forms.CharField(
+        max_length=200, required=True, label="Primer nombre",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Primer nombre'})
+    )
+    nombre_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo nombre",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Segundo nombre (opcional)'})
+    )
+    apellido_1 = forms.CharField(
+        max_length=200, required=True, label="Primer apellido",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Primer apellido'})
+    )
+    apellido_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo apellido",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Segundo apellido (opcional)'})
+    )
+    sexo = forms.ChoiceField(
+        choices=SEXO_CHOICES, required=True, label="Sexo",
+        widget=forms.Select(attrs={'class': _CSS})
+    )
+    fecha_nacimiento = forms.DateField(
+        required=True, label="Fecha de nacimiento",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': _CSS,
+            'max': date.today().isoformat(),
+        })
+    )
+    telefono = forms.CharField(
+        max_length=50, required=False, label="Teléfono de contacto",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Teléfono (opcional)'})
+    )
+
+    def clean_nombre_1(self):
+        return self.cleaned_data['nombre_1'].strip().upper()
+
+    def clean_nombre_2(self):
+        return (self.cleaned_data.get('nombre_2') or '').strip().upper()
+
+    def clean_apellido_1(self):
+        return self.cleaned_data['apellido_1'].strip().upper()
+
+    def clean_apellido_2(self):
+        return (self.cleaned_data.get('apellido_2') or '').strip().upper()
+
+    def clean_fecha_nacimiento(self):
+        """Bloquea si la fecha es futura o si la edad es >= 18 años."""
+        return _validar_menor_de_edad(self.cleaned_data.get('fecha_nacimiento'))
+
+
+# ── Formulario de edición de paciente especial ───────────────────────────────
+
+class EditarPacienteEspecialForm(forms.Form):
+    """
+    Formulario para que el tutor-paciente edite los datos de un menor ya
+    registrado. Solo expone los campos modificables; id_paciente_tutor,
+    id_sede, fecha_registro y status se gestionan exclusivamente en la vista.
+
+    Reutiliza _validar_menor_de_edad para la validación de edad.
+    """
+    _CSS = (
+        'form-input w-full px-3 py-2 rounded-lg border border-gray-300 '
+        'focus:outline-none focus:ring-2 focus:ring-green-500'
+    )
+    SEXO_CHOICES = [
+        ('',  'Seleccionar...'),
+        ('M', 'Masculino'),
+        ('F', 'Femenino'),
+        ('O', 'Otro'),
+    ]
+
+    nombre_1 = forms.CharField(
+        max_length=200, required=True, label="Primer nombre",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    nombre_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo nombre",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    apellido_1 = forms.CharField(
+        max_length=200, required=True, label="Primer apellido",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    apellido_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo apellido",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    sexo = forms.ChoiceField(
+        choices=SEXO_CHOICES, required=True, label="Sexo",
+        widget=forms.Select(attrs={'class': _CSS})
+    )
+    fecha_nacimiento = forms.DateField(
+        required=True, label="Fecha de nacimiento",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': _CSS,
+            'max': date.today().isoformat(),
+        })
+    )
+    telefono = forms.CharField(
+        max_length=50, required=False, label="Teléfono de contacto",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+
+    def clean_nombre_1(self):
+        return self.cleaned_data['nombre_1'].strip().upper()
+
+    def clean_nombre_2(self):
+        return (self.cleaned_data.get('nombre_2') or '').strip().upper()
+
+    def clean_apellido_1(self):
+        return self.cleaned_data['apellido_1'].strip().upper()
+
+    def clean_apellido_2(self):
+        return (self.cleaned_data.get('apellido_2') or '').strip().upper()
+
+    def clean_fecha_nacimiento(self):
+        """Bloquea si la fecha es futura o si la edad es >= 18 años."""
+        return _validar_menor_de_edad(self.cleaned_data.get('fecha_nacimiento'))

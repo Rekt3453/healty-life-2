@@ -16,7 +16,6 @@ class PacienteDatosPersonales(models.Model):
     cedula = models.CharField(max_length=20, unique=True)
     tipo_cedula = models.CharField(max_length=20, blank=True, null=True)
     sexo = models.CharField(max_length=20, blank=True, null=True)
-    id_recipe = models.BigIntegerField(blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     fecha_nacimiento = models.DateTimeField(blank=True, null=True)
     fecha_registro = models.DateTimeField(null=True, blank=True)

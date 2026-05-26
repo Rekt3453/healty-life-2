@@ -24,6 +24,8 @@ class Especialidad(models.Model):
     tipo_especialidad = models.TextField(blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     status = models.BooleanField(null=True, blank=True, default=True)
+    # Nuevo campo agregado al esquema: categoriza la especialidad en Pediatría, Adultos o General
+    clasificacion_especialidad = models.TextField(blank=True, null=True, db_column='clasificacion_especialidad')
 
     class Meta:
         managed = False
