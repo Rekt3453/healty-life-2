@@ -918,6 +918,17 @@ class RegistrarDoctorForm(forms.Form):
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
 
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "El doctor debe tener al menos 18 años de edad."
+                )
+        return fecha
+
     def save(self, sede):
         from django.utils import timezone
         direccion = DireccionDoctor.objects.create(
@@ -1065,6 +1076,17 @@ class RegistrarRecepcionistaForm(forms.Form):
         if Recepcionista.objects.filter(cedula=cedula).exists():
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
+
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "La recepcionista debe tener al menos 18 años de edad."
+                )
+        return fecha
 
     def save(self, sede):
         from django.utils import timezone
@@ -1246,6 +1268,17 @@ class EditarDoctorForm(forms.Form):
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
 
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "El doctor debe tener al menos 18 años de edad."
+                )
+        return fecha
+
     def save(self, doctor, user_doctor, direccion=None):
         cd = self.cleaned_data
         address_data = {
@@ -1415,6 +1448,17 @@ class EditarRecepcionistaForm(forms.Form):
         if qs.exists():
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
+
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "La recepcionista debe tener al menos 18 años de edad."
+                )
+        return fecha
 
     def save(self, recepcionista, user_recepcionista, direccion=None):
         cd = self.cleaned_data

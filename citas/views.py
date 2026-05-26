@@ -37,41 +37,49 @@ def solicitar_cita(request):
             try:
                 fecha_hora = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
 
-                sede         = get_object_or_404(Sede, id_sede=sede_id)
-                especialidad = get_object_or_404(Especialidad, id_especialidad=especialidad_id)
-                doctor       = get_object_or_404(Doctor, id_doctor=doctor_id)
+                # Validación: no se permiten citas en fechas/horas pasadas
+                if fecha_hora < datetime.now():
+                    messages.error(
+                        request,
+                        "No puedes solicitar una cita en una fecha/hora que ya ha pasado. "
+                        "Elige una fecha y hora futura."
+                    )
+                else:
+                    sede         = get_object_or_404(Sede, id_sede=sede_id)
+                    especialidad = get_object_or_404(Especialidad, id_especialidad=especialidad_id)
+                    doctor       = get_object_or_404(Doctor, id_doctor=doctor_id)
 
-                servicio_obj = None
-                if servicio_id:
-                    servicio_obj = ServicioEspecialidad.objects.filter(
-                        id_servicios_especialidad=servicio_id
-                    ).first()
+                    servicio_obj = None
+                    if servicio_id:
+                        servicio_obj = ServicioEspecialidad.objects.filter(
+                            id_servicios_especialidad=servicio_id
+                        ).first()
 
-                # Crear registro de pago pendiente (status=False) antes de la cita
-                pago = PagoCita.objects.create(
-                    id_paciente=paciente,
-                    id_sede=sede,
-                    fecha_consulta=fecha_hora,
-                    status=False,
-                )
+                    # Crear registro de pago pendiente (status=False) antes de la cita
+                    pago = PagoCita.objects.create(
+                        id_paciente=paciente,
+                        id_sede=sede,
+                        fecha_consulta=fecha_hora,
+                        status=False,
+                    )
 
-                Cita.objects.create(
-                    id_paciente=paciente,
-                    id_doctor=doctor,
-                    id_sede=sede,
-                    id_especialidades=especialidad,
-                    id_servicio_especialidad=servicio_obj,
-                    id_pago_cita=pago,
-                    fecha_consulta=fecha_hora,
-                    fecha_emision=timezone.now(),
-                    motivo=motivo,
-                    status=True,
-                )
-                messages.success(
-                    request,
-                    f"✅ Cita solicitada para el {fecha} a las {hora}. Espera confirmación."
-                )
-                return redirect('dashboard_paciente')
+                    Cita.objects.create(
+                        id_paciente=paciente,
+                        id_doctor=doctor,
+                        id_sede=sede,
+                        id_especialidades=especialidad,
+                        id_servicio_especialidad=servicio_obj,
+                        id_pago_cita=pago,
+                        fecha_consulta=fecha_hora,
+                        fecha_emision=timezone.now(),
+                        motivo=motivo,
+                        status=True,
+                    )
+                    messages.success(
+                        request,
+                        f"✅ Cita solicitada para el {fecha} a las {hora}. Espera confirmación."
+                    )
+                    return redirect('dashboard_paciente')
 
             except Exception as e:
                 messages.error(request, f"Error al registrar la cita: {e}")
