@@ -303,6 +303,36 @@
                     </button>
                 </div>
             </div>
+
+            <div class="action-card rounded-xl p-6 shadow-lg">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Especialidades</h3>
+                    <p class="text-gray-600 mb-4">Gestionar especialidades médicas de la sede</p>
+                    <a href="{% url 'lista_especialidades' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
+                        Ver Especialidades
+                    </a>
+                </div>
+            </div>
+
+            <div class="action-card rounded-xl p-6 shadow-lg">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Horarios</h3>
+                    <p class="text-gray-600 mb-4">Definir turnos y horarios de atención</p>
+                    <a href="{% url 'lista_horarios' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
+                        Ver Horarios
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Performance Overview -->

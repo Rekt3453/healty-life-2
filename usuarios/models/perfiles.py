@@ -92,6 +92,7 @@ class Recepcionista(models.Model):
     id_direccion_recepcionista = models.ForeignKey(DireccionRecepcionista, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_direccion_recepcionista')
     status = models.BooleanField(default=True)
     telefono = models.CharField(max_length=50, blank=True, null=True)
+    id_horario = models.BigIntegerField(blank=True, null=True)
 
     class Meta:
         managed = False

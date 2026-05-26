@@ -17,7 +17,7 @@ from .models import (
     RecuperacionContrasenaSuperadmin,
 )
 from usuarios.decorators import rol_requerido
-from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas, EspecialidadDoctor, Consultorio, Horario
+from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas, EspecialidadDoctor, Especialidad, Consultorio, Horario
 from .authentication import CustomAuthBackend, is_rate_limited
 from .email_config import enviar_correo_confirmacion
 from .services.auth_service import resolve_and_check
@@ -581,6 +581,7 @@ def editar_recepcionista_view(request, id_recepcionista):
                 request.POST,
                 recepcionista_pk=recepcionista.pk,
                 user_recepcionista_pk=user_recepcionista.pk if user_recepcionista else None,
+                sede_id=sede.pk if sede else None,
             )
             if form.is_valid():
                 try:
@@ -611,6 +612,8 @@ def editar_recepcionista_view(request, id_recepcionista):
                 'sexo':       recepcionista.sexo or 'M',
                 'telefono':   recepcionista.telefono or '',
                 'fecha_nacimiento': recepcionista.fecha_nacimiento.date() if recepcionista.fecha_nacimiento else None,
+                # Precarga el horario actual de la recepcionista
+                'id_horario': Horario.objects.filter(pk=recepcionista.id_horario).first() if recepcionista.id_horario else None,
             })
             if direccion:
                 initial.update({
@@ -627,6 +630,7 @@ def editar_recepcionista_view(request, id_recepcionista):
                 initial=initial,
                 recepcionista_pk=recepcionista.pk,
                 user_recepcionista_pk=user_recepcionista.pk if user_recepcionista else None,
+                sede_id=sede.pk if sede else None,
             )
 
         return render(request, 'usuarios/editar_recepcionista.html', {
@@ -712,7 +716,7 @@ def registrar_recepcionista(request):
         sede = user.id_sede
         if request.method == 'POST':
             from usuarios.forms import RegistrarRecepcionistaForm
-            form = RegistrarRecepcionistaForm(request.POST)
+            form = RegistrarRecepcionistaForm(request.POST, sede_id=sede.id_sede if sede else None)
             if form.is_valid():
                 try:
                     password_plana = form.cleaned_data['password1']
@@ -740,7 +744,7 @@ def registrar_recepcionista(request):
                 print(f"Errores formulario recepcionista: {form.errors}")
         else:
             from usuarios.forms import RegistrarRecepcionistaForm
-            form = RegistrarRecepcionistaForm()
+            form = RegistrarRecepcionistaForm(sede_id=sede.id_sede if sede else None)
         return render(request, 'usuarios/registrar_recepcionista.html', {'form': form, 'sede': sede})
     except Exception as e:
         print(f"Error en registrar_recepcionista: {e}")
@@ -1057,3 +1061,131 @@ def configurar_preguntas_paciente(request, user_id=None, token=None):
         'preguntas':     seleccionadas,
         'ids_preguntas': ','.join(ids_mostrar),
     })
+
+
+# ==================== GESTIÓN DE ESPECIALIDADES (GERENTE) ====================
+
+def _get_gerente_sede(request):
+    """Devuelve (user, sede) si la sesión es válida con rol gerente, o (None, None)."""
+    user_id = request.session.get('_auth_user_id')
+    if not user_id:
+        return None, None
+    user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+    if not user:
+        return None, None
+    if CustomAuthBackend().get_rol(user) != 'gerente':
+        return None, None
+    return user, user.id_sede
+
+
+def lista_especialidades(request):
+    """Lista las especialidades de la sede del gerente.
+    Además, auto-crea los registros EspecialidadDoctor que falten para que
+    el dropdown de doctor los muestre correctamente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    especialidades = Especialidad.objects.filter(id_sede=sede).order_by('tipo_especialidad')
+    # Reparación automática: garantiza que cada especialidad tenga su registro puente
+    reparadas = 0
+    for esp in especialidades:
+        if not EspecialidadDoctor.objects.filter(id_especialidad=esp).exists():
+            EspecialidadDoctor.objects.create(id_especialidad=esp)
+            reparadas += 1
+    if reparadas:
+        messages.info(request, f'Se crearon {reparadas} vínculo(s) de especialidad faltante(s).')
+    return render(request, 'usuarios/lista_especialidades.html', {
+        'especialidades': especialidades,
+        'sede': sede,
+    })
+
+
+def crear_especialidad(request):
+    """Crea una Especialidad para la sede y genera automáticamente el registro EspecialidadDoctor."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo_especialidad', '').strip()
+        if not tipo:
+            messages.error(request, 'El nombre de la especialidad es obligatorio.')
+        else:
+            try:
+                # Evitar duplicados por nombre en la misma sede
+                if Especialidad.objects.filter(tipo_especialidad__iexact=tipo, id_sede=sede).exists():
+                    messages.error(request, f'Ya existe una especialidad con el nombre "{tipo}" en esta sede.')
+                else:
+                    especialidad = Especialidad.objects.create(
+                        tipo_especialidad=tipo,
+                        id_sede=sede,
+                        status=True,
+                    )
+                    # Crear el registro EspecialidadDoctor vinculado para que el
+                    # formulario de doctor pueda seleccionarla
+                    EspecialidadDoctor.objects.create(id_especialidad=especialidad)
+                    messages.success(request, f'Especialidad "{tipo}" creada correctamente.')
+                    return redirect('lista_especialidades')
+            except Exception as e:
+                messages.error(request, f'Error al crear la especialidad: {e}')
+    return render(request, 'usuarios/crear_especialidad.html', {'sede': sede})
+
+
+def toggle_especialidad_status(request, id_especialidad):
+    """Activa o desactiva una especialidad de la sede del gerente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    especialidad = Especialidad.objects.filter(pk=id_especialidad, id_sede=sede).first()
+    if not especialidad:
+        messages.error(request, 'Especialidad no encontrada.')
+    else:
+        especialidad.status = not especialidad.status
+        especialidad.save(update_fields=['status'])
+        estado_txt = 'activada' if especialidad.status else 'desactivada'
+        messages.success(request, f'Especialidad "{especialidad.tipo_especialidad}" {estado_txt}.')
+    return redirect('lista_especialidades')
+
+
+# ==================== GESTIÓN DE HORARIOS (GERENTE) ====================
+
+def lista_horarios(request):
+    """Lista los horarios de la sede del gerente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    horarios = Horario.objects.filter(id_sede=sede).order_by('hora_inicio')
+    return render(request, 'usuarios/lista_horarios.html', {
+        'horarios': horarios,
+        'sede': sede,
+    })
+
+
+def crear_horario(request):
+    """Crea un Horario para la sede del gerente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    if request.method == 'POST':
+        hora_inicio = request.POST.get('hora_inicio', '').strip()
+        hora_fin    = request.POST.get('hora_fin', '').strip()
+        if not hora_inicio or not hora_fin:
+            messages.error(request, 'Hora de inicio y fin son obligatorias.')
+        elif hora_inicio >= hora_fin:
+            messages.error(request, 'La hora de inicio debe ser anterior a la hora de fin.')
+        else:
+            try:
+                Horario.objects.create(
+                    id_sede=sede,
+                    hora_inicio=hora_inicio,
+                    hora_fin=hora_fin,
+                )
+                messages.success(request, f'Horario {hora_inicio}–{hora_fin} creado correctamente.')
+                return redirect('lista_horarios')
+            except Exception as e:
+                messages.error(request, f'Error al crear el horario: {e}')
+    return render(request, 'usuarios/crear_horario.html', {'sede': sede})

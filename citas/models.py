@@ -47,6 +47,8 @@ class EspecialidadDoctor(models.Model):
         db_table = 'especialidad_doctor'
 
     def __str__(self):
+        if self.id_especialidad and self.id_especialidad.tipo_especialidad:
+            return self.id_especialidad.tipo_especialidad
         return f"EspDoc {self.id_especialidad_doctor}"
 
 

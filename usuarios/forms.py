@@ -873,6 +873,12 @@ class RegistrarDoctorForm(forms.Form):
             self.fields['id_consultorio'].queryset = Consultorio.objects.filter(
                 id_sede_id=sede_id, status__in=[True, None])
             self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
+            # Filtra especialidades activas de esta sede
+            self.fields['id_especialidad_doctor'].queryset = (
+                EspecialidadDoctor.objects
+                .filter(id_especialidad__id_sede=sede_id, id_especialidad__status=True)
+                .select_related('id_especialidad')
+            )
         if 'id_estado' in self.data:
             try:
                 estado_id = int(self.data['id_estado'])
@@ -988,6 +994,12 @@ class RegistrarRecepcionistaForm(forms.Form):
     fecha_nacimiento = forms.DateField(required=True,
         widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
 
+    # ── Datos profesionales ────────────────────────────────────────────────
+    id_horario = forms.ModelChoiceField(
+        queryset=Horario.objects.none(),
+        required=False, empty_label="Sin horario asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+
     # ── Dirección ──────────────────────────────────────────────────────────
     id_estado = forms.ModelChoiceField(queryset=Estado.objects.all(),
         required=True, empty_label="Seleccione un estado",
@@ -1010,8 +1022,11 @@ class RegistrarRecepcionistaForm(forms.Form):
     longitud = forms.CharField(max_length=100, required=False,
         widget=forms.TextInput(attrs={'class': _CSS}))
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, sede_id=None, **kwargs):
         super().__init__(*args, **kwargs)
+        # Filtra horarios de la sede del administrador
+        if sede_id:
+            self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
         if 'id_estado' in self.data:
             try:
                 estado_id = int(self.data['id_estado'])
@@ -1069,6 +1084,7 @@ class RegistrarRecepcionistaForm(forms.Form):
             password=self.cleaned_data['password1'],
             id_sede=sede,
         )
+        horario_obj = self.cleaned_data.get('id_horario')
         Recepcionista.objects.create(
             nombre_1=self.cleaned_data['nombre_1'],
             nombre_2=self.cleaned_data.get('nombre_2') or '',
@@ -1084,6 +1100,7 @@ class RegistrarRecepcionistaForm(forms.Form):
             id_direccion_recepcionista=direccion,
             fecha_registro=timezone.now(),
             status=True,
+            id_horario=horario_obj.pk if horario_obj else None,
         )
         return user_recepcionista
 
@@ -1161,6 +1178,12 @@ class EditarDoctorForm(forms.Form):
             self.fields['id_consultorio'].queryset = Consultorio.objects.filter(
                 id_sede_id=sede_id, status__in=[True, None])
             self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
+            # Filtra especialidades activas de esta sede
+            self.fields['id_especialidad_doctor'].queryset = (
+                EspecialidadDoctor.objects
+                .filter(id_especialidad__id_sede=sede_id, id_especialidad__status=True)
+                .select_related('id_especialidad')
+            )
 
         estado_id = None
         if self.data.get('id_estado'):
@@ -1302,6 +1325,12 @@ class EditarRecepcionistaForm(forms.Form):
     fecha_nacimiento = forms.DateField(required=True,
         widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
 
+    # ── Datos profesionales ────────────────────────────────────────────────
+    id_horario = forms.ModelChoiceField(
+        queryset=Horario.objects.none(),
+        required=False, empty_label="Sin horario asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+
     # ── Dirección ──────────────────────────────────────────────────────────
     id_estado    = forms.ModelChoiceField(queryset=Estado.objects.all(), required=True,
         empty_label="Seleccione un estado",    widget=forms.Select(attrs={'class': _CSS}))
@@ -1316,11 +1345,15 @@ class EditarRecepcionistaForm(forms.Form):
     latitud    = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
     longitud   = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
 
-    def __init__(self, *args, recepcionista_pk=None, user_recepcionista_pk=None, **kwargs):
+    def __init__(self, *args, recepcionista_pk=None, user_recepcionista_pk=None, sede_id=None, **kwargs):
         self._recepcionista_pk      = recepcionista_pk
         self._user_recepcionista_pk = user_recepcionista_pk
         initial = kwargs.get('initial', {})
         super().__init__(*args, **kwargs)
+
+        # Filtra horarios de la sede del administrador
+        if sede_id:
+            self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
 
         estado_id = None
         if self.data.get('id_estado'):
@@ -1419,5 +1452,7 @@ class EditarRecepcionistaForm(forms.Form):
         recepcionista.telefono        = cd['telefono']
         recepcionista.fecha_nacimiento = cd['fecha_nacimiento']
         recepcionista.id_direccion_recepcionista = direccion
+        horario_obj = cd.get('id_horario')
+        recepcionista.id_horario = horario_obj.pk if horario_obj else None
         recepcionista.save()
         return recepcionista
