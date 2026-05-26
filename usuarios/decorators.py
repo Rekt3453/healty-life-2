@@ -90,10 +90,8 @@ def sede_requerida(view_func):
             messages.error(request, "Debes iniciar sesión para acceder a esta página")
             return redirect('home')
         
-        # Verificar si el usuario tiene sede asignada
-        from .middleware import get_current_sede
-        current_sede = get_current_sede()
-        
+        current_sede = getattr(request, 'sede_id_actual', None)
+
         if not current_sede:
             messages.error(request, "No tienes una sede asignada. Contacta al administrador.")
             return redirect('home')

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Identidad - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hero-section { min-height: 100vh; background: linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%); display: flex; align-items: center; justify-content: center; }
+        .login-card { background: rgba(255,255,255,0.97); border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .form-input { transition: all 0.3s ease; border: 2px solid #e5e7eb; }
+        .form-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); outline: none; }
+        .btn-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(16,185,129,0.4); }
+        .preg-card { border-left: 4px solid #10b981; background: #f0fdf4; }
+    </style>
+</head>
+<body>
+<div class="hero-section">
+    <div class="w-full max-w-md px-4">
+
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4">
+                <i class="fas fa-shield-alt text-white text-3xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white">Verificar Identidad</h1>
+            <p class="text-green-200 mt-2">Paso 2 de 3 — Responde correctamente las 2 preguntas</p>
+        </div>
+
+        <div class="login-card p-8">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="mb-4 p-3 rounded-lg text-sm font-medium
+                    {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+                    {% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+                    <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" class="space-y-5">
+                {% csrf_token %}
+
+                {% for item in preguntas %}
+                <div class="preg-card rounded-lg p-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        {{ forloop.counter }}. {{ item.pregunta }}
+                    </label>
+                    <input type="text"
+                           name="respuesta_{{ item.id }}"
+                           class="form-input w-full px-4 py-2 rounded-lg text-gray-900"
+                           placeholder="Tu respuesta"
+                           autocomplete="off" required>
+                </div>
+                {% endfor %}
+
+                <p class="text-xs text-gray-500">Las respuestas no distinguen mayúsculas ni minúsculas.</p>
+
+                <button type="submit" class="btn-primary w-full py-3 px-4 rounded-lg text-white font-semibold text-lg shadow-lg">
+                    Verificar respuestas
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <a href="{% url 'recuperar_password' %}" class="text-sm text-green-600 hover:text-green-700 font-medium transition-colors">
+                    <i class="fas fa-arrow-left mr-1"></i> Reiniciar proceso
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

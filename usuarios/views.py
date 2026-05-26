@@ -8,17 +8,26 @@ from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from .forms import RegistroPacienteForm, RegistroStaffForm
 from .models import (
-    UserPaciente, UserDoctor, UserRecepcionista, UserAdmin,
+    UserPaciente, UserDoctor, UserRecepcionista, UserAdmin, UserSuperAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador,
     Estado, Municipio, Ciudad, Parroquia, PacienteEspecial, Sede,
     DireccionPaciente, DireccionDoctor, DireccionRecepcionista,
+    RecuperacionContrasenaPaciente, RecuperacionContrasenaDoctor,
+    RecuperacionContrasenaRecepcionista, RecuperacionContrasenaAdmin,
+    RecuperacionContrasenaSuperadmin,
 )
 from usuarios.decorators import rol_requerido
-from .views_new import registro_paciente as nuevo_registro_paciente
-from .views_new import cargar_municipios, cargar_ciudades, cargar_parroquias
 from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas, EspecialidadDoctor, Consultorio, Horario
-from .authentication import CustomAuthBackend
+from .authentication import CustomAuthBackend, is_rate_limited
 from .email_config import enviar_correo_confirmacion
+from .services.auth_service import resolve_and_check
+from .services.user_service import (
+    update_perfil_paciente, change_password, update_direccion_paciente,
+    get_paciente_dashboard_context, get_medico_dashboard_context,
+    get_recepcionista_dashboard_context, get_gerente_dashboard_context,
+    calcular_edad,
+)
+from .services.email_service import send_welcome_email
 
 def home(request):
     return render(request, 'home.html')
@@ -50,7 +59,10 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
                 messages.error(request, f"Esta cuenta no tiene perfil de {rol_esperado}. Tu rol es: {user_rol}")
                 print(f"DEBUG: Rol incorrecto - Esperado: {rol_esperado}, Obtenido: {user_rol}")
         else:
-            messages.error(request, "Credenciales incorrectas")
+            if is_rate_limited(username):
+                messages.error(request, "Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo.")
+            else:
+                messages.error(request, "Credenciales incorrectas")
             print(f"DEBUG: Credenciales incorrectas para {username}")
     
     return render(request, template_name)
@@ -100,21 +112,9 @@ def registro_paciente(request):
                 es_paciente_especial = es_menor or tiene_condicion
                 
                 # Enviar correo de bienvenida
-                try:
-                    datos_paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
-                    password_plana = form.cleaned_data.get('password1', '')
-                    enviar_correo_confirmacion({
-                        'primer_nombre':   datos_paciente.nombre_1   if datos_paciente else '',
-                        'segundo_nombre':  datos_paciente.nombre_2   if datos_paciente else '',
-                        'primer_apellido': datos_paciente.apellido_1 if datos_paciente else '',
-                        'segundo_apellido':datos_paciente.apellido_2 if datos_paciente else '',
-                        'email':    user.email,
-                        'username': user.username,
-                        'password': password_plana,
-                        'cedula':   datos_paciente.cedula if datos_paciente else '',
-                    })
-                except Exception as mail_err:
-                    print(f'WARN: No se pudo enviar correo de bienvenida: {mail_err}')
+                datos_paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+                password_plana = form.cleaned_data.get('password1', '')
+                send_welcome_email(user, datos_paciente, password_plana)
 
                 # Usar el backend personalizado para login
                 auth_backend = CustomAuthBackend()
@@ -171,91 +171,32 @@ def perfil_paciente(request):
         action = request.POST.get('action', '')
 
         if action == 'update_perfil':
-            try:
-                nuevo_email = request.POST.get('email', '').strip()
-                if nuevo_email and nuevo_email != user.email:
-                    user.email = nuevo_email
-                    user.save()
-
-                fn_raw = request.POST.get('fecha_nacimiento', '').strip()
-                fecha_nac = None
-                if fn_raw:
-                    try:
-                        from datetime import datetime as _dt
-                        fecha_nac = _dt.strptime(fn_raw, '%Y-%m-%d')
-                    except ValueError:
-                        pass
-
-                datos = {
-                    'nombre_1':     request.POST.get('nombre_1', '').strip(),
-                    'nombre_2':     request.POST.get('nombre_2', '').strip() or None,
-                    'apellido_1':   request.POST.get('apellido_1', '').strip(),
-                    'apellido_2':   request.POST.get('apellido_2', '').strip() or None,
-                    'telefono':     request.POST.get('telefono', '').strip() or None,
-                    'sexo':         request.POST.get('sexo', '').strip() or None,
-                    'cedula':       request.POST.get('cedula', '').strip(),
-                    'tipo_cedula':  request.POST.get('tipo_cedula', '').strip() or None,
-                    'fecha_nacimiento': fecha_nac,
-                    'id_sede':      user.id_sede,
-                    'id_user_paciente': user,
-                    'status':       True,
-                }
-                if paciente:
-                    for k, v in datos.items():
-                        setattr(paciente, k, v)
-                    paciente.save()
-                    messages.success(request, '✅ Perfil actualizado correctamente.')
-                else:
-                    if datos['nombre_1'] and datos['apellido_1'] and datos['cedula']:
-                        PacienteDatosPersonales.objects.create(**datos)
-                        messages.success(request, '✅ Perfil creado correctamente.')
-                    else:
-                        messages.error(request, 'Nombre, apellido y cédula son obligatorios.')
-            except Exception as e:
-                messages.error(request, f'Error al actualizar perfil: {e}')
+            ok, msg = update_perfil_paciente(user, paciente, request.POST)
+            if ok:
+                messages.success(request, f'✅ {msg}')
+            else:
+                messages.error(request, msg)
             return redirect('perfil_paciente')
 
         elif action == 'update_password':
-            pwd_actual   = request.POST.get('password_actual', '')
-            pwd_nuevo    = request.POST.get('password_nuevo', '')
-            pwd_confirm  = request.POST.get('password_confirmar', '')
-            if not user.check_password(pwd_actual):
-                messages.error(request, 'La contraseña actual es incorrecta.')
-            elif pwd_nuevo != pwd_confirm:
-                messages.error(request, 'Las contraseñas nuevas no coinciden.')
-            elif len(pwd_nuevo) < 6:
-                messages.error(request, 'Mínimo 6 caracteres.')
+            ok, msg = change_password(
+                user,
+                request.POST.get('password_actual', ''),
+                request.POST.get('password_nuevo', ''),
+                request.POST.get('password_confirmar', ''),
+            )
+            if ok:
+                messages.success(request, f'✅ {msg}')
             else:
-                try:
-                    user.set_password(pwd_nuevo)
-                    user.save()
-                    messages.success(request, '✅ Contraseña actualizada.')
-                except Exception as e:
-                    messages.error(request, f'Error: {e}')
+                messages.error(request, msg)
             return redirect('perfil_paciente')
 
         elif action == 'update_direccion':
-            try:
-                dir_data = {
-                    'id_estado_id':    request.POST.get('id_estado') or None,
-                    'id_municipio_id': request.POST.get('id_municipio') or None,
-                    'id_parroquia_id': request.POST.get('id_parroquia') or None,
-                    'id_ciudad_id':    request.POST.get('id_ciudad') or None,
-                    'direccion':       request.POST.get('direccion', '').strip(),
-                    'referencia':      request.POST.get('referencia', '').strip() or None,
-                }
-                if paciente and paciente.id_direccion_paciente_id:
-                    DireccionPaciente.objects.filter(
-                        pk=paciente.id_direccion_paciente_id
-                    ).update(**dir_data)
-                elif paciente:
-                    nueva_dir = DireccionPaciente(**dir_data)
-                    nueva_dir.save()
-                    paciente.id_direccion_paciente = nueva_dir
-                    paciente.save()
-                messages.success(request, '✅ Dirección actualizada.')
-            except Exception as e:
-                messages.error(request, f'Error al actualizar dirección: {e}')
+            ok, msg = update_direccion_paciente(paciente, request.POST)
+            if ok:
+                messages.success(request, f'✅ {msg}')
+            else:
+                messages.error(request, msg)
             return redirect('perfil_paciente')
 
     # ---- GET: recopilar datos ----
@@ -394,28 +335,15 @@ def dashboard_paciente(request):
     nombre = datos_paciente.nombre_completo if datos_paciente else getattr(request.user, 'username', request.user.username)
     
     # Obtener citas del paciente usando los campos reales del esquema Supabase
-    try:
-        if datos_paciente:
-            citas = Cita.objects.filter(id_paciente=datos_paciente).order_by('-fecha_emision')
-        else:
-            citas = Cita.objects.none()
-    except Exception:
-        citas = Cita.objects.none()
-
-    try:
-        citas_activas   = citas.filter(status=True).count()
-        citas_canceladas = citas.filter(status=False).count()
-        total_citas     = citas.count()
-    except Exception:
-        citas_activas = citas_canceladas = total_citas = 0
-
+    print(f"DEBUG dashboard_paciente: user={request.user}, tipo={type(request.user).__name__}, datos_paciente={datos_paciente}")
+    stats = get_paciente_dashboard_context(datos_paciente)
     return render(request, 'usuarios/dashboard_paciente.html', {
-        'nombre': nombre,
-        'citas': citas,
-        'citas_pendientes': citas_activas,
-        'citas_aprobadas': citas_activas,
-        'citas_rechazadas': citas_canceladas,
-        'total_citas': total_citas,
+        'nombre':           nombre,
+        'citas':            stats['citas'],
+        'citas_pendientes': stats['citas_activas'],
+        'citas_aprobadas':  stats['citas_activas'],
+        'citas_rechazadas': stats['citas_canceladas'],
+        'total_citas':      stats['total_citas'],
     })
 
 @login_required(login_url='/login/medico/')
@@ -430,169 +358,45 @@ def dashboard_medico(request):
     datos_medico = auth_backend.get_datos_personales(request.user)
     nombre = datos_medico.nombre_completo if datos_medico else getattr(request.user, 'username', request.user.username)
     
-    # Obtener citas del médico usando los campos reales del esquema Supabase
-    try:
-        if datos_medico:
-            citas_hoy = Cita.objects.filter(
-                id_doctor=datos_medico,
-                fecha_consulta__date=date.today(),
-                status=True
-            )
-            citas_pendientes = Cita.objects.filter(id_doctor=datos_medico, status=True)
-            total_citas = Cita.objects.filter(id_doctor=datos_medico).count()
-        else:
-            citas_hoy = Cita.objects.none()
-            citas_pendientes = Cita.objects.none()
-            total_citas = 0
-    except Exception:
-        citas_hoy = Cita.objects.none()
-        citas_pendientes = Cita.objects.none()
-        total_citas = 0
-    
-    return render(request, 'usuarios/dashboard_medico.html', {
-        'nombre': nombre,
-        'citas_hoy': citas_hoy,
-        'citas_pendientes': citas_pendientes,
-        'total_citas': total_citas,
-    })
+    stats = get_medico_dashboard_context(datos_medico)
+    return render(request, 'usuarios/dashboard_medico.html', {'nombre': nombre, **stats})
 
 def dashboard_recepcionista(request):
     """Dashboard de recepcionista — datos reales de citas"""
-    try:
-        user_id = request.session.get('_auth_user_id')
-        if not user_id:
-            messages.error(request, 'Debes iniciar sesión primero')
-            return redirect('login_recepcionista')
-        
-        from usuarios.models import UserRecepcionista
-        user = UserRecepcionista.objects.filter(id_user_recepcionista=user_id).first()
-        if not user:
-            messages.error(request, 'Usuario no encontrado')
-            return redirect('login_recepcionista')
-        
-        auth_backend = CustomAuthBackend()
-        user_rol = auth_backend.get_rol(user)
-        if user_rol != 'recepcionista':
-            messages.error(request, f'Acceso denegado. Tu rol es: {user_rol}')
-            return redirect('home')
-        
-        datos_recepcionista = auth_backend.get_datos_personales(user)
-        nombre = datos_recepcionista.nombre_completo if datos_recepcionista else user.username
-        
-        # Datos reales — esquema Supabase: status bool, fecha_consulta datetime
-        try:
-            hoy = date.today()
-            citas_pendientes = Cita.objects.filter(status=True).count()
-            citas_hoy = Cita.objects.filter(fecha_consulta__date=hoy).count()
-            citas_recientes = Cita.objects.select_related(
-                'id_paciente', 'id_doctor'
-            ).order_by('-fecha_emision')[:10]
-        except Exception:
-            citas_pendientes = 0
-            citas_hoy = 0
-            citas_recientes = []
-        
-        try:
-            total_pacientes = UserPaciente.objects.filter(status=True).count()
-        except Exception:
-            total_pacientes = 0
-        
-        return render(request, 'usuarios/dashboard_recepcionista.html', {
-            'nombre': nombre,
-            'citas_pendientes': citas_pendientes,
-            'citas_hoy': citas_hoy,
-            'total_pacientes': total_pacientes,
-            'citas_recientes': citas_recientes,
-        })
-        
-    except Exception as e:
-        print(f"Error en dashboard_recepcionista: {e}")
-        messages.error(request, 'Error al cargar el dashboard')
-        return redirect('home')
+    user, backend, err = resolve_and_check(
+        request, UserRecepcionista, 'id_user_recepcionista', 'recepcionista', 'login_recepcionista'
+    )
+    if err:
+        return err
+    datos = backend.get_datos_personales(user)
+    nombre = datos.nombre_completo if datos else user.username
+    stats  = get_recepcionista_dashboard_context()
+    return render(request, 'usuarios/dashboard_recepcionista.html', {'nombre': nombre, **stats})
 def dashboard_gerente(request):
     """Dashboard de gerente — datos reales"""
-    try:
-        user_id = request.session.get('_auth_user_id')
-        if not user_id:
-            messages.error(request, 'Debes iniciar sesión primero')
-            return redirect('login_gerente')
-        
-        from usuarios.models import UserAdmin
-        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
-        if not user:
-            messages.error(request, 'Usuario no encontrado')
-            return redirect('login_gerente')
-        
-        auth_backend = CustomAuthBackend()
-        user_rol = auth_backend.get_rol(user)
-        if user_rol != 'gerente':
-            messages.error(request, f'Acceso denegado. Tu rol es: {user_rol}')
-            return redirect('home')
-        
-        datos_admin = auth_backend.get_datos_personales(user)
-        nombre = datos_admin.nombre_completo if datos_admin else user.username
-        
-        # Datos reales — Cita puede no existir en Supabase aún
-        try:
-            total_citas = Cita.objects.count()
-        except Exception:
-            total_citas = 0
-        
-        try:
-            total_pacientes = UserPaciente.objects.count()
-            total_medicos = UserDoctor.objects.count()
-            total_recepcionistas = UserRecepcionista.objects.count()
-        except Exception:
-            total_pacientes = total_medicos = total_recepcionistas = 0
-        
-        return render(request, 'usuarios/dashboard_gerente.html', {
-            'nombre': nombre,
-            'total_citas': total_citas,
-            'total_pacientes': total_pacientes,
-            'total_medicos': total_medicos,
-            'total_recepcionistas': total_recepcionistas,
-        })
-        
-    except Exception as e:
-        print(f"Error en dashboard_gerente: {e}")
-        messages.error(request, 'Error al cargar el dashboard')
-        return redirect('home')
+    user, backend, err = resolve_and_check(
+        request, UserAdmin, 'id_user_admin', 'gerente', 'login_gerente'
+    )
+    if err:
+        return err
+    datos  = backend.get_datos_personales(user)
+    nombre = datos.nombre_completo if datos else user.username
+    stats  = get_gerente_dashboard_context()
+    return render(request, 'usuarios/dashboard_gerente.html', {'nombre': nombre, **stats})
 def login_admin(request):
     """Login para administradores (alias de login_gerente en esta instalación)"""
     return login_rol(request, 'gerente', 'usuarios/login_gerente.html', 'dashboard_gerente')
 
-@login_required(login_url='/login/gerente/')
-def dashboard_root(request):
-    """Dashboard root — redirige al panel de gerente (no existen roles super_admin/root)"""
-    auth_backend = CustomAuthBackend()
-    if auth_backend.get_rol(request.user) != 'gerente':
-        messages.error(request, 'Acceso denegado.')
-        return redirect('home')
-    return redirect('dashboard_gerente')
 
 def registro_staff(request):
-    """Registro de staff - Versión corregida que funciona"""
+    """Registro de staff - solo gerente"""
+    user, backend, err = resolve_and_check(
+        request, UserAdmin, 'id_user_admin', 'gerente', 'login_gerente'
+    )
+    if err:
+        return err
+
     try:
-        # Obtener el usuario desde la sesión si existe
-        user_id = request.session.get('_auth_user_id')
-        if not user_id:
-            messages.error(request, 'Debes iniciar sesión como gerente primero')
-            return redirect('login_gerente')
-        
-        # Obtener el usuario
-        from usuarios.models import UserAdmin
-        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
-        if not user:
-            messages.error(request, 'Gerente no encontrado')
-            return redirect('login_gerente')
-        
-        # Verificar rol
-        auth_backend = CustomAuthBackend()
-        user_rol = auth_backend.get_rol(user)
-        if user_rol != 'gerente':
-            messages.error(request, f'Acceso denegado. Tu rol es: {user_rol}')
-            return redirect('home')
-        
         # Procesar el formulario
         if request.method == 'POST':
             from usuarios.forms import RegistroStaffForm
@@ -622,19 +426,12 @@ def registro_staff(request):
 
 def lista_personal(request):
     """Lista doctores y recepcionistas de la sede del gerente."""
+    user, _, err = resolve_and_check(
+        request, UserAdmin, 'id_user_admin', 'gerente', 'login_gerente'
+    )
+    if err:
+        return err
     try:
-        user_id = request.session.get('_auth_user_id')
-        if not user_id:
-            messages.error(request, 'Debes iniciar sesión como gerente primero')
-            return redirect('login_gerente')
-        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
-        if not user:
-            messages.error(request, 'Gerente no encontrado')
-            return redirect('login_gerente')
-        auth_backend = CustomAuthBackend()
-        if auth_backend.get_rol(user) != 'gerente':
-            messages.error(request, 'Acceso denegado')
-            return redirect('home')
         sede = user.id_sede
 
         doctores = Doctor.objects.filter(id_sede=sede).select_related(
@@ -665,19 +462,12 @@ def lista_personal(request):
 
 def editar_doctor_view(request, id_doctor):
     """Editar datos de un doctor existente (solo gerente de su sede)."""
+    user, _, err = resolve_and_check(
+        request, UserAdmin, 'id_user_admin', 'gerente', 'login_gerente'
+    )
+    if err:
+        return err
     try:
-        user_id = request.session.get('_auth_user_id')
-        if not user_id:
-            messages.error(request, 'Debes iniciar sesión como gerente primero')
-            return redirect('login_gerente')
-        user = UserAdmin.objects.filter(id_user_admin=user_id).first()
-        if not user:
-            messages.error(request, 'Gerente no encontrado')
-            return redirect('login_gerente')
-        auth_backend = CustomAuthBackend()
-        if auth_backend.get_rol(user) != 'gerente':
-            messages.error(request, 'Acceso denegado')
-            return redirect('home')
         sede = user.id_sede
 
         doctor = Doctor.objects.filter(
@@ -1008,4 +798,262 @@ def validar_cedula(request):
     if cedula:
         existe = PacienteDatosPersonales.objects.filter(cedula=cedula).exists()
         return JsonResponse({'existe': existe})
-    return JsonResponse({'existe': False})
+
+
+# ── RECUPERACIÓN DE CONTRASEÑA (SOLO PACIENTES) ───────────────────────────────
+
+import hashlib as _hashlib
+import random as _random
+
+PREGUNTAS_SEGURIDAD = [
+    (1,  '¿Cuál es el nombre de tu primera mascota?'),
+    (2,  '¿En qué ciudad naciste?'),
+    (3,  '¿Nombre de tu madre?'),
+    (4,  '¿Cómo se llama tu mejor amigo de la infancia?'),
+    (5,  '¿Cuál es el segundo nombre de tu madre?'),
+    (6,  '¿Cuál fue tu primer trabajo?'),
+    (7,  '¿Cuál es tu comida favorita?'),
+    (8,  '¿A qué lugar te gustaría viajar?'),
+    (9,  '¿Cuál es el nombre de tu profesora favorita?'),
+    (10, '¿Nombre de tu padre?'),
+]
+
+def _preg_texto(id_preg):
+    return next((p[1] for p in PREGUNTAS_SEGURIDAD if p[0] == id_preg), None)
+
+
+# ── HELPER EMAIL ─────────────────────────────────────────────────────────────
+
+def _enviar_correo_config_preguntas(user, request):
+    from usuarios.email_config import SMTP_HOST_NAME, SMTP_PORT, SMTP_USER, SMTP_PASS
+    import smtplib, ssl
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    destinatario = user.email or ''
+    if not destinatario or not SMTP_USER or not SMTP_PASS:
+        raise ValueError('Credenciales de correo no configuradas en .env')
+
+    token  = _hashlib.md5(f"{user.pk}-{user.email}-config".encode()).hexdigest()
+    enlace = request.build_absolute_uri(f'/configurar-preguntas/{user.pk}/{token}/')
+    asunto = 'Healthy Life — Configura tus preguntas de seguridad'
+    cuerpo = (
+        'Hola,\n\n'
+        'Para poder recuperar tu contraseña en el futuro, configura tus preguntas de seguridad:\n\n'
+        f'{enlace}\n\n'
+        'Si no solicitaste esto, ignora este mensaje.\n\n'
+        '— Healthy Life'
+    )
+    msg = MIMEMultipart()
+    msg['From']    = SMTP_USER
+    msg['To']      = destinatario
+    msg['Subject'] = asunto
+    msg.attach(MIMEText(cuerpo, 'plain', 'utf-8'))
+
+    # Contexto SSL sin verificación de certificado (compatible con servidores custom)
+    ctx = ssl._create_unverified_context()
+    port = int(SMTP_PORT)
+    print(f'[EMAIL] Enviando a {destinatario} via {SMTP_HOST_NAME}:{port}')
+    if port == 465:
+        with smtplib.SMTP_SSL(SMTP_HOST_NAME, port, context=ctx, timeout=15) as server:
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_USER, destinatario, msg.as_string())
+    else:
+        with smtplib.SMTP(SMTP_HOST_NAME, port, timeout=15) as server:
+            server.ehlo()
+            server.starttls(context=ctx)
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_USER, destinatario, msg.as_string())
+    print(f'[EMAIL] Enviado correctamente a {destinatario}')
+
+
+# ── RECUPERAR CONTRASEÑA — PASO 1 ────────────────────────────────────────────
+
+def recuperar_password(request):
+    if request.method == 'POST':
+        correo = request.POST.get('correo', '').strip().lower()
+        if not correo:
+            messages.error(request, 'Ingresa tu correo electrónico.')
+            return render(request, 'usuarios/recuperar_password.html')
+
+        user = UserPaciente.objects.filter(email=correo, status=True).first()
+        if not user:
+            messages.error(request, 'No se encontró una cuenta con ese correo electrónico.')
+            return render(request, 'usuarios/recuperar_password.html')
+
+        recuperacion = RecuperacionContrasenaPaciente.objects.filter(
+            id_user_paciente=user
+        ).first()
+
+        if not recuperacion or not recuperacion.preguntas_seguridad:
+            try:
+                _enviar_correo_config_preguntas(user, request)
+                messages.info(
+                    request,
+                    'No tienes preguntas configuradas. Hemos enviado un enlace a tu correo.',
+                )
+            except Exception as _e:
+                print(f'[EMAIL ERROR] {type(_e).__name__}: {_e}')
+                from django.conf import settings as _s
+                if _s.DEBUG:
+                    token  = _hashlib.md5(f"{user.pk}-{user.email}-config".encode()).hexdigest()
+                    enlace = request.build_absolute_uri(f'/configurar-preguntas/{user.pk}/{token}/')
+                    messages.warning(
+                        request,
+                        f'[DEBUG] No se pudo enviar el correo ({type(_e).__name__}). '
+                        f'Enlace directo: {enlace}',
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        'No tienes preguntas configuradas. '
+                        'Contacta al administrador de tu sede.',
+                    )
+            return redirect('login_paciente')
+
+        request.session['recuperacion_user_id'] = user.pk
+        return redirect('verificar_preguntas')
+
+    return render(request, 'usuarios/recuperar_password.html')
+
+
+# ── RECUPERAR CONTRASEÑA — PASO 2 ────────────────────────────────────────────
+
+def verificar_preguntas(request):
+    user_id = request.session.get('recuperacion_user_id')
+    if not user_id:
+        return redirect('recuperar_password')
+
+    recuperacion = RecuperacionContrasenaPaciente.objects.filter(
+        id_user_paciente_id=user_id
+    ).first()
+    if not recuperacion:
+        return redirect('recuperar_password')
+
+    ids_guardados    = [int(x) for x in recuperacion.preguntas_seguridad.split(',')]
+    resps_guardadas  = recuperacion.respuestas_seguridad.split('||')
+
+    todas = [
+        {'id': id_preg, 'pregunta': _preg_texto(id_preg), 'respuesta': resps_guardadas[i]}
+        for i, id_preg in enumerate(ids_guardados)
+        if _preg_texto(id_preg) and i < len(resps_guardadas)
+    ]
+
+    # Seleccionar 2 y guardar en sesión para consistencia entre GET y POST
+    if 'verificacion_ids' not in request.session:
+        sel = _random.sample(todas, min(2, len(todas)))
+        request.session['verificacion_ids'] = [item['id'] for item in sel]
+    else:
+        ids_sel = request.session['verificacion_ids']
+        sel = [item for item in todas if item['id'] in ids_sel]
+
+    if request.method == 'POST':
+        aciertos = sum(
+            1 for item in sel
+            if request.POST.get(f'respuesta_{item["id"]}', '').strip().lower()
+               == item['respuesta'].strip().lower()
+        )
+        if aciertos == len(sel):
+            request.session['preguntas_verificadas'] = True
+            request.session.pop('verificacion_ids', None)
+            return redirect('cambiar_password')
+        else:
+            messages.error(request, f'Acertaste {aciertos} de {len(sel)}. Intenta de nuevo.')
+            request.session.pop('verificacion_ids', None)
+
+    return render(request, 'usuarios/verificar_preguntas.html', {'preguntas': sel})
+
+
+# ── RECUPERAR CONTRASEÑA — PASO 3 ────────────────────────────────────────────
+
+def cambiar_password(request):
+    if not request.session.get('preguntas_verificadas'):
+        return redirect('recuperar_password')
+
+    user_id = request.session.get('recuperacion_user_id')
+    if not user_id:
+        return redirect('recuperar_password')
+
+    if request.method == 'POST':
+        p1 = request.POST.get('password1', '')
+        p2 = request.POST.get('password2', '')
+        if len(p1) < 8:
+            messages.error(request, 'Mínimo 8 caracteres.')
+        elif p1 != p2:
+            messages.error(request, 'Las contraseñas no coinciden.')
+        else:
+            user = UserPaciente.objects.filter(pk=user_id).first()
+            if user:
+                user.password = _hashlib.md5(p1.encode()).hexdigest()
+                user.save()
+                for key in ('recuperacion_user_id', 'preguntas_verificadas'):
+                    request.session.pop(key, None)
+                messages.success(request, 'Contraseña actualizada. Inicia sesión.')
+                return redirect('login_paciente')
+
+    return render(request, 'usuarios/cambiar_password.html')
+
+
+# ── CONFIGURAR PREGUNTAS (TOKEN O PERFIL) ────────────────────────────────────
+
+def configurar_preguntas_paciente(request, user_id=None, token=None):
+    # Resolver quién es el usuario
+    if user_id and token:
+        user = UserPaciente.objects.filter(pk=user_id, status=True).first()
+        if not user:
+            messages.error(request, 'Usuario no encontrado.')
+            return redirect('home')
+        esperado = _hashlib.md5(f"{user.pk}-{user.email}-config".encode()).hexdigest()
+        if token != esperado:
+            messages.error(request, 'Enlace inválido o expirado.')
+            return redirect('home')
+        via_token = True
+    else:
+        if not (hasattr(request, 'user') and request.user.is_authenticated
+                and request.session.get('_hl_user_model') == 'UserPaciente'):
+            messages.error(request, 'Debes iniciar sesión como paciente.')
+            return redirect('login_paciente')
+        user = request.user
+        via_token = False
+
+    # Si ya tiene preguntas → solo lectura
+    recuperacion = RecuperacionContrasenaPaciente.objects.filter(
+        id_user_paciente=user
+    ).first()
+    if recuperacion and recuperacion.preguntas_seguridad:
+        ids = [int(x) for x in recuperacion.preguntas_seguridad.split(',')]
+        preguntas_cfg = [(pid, _preg_texto(pid)) for pid in ids if _preg_texto(pid)]
+        return render(request, 'usuarios/ver_preguntas.html', {'preguntas': preguntas_cfg})
+
+    # Seleccionar 5 aleatorias (o restaurar del POST)
+    if request.method == 'POST':
+        ids_post  = request.POST.get('ids_preguntas', '').split(',')
+        seleccionadas = [
+            (int(pid), _preg_texto(int(pid)))
+            for pid in ids_post
+            if pid.strip().isdigit() and _preg_texto(int(pid))
+        ]
+        respuestas = [
+            request.POST.get(f'respuesta_{i}', '').strip().lower()
+            for i in range(len(seleccionadas))
+        ]
+        if not all(respuestas):
+            messages.error(request, 'Debes responder todas las preguntas.')
+        else:
+            RecuperacionContrasenaPaciente.objects.create(
+                id_user_paciente=user,
+                preguntas_seguridad=','.join(str(p[0]) for p in seleccionadas),
+                respuestas_seguridad='||'.join(respuestas),
+            )
+            messages.success(request, 'Preguntas de seguridad configuradas correctamente.')
+            return redirect('login_paciente' if via_token else 'dashboard_paciente')
+
+        ids_mostrar = [str(p[0]) for p in seleccionadas]
+    else:
+        seleccionadas = _random.sample(PREGUNTAS_SEGURIDAD, 5)
+        ids_mostrar   = [str(p[0]) for p in seleccionadas]
+
+    return render(request, 'usuarios/configurar_preguntas.html', {
+        'preguntas':     seleccionadas,
+        'ids_preguntas': ','.join(ids_mostrar),
+    })
