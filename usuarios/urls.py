@@ -32,6 +32,8 @@ urlpatterns = [
     path('dashboard/paciente/registrar-menor/', views.registrar_paciente_especial, name='registrar_paciente_especial'),
     path('dashboard/paciente/mis-menores/', views.lista_pacientes_especiales, name='lista_pacientes_especiales'),
     path('dashboard/paciente/mis-menores/editar/<int:id_paciente_especial>/', views.editar_paciente_especial, name='editar_paciente_especial'),
+    path('dashboard/paciente/mis-menores/<int:id_paciente_especial>/historial/', views.historial_medico_menor, name='historial_medico_menor'),
+    path('dashboard/paciente/historial-medico/', views.historial_medico, name='historial_medico'),
 
     # Dashboards
     path('dashboard/paciente/', views.dashboard_paciente, name='dashboard_paciente'),

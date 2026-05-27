@@ -11,7 +11,6 @@ class PacienteDatosPersonales(models.Model):
     nombre_2 = models.TextField(blank=True, null=True)
     apellido_1 = models.TextField()
     apellido_2 = models.TextField(blank=True, null=True)
-    id_historial_medico_paciente = models.BigIntegerField(blank=True, null=True)
     id_user_paciente = models.ForeignKey(UserPaciente, on_delete=models.CASCADE, db_column='id_user_paciente')
     cedula = models.CharField(max_length=20, unique=True)
     tipo_cedula = models.CharField(max_length=20, blank=True, null=True)

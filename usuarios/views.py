@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
-from .forms import RegistroPacienteForm, RegistroStaffForm, RegistrarPacienteEspecialForm, EditarPacienteEspecialForm
+from .forms import RegistroPacienteForm, RegistroStaffForm, RegistrarPacienteEspecialForm, EditarPacienteEspecialForm, HistorialMedicoForm
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin, UserSuperAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador,
@@ -17,7 +17,12 @@ from .models import (
     RecuperacionContrasenaSuperadmin,
 )
 from usuarios.decorators import rol_requerido
-from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas, EspecialidadDoctor, Especialidad, Consultorio, Horario
+from citas.models import (
+    Cita, PagoCita, HistorialMedicoPaciente,
+    Alergias, TipoSangre, Vacunas, Enfermedades,
+    HistorialAlergias, HistorialEnfermedades, HistoriaVacunas,
+    EspecialidadDoctor, Especialidad, Consultorio, Horario,
+)
 from .authentication import CustomAuthBackend, is_rate_limited
 from .email_config import enviar_correo_confirmacion
 from .services.auth_service import resolve_and_check
@@ -492,6 +497,186 @@ def editar_paciente_especial(request, id_paciente_especial):
         'form':   form,
         'menor':  menor,
         'nombre': paciente_tutor.nombre_completo,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def historial_medico(request):
+    """
+    Permite al paciente adulto ver y editar su historial médico.
+
+    GET:  carga el formulario pre-relleno con el historial existente (si lo hay).
+    POST: crea o actualiza historial_medico_paciente y sincroniza las relaciones
+          M2M (alergias, vacunas, enfermedades) mediante las tablas intermedias.
+    """
+    auth_backend = CustomAuthBackend()
+    paciente = auth_backend.get_datos_personales(request.user)
+
+    if not paciente:
+        messages.error(request, 'No se encontró tu perfil de paciente.')
+        return redirect('dashboard_paciente')
+
+    # Buscar historial existente vinculado al paciente adulto
+    historial = HistorialMedicoPaciente.objects.filter(id_paciente=paciente).first()
+
+    if request.method == 'POST':
+        form = HistorialMedicoForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            if historial:
+                # Actualizar tipo de sangre en el registro existente
+                historial.id_tipo_sangre = cd.get('id_tipo_sangre')
+                historial.save()
+            else:
+                # Crear un nuevo registro de historial para el paciente adulto
+                historial = HistorialMedicoPaciente.objects.create(
+                    id_paciente    = paciente,
+                    id_sede        = paciente.id_sede,
+                    id_tipo_sangre = cd.get('id_tipo_sangre'),
+                    status         = True,
+                )
+
+            # Sincronizar M2M: alergias (eliminar las anteriores y crear las nuevas)
+            HistorialAlergias.objects.filter(id_historial_medico=historial).delete()
+            for alergia in cd.get('alergias') or []:
+                HistorialAlergias.objects.create(
+                    id_alergias=alergia, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: vacunas
+            HistoriaVacunas.objects.filter(id_historial_medico=historial).delete()
+            for vacuna in cd.get('vacunas') or []:
+                HistoriaVacunas.objects.create(
+                    id_vacunas=vacuna, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: enfermedades
+            HistorialEnfermedades.objects.filter(id_historial_medico=historial).delete()
+            for enfermedad in cd.get('enfermedades') or []:
+                HistorialEnfermedades.objects.create(
+                    id_enfermedades=enfermedad, id_historial_medico=historial
+                )
+
+            messages.success(request, '✅ Historial médico actualizado correctamente.')
+            return redirect('dashboard_paciente')
+    else:
+        # Precargar el formulario con los datos del historial existente
+        initial = {}
+        if historial:
+            initial = {
+                'id_tipo_sangre': historial.id_tipo_sangre,
+                'alergias':       historial.alergias.all(),
+                'vacunas':        historial.vacunas.all(),
+                'enfermedades':   historial.enfermedades.all(),
+            }
+        form = HistorialMedicoForm(initial=initial)
+
+    return render(request, 'usuarios/historial_medico.html', {
+        'form':      form,
+        'historial': historial,
+        'nombre':    paciente.nombre_completo,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def historial_medico_menor(request, id_paciente_especial):
+    """
+    Permite al tutor ver y editar el historial médico de un menor registrado.
+
+    El historial se vincula al menor mediante la FK id_paciente_especial en
+    historial_medico_paciente; id_paciente queda NULL.
+    Las relaciones M2M se sincronizan manualmente con las tablas intermedias.
+
+    GET:  carga el formulario pre-relleno si el menor ya tiene historial.
+    POST: crea o actualiza el historial y sincroniza las relaciones M2M.
+    """
+    from django.shortcuts import get_object_or_404
+
+    auth_backend = CustomAuthBackend()
+    paciente_tutor = auth_backend.get_datos_personales(request.user)
+
+    if not paciente_tutor:
+        messages.error(request, 'No se encontró tu perfil de paciente.')
+        return redirect('dashboard_paciente')
+
+    # Verificar propiedad: el menor debe pertenecer al tutor autenticado
+    menor = get_object_or_404(
+        PacienteEspecial,
+        id_paciente_especial=id_paciente_especial,
+        id_paciente_tutor=paciente_tutor,
+        status=True,
+    )
+
+    # Buscar historial existente vinculado directamente al menor vía FK
+    historial = HistorialMedicoPaciente.objects.filter(
+        id_paciente_especial=menor
+    ).first()
+
+    if request.method == 'POST':
+        form = HistorialMedicoForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            if historial:
+                # Actualizar tipo de sangre en el registro existente del menor
+                historial.id_tipo_sangre = cd.get('id_tipo_sangre')
+                historial.save()
+            else:
+                # Crear nuevo historial; id_paciente=None porque el menor no
+                # tiene fila en paciente_datos_personales.
+                # La vinculación es exclusivamente vía id_paciente_especial.
+                historial = HistorialMedicoPaciente.objects.create(
+                    id_paciente          = None,
+                    id_paciente_especial = menor,
+                    id_sede              = menor.id_sede,
+                    id_tipo_sangre       = cd.get('id_tipo_sangre'),
+                    status               = True,
+                )
+
+            # Sincronizar M2M: alergias
+            HistorialAlergias.objects.filter(id_historial_medico=historial).delete()
+            for alergia in cd.get('alergias') or []:
+                HistorialAlergias.objects.create(
+                    id_alergias=alergia, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: vacunas
+            HistoriaVacunas.objects.filter(id_historial_medico=historial).delete()
+            for vacuna in cd.get('vacunas') or []:
+                HistoriaVacunas.objects.create(
+                    id_vacunas=vacuna, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: enfermedades
+            HistorialEnfermedades.objects.filter(id_historial_medico=historial).delete()
+            for enfermedad in cd.get('enfermedades') or []:
+                HistorialEnfermedades.objects.create(
+                    id_enfermedades=enfermedad, id_historial_medico=historial
+                )
+
+            nombre_menor = f"{menor.nombre_1} {menor.apellido_1}"
+            messages.success(
+                request,
+                f'✅ Historial médico de {nombre_menor} actualizado correctamente.'
+            )
+            return redirect('lista_pacientes_especiales')
+    else:
+        initial = {}
+        if historial:
+            initial = {
+                'id_tipo_sangre': historial.id_tipo_sangre,
+                'alergias':       historial.alergias.all(),
+                'vacunas':        historial.vacunas.all(),
+                'enfermedades':   historial.enfermedades.all(),
+            }
+        form = HistorialMedicoForm(initial=initial)
+
+    return render(request, 'usuarios/historial_medico_menor.html', {
+        'form':      form,
+        'historial': historial,
+        'menor':     menor,
+        'nombre':    paciente_tutor.nombre_completo,
     })
 
 

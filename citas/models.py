@@ -1,5 +1,5 @@
 from django.db import models
-from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico
+from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico, PacienteEspecial
 
 
 class Consultorio(models.Model):
@@ -217,24 +217,55 @@ class Vacunas(models.Model):
         return self.vacunas_cumplidas or f"Vacuna {self.id_vacunas}"
 
 
+class Enfermedades(models.Model):
+    """Catálogo de enfermedades → tabla enfermedades"""
+    id_enfermedades = models.BigAutoField(primary_key=True)
+    enfermedades = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'enfermedades'
+
+    def __str__(self):
+        return self.enfermedades or f"Enfermedad {self.id_enfermedades}"
+
+
 class HistorialMedicoPaciente(models.Model):
+    """
+    Historial médico de un paciente adulto o menor.
+
+    Regla del esquema: solo uno de id_paciente ó id_paciente_especial
+    tendrá valor; el otro será NULL.
+    Alergias, vacunas y enfermedades se relacionan mediante tablas
+    intermedias (M2M) definidas más abajo.
+    """
     id_historial_medico = models.BigAutoField(primary_key=True)
-    id_alergias = models.ForeignKey(
-        Alergias, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_alergias'
-    )
+    # Tipo de sangre: selección única, FK directa
     id_tipo_sangre = models.ForeignKey(
         TipoSangre, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_tipo_sangre'
     )
-    id_vacunas = models.ForeignKey(
-        Vacunas, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_vacunas'
-    )
+    # FK al paciente adulto (NULL cuando el historial pertenece a un menor)
     id_paciente = models.ForeignKey(
         PacienteDatosPersonales, on_delete=models.CASCADE,
         null=True, blank=True, db_column='id_paciente'
     )
-    id_enfermedades = models.BigIntegerField(blank=True, null=True)
+    # FK al paciente especial / menor (NULL cuando el historial pertenece a un adulto)
+    id_paciente_especial = models.ForeignKey(
+        PacienteEspecial, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_paciente_especial'
+    )
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     status = models.BooleanField(null=True, blank=True, default=True)
+    # Relaciones M2M a catálogos mediante tablas intermedias existentes en la BD
+    alergias = models.ManyToManyField(
+        Alergias, through='HistorialAlergias', related_name='historiales', blank=True
+    )
+    vacunas = models.ManyToManyField(
+        Vacunas, through='HistoriaVacunas', related_name='historiales', blank=True
+    )
+    enfermedades = models.ManyToManyField(
+        Enfermedades, through='HistorialEnfermedades', related_name='historiales', blank=True
+    )
 
     class Meta:
         managed = False
@@ -242,6 +273,54 @@ class HistorialMedicoPaciente(models.Model):
 
     def __str__(self):
         return f"Historial {self.id_historial_medico}"
+
+
+class HistorialAlergias(models.Model):
+    """Tabla intermedia historial_alergias → relaciona historial ↔ alergias (M2M)."""
+    id_historial_alergias = models.BigAutoField(primary_key=True)
+    id_alergias = models.ForeignKey(
+        Alergias, on_delete=models.CASCADE, db_column='id_alergias'
+    )
+    id_historial_medico = models.ForeignKey(
+        HistorialMedicoPaciente, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_historial_medico'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'historial_alergias'
+
+
+class HistorialEnfermedades(models.Model):
+    """Tabla intermedia historial_enfermedades → relaciona historial ↔ enfermedades (M2M)."""
+    id_historial_enfermedades = models.BigAutoField(primary_key=True)
+    id_enfermedades = models.ForeignKey(
+        Enfermedades, on_delete=models.CASCADE, db_column='id_enfermedades'
+    )
+    id_historial_medico = models.ForeignKey(
+        HistorialMedicoPaciente, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_historial_medico'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'historial_enfermedades'
+
+
+class HistoriaVacunas(models.Model):
+    """Tabla intermedia historia_vacunas → relaciona historial ↔ vacunas (M2M)."""
+    id_historial_vacunas = models.BigAutoField(primary_key=True)
+    id_vacunas = models.ForeignKey(
+        Vacunas, on_delete=models.CASCADE, db_column='id_vacunas'
+    )
+    id_historial_medico = models.ForeignKey(
+        HistorialMedicoPaciente, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_historial_medico'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'historia_vacunas'
 
 
 # ── Modelos de Recetas ────────────────────────────────────────────────────────

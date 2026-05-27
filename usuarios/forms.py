@@ -1665,3 +1665,49 @@ class EditarPacienteEspecialForm(forms.Form):
     def clean_fecha_nacimiento(self):
         """Bloquea si la fecha es futura o si la edad es >= 18 años."""
         return _validar_menor_de_edad(self.cleaned_data.get('fecha_nacimiento'))
+
+
+# ── Formulario de historial médico ───────────────────────────────────────────
+# Los catálogos viven en citas.models; se importan aquí para no duplicar modelos.
+from citas.models import Alergias, TipoSangre, Vacunas, Enfermedades
+
+class HistorialMedicoForm(forms.Form):
+    """
+    Formulario de historial médico del paciente (adulto o menor).
+
+    - alergias, vacunas, enfermedades: selección múltiple (M2M vía tablas intermedias).
+    - id_tipo_sangre: selección única (FK directa en historial_medico_paciente).
+    Todos los campos son opcionales (required=False).
+    """
+    _CSS_SELECT = (
+        'form-input w-full px-3 py-2 rounded-lg border border-gray-300 '
+        'focus:outline-none focus:ring-2 focus:ring-green-500'
+    )
+
+    # Tipo de sangre: desplegable de selección única
+    id_tipo_sangre = forms.ModelChoiceField(
+        queryset=TipoSangre.objects.all(),
+        required=False,
+        label='Tipo de sangre',
+        empty_label='Desconocido',
+        widget=forms.Select(attrs={'class': _CSS_SELECT}),
+    )
+    # Alergias, vacunas, enfermedades: checkboxes de selección múltiple
+    alergias = forms.ModelMultipleChoiceField(
+        queryset=Alergias.objects.all(),
+        required=False,
+        label='Alergias',
+        widget=forms.CheckboxSelectMultiple(),
+    )
+    vacunas = forms.ModelMultipleChoiceField(
+        queryset=Vacunas.objects.all(),
+        required=False,
+        label='Vacunas',
+        widget=forms.CheckboxSelectMultiple(),
+    )
+    enfermedades = forms.ModelMultipleChoiceField(
+        queryset=Enfermedades.objects.all(),
+        required=False,
+        label='Enfermedades',
+        widget=forms.CheckboxSelectMultiple(),
+    )
