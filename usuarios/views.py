@@ -218,8 +218,9 @@ def perfil_paciente(request):
                 pass
         if historial:
             tipo_sangre_obj = historial.id_tipo_sangre
-            alergia_obj     = historial.id_alergias
-            vacuna_obj      = historial.id_vacunas
+            # Alergias y vacunas ahora son M2M; construir cadena de display para el perfil
+            alergia_obj = ", ".join(str(a) for a in historial.alergias.all()) or None
+            vacuna_obj  = ", ".join(str(v) for v in historial.vacunas.all()) or None
         tutor = PacienteEspecial.objects.filter(id_paciente_tutor=paciente).first()
 
     citas_qs = Cita.objects.none()
@@ -413,10 +414,11 @@ def lista_pacientes_especiales(request):
 
     menores = PacienteEspecial.objects.none()
     if paciente_tutor:
+        # prefetch_related evita N+1 al comprobar en la plantilla si cada menor ya tiene historial
         menores = PacienteEspecial.objects.filter(
             id_paciente_tutor=paciente_tutor,
             status=True,
-        ).order_by('nombre_1', 'apellido_1')
+        ).prefetch_related('historialmedicopaciente_set').order_by('nombre_1', 'apellido_1')
 
     return render(request, 'usuarios/lista_pacientes_especiales.html', {
         'menores':         menores,
