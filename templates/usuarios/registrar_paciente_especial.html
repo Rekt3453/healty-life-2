@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Menor - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <style>
+        .dashboard-header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .form-card { background: white; border: 1px solid #e5e7eb; transition: box-shadow 0.3s; }
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -4px rgba(16,185,129,.4); }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="dashboard-header text-white">
+        <nav class="container mx-auto px-4 py-5">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
+                    </svg>
+                    <span class="text-2xl font-bold">Healthy Life</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-green-100 text-sm">{{ nombre }}</span>
+                    <a href="{% url 'dashboard_paciente' %}" class="text-white hover:text-green-100 text-sm underline">← Volver al Dashboard</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container mx-auto px-4 pb-8">
+            <h1 class="text-3xl font-bold">Registrar Paciente Especial</h1>
+            <p class="text-green-100 mt-1">Registra a un menor de edad bajo tu tutela</p>
+        </div>
+    </header>
+
+    <!-- Messages -->
+    <div class="container mx-auto px-4 mt-4">
+        {% for msg in messages %}
+        <div class="mb-3 px-4 py-3 rounded-lg text-sm font-medium
+            {% if msg.tags == 'success' %}bg-green-100 text-green-800
+            {% elif msg.tags == 'warning' %}bg-yellow-100 text-yellow-800
+            {% elif msg.tags == 'error' %}bg-red-100 text-red-800
+            {% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-2xl">
+        <div class="form-card rounded-xl shadow-lg p-8">
+
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Datos del Menor</h2>
+                    <p class="text-sm text-gray-500">Todos los campos marcados con * son obligatorios</p>
+                </div>
+            </div>
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Nombres -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Primer Nombre <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.nombre_1 }}
+                        {% if form.nombre_1.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.nombre_1.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Segundo Nombre</label>
+                        {{ form.nombre_2 }}
+                        {% if form.nombre_2.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.nombre_2.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Apellidos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Primer Apellido <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.apellido_1 }}
+                        {% if form.apellido_1.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.apellido_1.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Segundo Apellido</label>
+                        {{ form.apellido_2 }}
+                        {% if form.apellido_2.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.apellido_2.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sexo y Fecha -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Sexo <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.sexo }}
+                        {% if form.sexo.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.sexo.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Fecha de Nacimiento <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.fecha_nacimiento }}
+                        {% if form.fecha_nacimiento.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ form.fecha_nacimiento.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono de Contacto</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.telefono.errors|join:", " }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-400">Opcional. Número de contacto de emergencia.</p>
+                </div>
+
+                <!-- Nota informativa -->
+                <div class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+                    <strong>Nota:</strong> El menor no tendrá credenciales de acceso propias.
+                    Será gestionado por usted como tutor desde este panel.
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="submit" class="btn-primary flex-1 py-3 px-6 rounded-lg text-white font-semibold text-center">
+                        Registrar Menor
+                    </button>
+                    <a href="{% url 'lista_pacientes_especiales' %}"
+                       class="flex-1 py-3 px-6 rounded-lg border border-gray-300 text-gray-700 font-medium text-center hover:bg-gray-50 transition-colors">
+                        Ver Mis Menores
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

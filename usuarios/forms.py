@@ -873,6 +873,12 @@ class RegistrarDoctorForm(forms.Form):
             self.fields['id_consultorio'].queryset = Consultorio.objects.filter(
                 id_sede_id=sede_id, status__in=[True, None])
             self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
+            # Filtra especialidades activas de esta sede
+            self.fields['id_especialidad_doctor'].queryset = (
+                EspecialidadDoctor.objects
+                .filter(id_especialidad__id_sede=sede_id, id_especialidad__status=True)
+                .select_related('id_especialidad')
+            )
         if 'id_estado' in self.data:
             try:
                 estado_id = int(self.data['id_estado'])
@@ -911,6 +917,17 @@ class RegistrarDoctorForm(forms.Form):
         if Doctor.objects.filter(cedula=cedula).exists():
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
+
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "El doctor debe tener al menos 18 años de edad."
+                )
+        return fecha
 
     def save(self, sede):
         from django.utils import timezone
@@ -988,6 +1005,12 @@ class RegistrarRecepcionistaForm(forms.Form):
     fecha_nacimiento = forms.DateField(required=True,
         widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
 
+    # ── Datos profesionales ────────────────────────────────────────────────
+    id_horario = forms.ModelChoiceField(
+        queryset=Horario.objects.none(),
+        required=False, empty_label="Sin horario asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+
     # ── Dirección ──────────────────────────────────────────────────────────
     id_estado = forms.ModelChoiceField(queryset=Estado.objects.all(),
         required=True, empty_label="Seleccione un estado",
@@ -1010,8 +1033,11 @@ class RegistrarRecepcionistaForm(forms.Form):
     longitud = forms.CharField(max_length=100, required=False,
         widget=forms.TextInput(attrs={'class': _CSS}))
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, sede_id=None, **kwargs):
         super().__init__(*args, **kwargs)
+        # Filtra horarios de la sede del administrador
+        if sede_id:
+            self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
         if 'id_estado' in self.data:
             try:
                 estado_id = int(self.data['id_estado'])
@@ -1051,6 +1077,17 @@ class RegistrarRecepcionistaForm(forms.Form):
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
 
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "La recepcionista debe tener al menos 18 años de edad."
+                )
+        return fecha
+
     def save(self, sede):
         from django.utils import timezone
         direccion = DireccionRecepcionista.objects.create(
@@ -1069,6 +1106,7 @@ class RegistrarRecepcionistaForm(forms.Form):
             password=self.cleaned_data['password1'],
             id_sede=sede,
         )
+        horario_obj = self.cleaned_data.get('id_horario')
         Recepcionista.objects.create(
             nombre_1=self.cleaned_data['nombre_1'],
             nombre_2=self.cleaned_data.get('nombre_2') or '',
@@ -1084,6 +1122,7 @@ class RegistrarRecepcionistaForm(forms.Form):
             id_direccion_recepcionista=direccion,
             fecha_registro=timezone.now(),
             status=True,
+            id_horario=horario_obj.pk if horario_obj else None,
         )
         return user_recepcionista
 
@@ -1161,6 +1200,12 @@ class EditarDoctorForm(forms.Form):
             self.fields['id_consultorio'].queryset = Consultorio.objects.filter(
                 id_sede_id=sede_id, status__in=[True, None])
             self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
+            # Filtra especialidades activas de esta sede
+            self.fields['id_especialidad_doctor'].queryset = (
+                EspecialidadDoctor.objects
+                .filter(id_especialidad__id_sede=sede_id, id_especialidad__status=True)
+                .select_related('id_especialidad')
+            )
 
         estado_id = None
         if self.data.get('id_estado'):
@@ -1222,6 +1267,17 @@ class EditarDoctorForm(forms.Form):
         if qs.exists():
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
+
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "El doctor debe tener al menos 18 años de edad."
+                )
+        return fecha
 
     def save(self, doctor, user_doctor, direccion=None):
         cd = self.cleaned_data
@@ -1302,6 +1358,12 @@ class EditarRecepcionistaForm(forms.Form):
     fecha_nacimiento = forms.DateField(required=True,
         widget=forms.DateInput(attrs={'type': 'date', 'class': _CSS}))
 
+    # ── Datos profesionales ────────────────────────────────────────────────
+    id_horario = forms.ModelChoiceField(
+        queryset=Horario.objects.none(),
+        required=False, empty_label="Sin horario asignado",
+        widget=forms.Select(attrs={'class': _CSS}))
+
     # ── Dirección ──────────────────────────────────────────────────────────
     id_estado    = forms.ModelChoiceField(queryset=Estado.objects.all(), required=True,
         empty_label="Seleccione un estado",    widget=forms.Select(attrs={'class': _CSS}))
@@ -1316,11 +1378,15 @@ class EditarRecepcionistaForm(forms.Form):
     latitud    = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
     longitud   = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': _CSS}))
 
-    def __init__(self, *args, recepcionista_pk=None, user_recepcionista_pk=None, **kwargs):
+    def __init__(self, *args, recepcionista_pk=None, user_recepcionista_pk=None, sede_id=None, **kwargs):
         self._recepcionista_pk      = recepcionista_pk
         self._user_recepcionista_pk = user_recepcionista_pk
         initial = kwargs.get('initial', {})
         super().__init__(*args, **kwargs)
+
+        # Filtra horarios de la sede del administrador
+        if sede_id:
+            self.fields['id_horario'].queryset = Horario.objects.filter(id_sede_id=sede_id)
 
         estado_id = None
         if self.data.get('id_estado'):
@@ -1383,6 +1449,17 @@ class EditarRecepcionistaForm(forms.Form):
             raise forms.ValidationError("Esta cédula ya está registrada.")
         return cedula
 
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise forms.ValidationError(
+                    "La recepcionista debe tener al menos 18 años de edad."
+                )
+        return fecha
+
     def save(self, recepcionista, user_recepcionista, direccion=None):
         cd = self.cleaned_data
         address_data = {
@@ -1419,5 +1496,218 @@ class EditarRecepcionistaForm(forms.Form):
         recepcionista.telefono        = cd['telefono']
         recepcionista.fecha_nacimiento = cd['fecha_nacimiento']
         recepcionista.id_direccion_recepcionista = direccion
+        horario_obj = cd.get('id_horario')
+        recepcionista.id_horario = horario_obj.pk if horario_obj else None
         recepcionista.save()
         return recepcionista
+
+
+# ── Utilidad compartida: validar que una fecha de nacimiento corresponda a menor de edad ──
+
+def _validar_menor_de_edad(fecha):
+    """
+    Lanza forms.ValidationError si 'fecha' correspond a una persona de 18 años o más.
+    También rechaza fechas futuras.
+    Reutilizada por RegistrarPacienteEspecialForm y EditarPacienteEspecialForm.
+    """
+    if not fecha:
+        return fecha
+    hoy = date.today()
+    if fecha > hoy:
+        raise forms.ValidationError("La fecha de nacimiento no puede ser en el futuro.")
+    edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+    if edad >= 18:
+        raise forms.ValidationError(
+            f"El paciente especial debe ser menor de 18 años "
+            f"(edad ingresada: {edad} años)."
+        )
+    return fecha
+
+
+# ── Formulario de registro de paciente especial (menor de edad) ──────────────
+
+class RegistrarPacienteEspecialForm(forms.Form):
+    """
+    Formulario para que el tutor-paciente registre a un menor de edad.
+    No incluye credenciales de acceso; el menor es gestionado por el tutor.
+    Los campos id_paciente_tutor, id_sede, fecha_registro y status se
+    asignan automáticamente en la vista.
+
+    Validación de edad: bloqueante — se rechaza si la persona tiene 18 años o más.
+    """
+    _CSS = (
+        'form-input w-full px-3 py-2 rounded-lg border border-gray-300 '
+        'focus:outline-none focus:ring-2 focus:ring-green-500'
+    )
+    SEXO_CHOICES = [
+        ('',  'Seleccionar...'),
+        ('M', 'Masculino'),
+        ('F', 'Femenino'),
+        ('O', 'Otro'),
+    ]
+
+    nombre_1 = forms.CharField(
+        max_length=200, required=True, label="Primer nombre",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Primer nombre'})
+    )
+    nombre_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo nombre",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Segundo nombre (opcional)'})
+    )
+    apellido_1 = forms.CharField(
+        max_length=200, required=True, label="Primer apellido",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Primer apellido'})
+    )
+    apellido_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo apellido",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Segundo apellido (opcional)'})
+    )
+    sexo = forms.ChoiceField(
+        choices=SEXO_CHOICES, required=True, label="Sexo",
+        widget=forms.Select(attrs={'class': _CSS})
+    )
+    fecha_nacimiento = forms.DateField(
+        required=True, label="Fecha de nacimiento",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': _CSS,
+            'max': date.today().isoformat(),
+        })
+    )
+    telefono = forms.CharField(
+        max_length=50, required=False, label="Teléfono de contacto",
+        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Teléfono (opcional)'})
+    )
+
+    def clean_nombre_1(self):
+        return self.cleaned_data['nombre_1'].strip().upper()
+
+    def clean_nombre_2(self):
+        return (self.cleaned_data.get('nombre_2') or '').strip().upper()
+
+    def clean_apellido_1(self):
+        return self.cleaned_data['apellido_1'].strip().upper()
+
+    def clean_apellido_2(self):
+        return (self.cleaned_data.get('apellido_2') or '').strip().upper()
+
+    def clean_fecha_nacimiento(self):
+        """Bloquea si la fecha es futura o si la edad es >= 18 años."""
+        return _validar_menor_de_edad(self.cleaned_data.get('fecha_nacimiento'))
+
+
+# ── Formulario de edición de paciente especial ───────────────────────────────
+
+class EditarPacienteEspecialForm(forms.Form):
+    """
+    Formulario para que el tutor-paciente edite los datos de un menor ya
+    registrado. Solo expone los campos modificables; id_paciente_tutor,
+    id_sede, fecha_registro y status se gestionan exclusivamente en la vista.
+
+    Reutiliza _validar_menor_de_edad para la validación de edad.
+    """
+    _CSS = (
+        'form-input w-full px-3 py-2 rounded-lg border border-gray-300 '
+        'focus:outline-none focus:ring-2 focus:ring-green-500'
+    )
+    SEXO_CHOICES = [
+        ('',  'Seleccionar...'),
+        ('M', 'Masculino'),
+        ('F', 'Femenino'),
+        ('O', 'Otro'),
+    ]
+
+    nombre_1 = forms.CharField(
+        max_length=200, required=True, label="Primer nombre",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    nombre_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo nombre",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    apellido_1 = forms.CharField(
+        max_length=200, required=True, label="Primer apellido",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    apellido_2 = forms.CharField(
+        max_length=200, required=False, label="Segundo apellido",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+    sexo = forms.ChoiceField(
+        choices=SEXO_CHOICES, required=True, label="Sexo",
+        widget=forms.Select(attrs={'class': _CSS})
+    )
+    fecha_nacimiento = forms.DateField(
+        required=True, label="Fecha de nacimiento",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': _CSS,
+            'max': date.today().isoformat(),
+        })
+    )
+    telefono = forms.CharField(
+        max_length=50, required=False, label="Teléfono de contacto",
+        widget=forms.TextInput(attrs={'class': _CSS})
+    )
+
+    def clean_nombre_1(self):
+        return self.cleaned_data['nombre_1'].strip().upper()
+
+    def clean_nombre_2(self):
+        return (self.cleaned_data.get('nombre_2') or '').strip().upper()
+
+    def clean_apellido_1(self):
+        return self.cleaned_data['apellido_1'].strip().upper()
+
+    def clean_apellido_2(self):
+        return (self.cleaned_data.get('apellido_2') or '').strip().upper()
+
+    def clean_fecha_nacimiento(self):
+        """Bloquea si la fecha es futura o si la edad es >= 18 años."""
+        return _validar_menor_de_edad(self.cleaned_data.get('fecha_nacimiento'))
+
+
+# ── Formulario de historial médico ───────────────────────────────────────────
+# Los catálogos viven en citas.models; se importan aquí para no duplicar modelos.
+from citas.models import Alergias, TipoSangre, Vacunas, Enfermedades
+
+class HistorialMedicoForm(forms.Form):
+    """
+    Formulario de historial médico del paciente (adulto o menor).
+
+    - alergias, vacunas, enfermedades: selección múltiple (M2M vía tablas intermedias).
+    - id_tipo_sangre: selección única (FK directa en historial_medico_paciente).
+    Todos los campos son opcionales (required=False).
+    """
+    _CSS_SELECT = (
+        'form-input w-full px-3 py-2 rounded-lg border border-gray-300 '
+        'focus:outline-none focus:ring-2 focus:ring-green-500'
+    )
+
+    # Tipo de sangre: desplegable de selección única
+    id_tipo_sangre = forms.ModelChoiceField(
+        queryset=TipoSangre.objects.all(),
+        required=False,
+        label='Tipo de sangre',
+        empty_label='Desconocido',
+        widget=forms.Select(attrs={'class': _CSS_SELECT}),
+    )
+    # Alergias, vacunas, enfermedades: checkboxes de selección múltiple
+    alergias = forms.ModelMultipleChoiceField(
+        queryset=Alergias.objects.all(),
+        required=False,
+        label='Alergias',
+        widget=forms.CheckboxSelectMultiple(),
+    )
+    vacunas = forms.ModelMultipleChoiceField(
+        queryset=Vacunas.objects.all(),
+        required=False,
+        label='Vacunas',
+        widget=forms.CheckboxSelectMultiple(),
+    )
+    enfermedades = forms.ModelMultipleChoiceField(
+        queryset=Enfermedades.objects.all(),
+        required=False,
+        label='Enfermedades',
+        widget=forms.CheckboxSelectMultiple(),
+    )

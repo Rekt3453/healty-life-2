@@ -1,5 +1,5 @@
 from django.db import models
-from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico
+from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico, PacienteEspecial
 
 
 class Consultorio(models.Model):
@@ -24,6 +24,8 @@ class Especialidad(models.Model):
     tipo_especialidad = models.TextField(blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     status = models.BooleanField(null=True, blank=True, default=True)
+    # Nuevo campo agregado al esquema: categoriza la especialidad en Pediatría, Adultos o General
+    clasificacion_especialidad = models.TextField(blank=True, null=True, db_column='clasificacion_especialidad')
 
     class Meta:
         managed = False
@@ -47,6 +49,8 @@ class EspecialidadDoctor(models.Model):
         db_table = 'especialidad_doctor'
 
     def __str__(self):
+        if self.id_especialidad and self.id_especialidad.tipo_especialidad:
+            return self.id_especialidad.tipo_especialidad
         return f"EspDoc {self.id_especialidad_doctor}"
 
 
@@ -213,24 +217,55 @@ class Vacunas(models.Model):
         return self.vacunas_cumplidas or f"Vacuna {self.id_vacunas}"
 
 
+class Enfermedades(models.Model):
+    """Catálogo de enfermedades → tabla enfermedades"""
+    id_enfermedades = models.BigAutoField(primary_key=True)
+    enfermedades = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'enfermedades'
+
+    def __str__(self):
+        return self.enfermedades or f"Enfermedad {self.id_enfermedades}"
+
+
 class HistorialMedicoPaciente(models.Model):
+    """
+    Historial médico de un paciente adulto o menor.
+
+    Regla del esquema: solo uno de id_paciente ó id_paciente_especial
+    tendrá valor; el otro será NULL.
+    Alergias, vacunas y enfermedades se relacionan mediante tablas
+    intermedias (M2M) definidas más abajo.
+    """
     id_historial_medico = models.BigAutoField(primary_key=True)
-    id_alergias = models.ForeignKey(
-        Alergias, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_alergias'
-    )
+    # Tipo de sangre: selección única, FK directa
     id_tipo_sangre = models.ForeignKey(
         TipoSangre, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_tipo_sangre'
     )
-    id_vacunas = models.ForeignKey(
-        Vacunas, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_vacunas'
-    )
+    # FK al paciente adulto (NULL cuando el historial pertenece a un menor)
     id_paciente = models.ForeignKey(
         PacienteDatosPersonales, on_delete=models.CASCADE,
         null=True, blank=True, db_column='id_paciente'
     )
-    id_enfermedades = models.BigIntegerField(blank=True, null=True)
+    # FK al paciente especial / menor (NULL cuando el historial pertenece a un adulto)
+    id_paciente_especial = models.ForeignKey(
+        PacienteEspecial, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_paciente_especial'
+    )
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     status = models.BooleanField(null=True, blank=True, default=True)
+    # Relaciones M2M a catálogos mediante tablas intermedias existentes en la BD
+    alergias = models.ManyToManyField(
+        Alergias, through='HistorialAlergias', related_name='historiales', blank=True
+    )
+    vacunas = models.ManyToManyField(
+        Vacunas, through='HistoriaVacunas', related_name='historiales', blank=True
+    )
+    enfermedades = models.ManyToManyField(
+        Enfermedades, through='HistorialEnfermedades', related_name='historiales', blank=True
+    )
 
     class Meta:
         managed = False
@@ -238,3 +273,193 @@ class HistorialMedicoPaciente(models.Model):
 
     def __str__(self):
         return f"Historial {self.id_historial_medico}"
+
+
+class HistorialAlergias(models.Model):
+    """Tabla intermedia historial_alergias → relaciona historial ↔ alergias (M2M)."""
+    id_historial_alergias = models.BigAutoField(primary_key=True)
+    id_alergias = models.ForeignKey(
+        Alergias, on_delete=models.CASCADE, db_column='id_alergias'
+    )
+    id_historial_medico = models.ForeignKey(
+        HistorialMedicoPaciente, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_historial_medico'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'historial_alergias'
+
+
+class HistorialEnfermedades(models.Model):
+    """Tabla intermedia historial_enfermedades → relaciona historial ↔ enfermedades (M2M)."""
+    id_historial_enfermedades = models.BigAutoField(primary_key=True)
+    id_enfermedades = models.ForeignKey(
+        Enfermedades, on_delete=models.CASCADE, db_column='id_enfermedades'
+    )
+    id_historial_medico = models.ForeignKey(
+        HistorialMedicoPaciente, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_historial_medico'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'historial_enfermedades'
+
+
+class HistoriaVacunas(models.Model):
+    """Tabla intermedia historia_vacunas → relaciona historial ↔ vacunas (M2M)."""
+    id_historial_vacunas = models.BigAutoField(primary_key=True)
+    id_vacunas = models.ForeignKey(
+        Vacunas, on_delete=models.CASCADE, db_column='id_vacunas'
+    )
+    id_historial_medico = models.ForeignKey(
+        HistorialMedicoPaciente, on_delete=models.CASCADE,
+        null=True, blank=True, db_column='id_historial_medico'
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'historia_vacunas'
+
+
+# ── Modelos de Recetas ────────────────────────────────────────────────────────
+# Cada tabla hija almacena un único apartado de la receta médica.
+# managed = False garantiza que no se generen migraciones.
+
+class RecipesOrdenesMedicas(models.Model):
+    """Órdenes médicas: radiografías, tomografías, etc. → tabla recipes_ordenes_medicas"""
+    id_recipe_ordenes = models.BigAutoField(primary_key=True)
+    ordenes_medicas = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipes_ordenes_medicas'
+
+    def __str__(self):
+        return f"Órdenes {self.id_recipe_ordenes}"
+
+
+class RecipeTratamiento(models.Model):
+    """Tratamiento prescrito: medicamentos y posología → tabla recipe_tratamiento"""
+    id_recipe_tratamiento = models.BigAutoField(primary_key=True)
+    tratamiento_necesario = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_tratamiento'
+
+    def __str__(self):
+        return f"Tratamiento {self.id_recipe_tratamiento}"
+
+
+class RecipeReposo(models.Model):
+    """Indicación de reposo y días → tabla recipe_reposo"""
+    id_recipe_reposo = models.BigAutoField(primary_key=True)
+    reposo = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_reposo'
+
+    def __str__(self):
+        return f"Reposo {self.id_recipe_reposo}"
+
+
+class RecipeMedicamentosEspeciales(models.Model):
+    """Medicamentos con prescripción especial/controlada → tabla recipe_medicamentos_especiales"""
+    id_recipe_medicamento_especiales = models.BigAutoField(primary_key=True)
+    medicamentos_especiales = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_medicamentos_especiales'
+
+    def __str__(self):
+        return f"Med. Especiales {self.id_recipe_medicamento_especiales}"
+
+
+class RecipeEstudios(models.Model):
+    """Estudios de laboratorio: sangre, orina, heces, etc. → tabla recipe_estudios"""
+    id_recipe_estudios = models.BigAutoField(primary_key=True)
+    estudios_realizar = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_estudios'
+
+    def __str__(self):
+        return f"Estudios {self.id_recipe_estudios}"
+
+
+class RecipeDiagnostico(models.Model):
+    """Diagnóstico general del médico → tabla recipe_diagnostico"""
+    id_recipe_diagnostico = models.BigAutoField(primary_key=True)
+    diagnostico = models.CharField(max_length=5000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipe_diagnostico'
+
+    def __str__(self):
+        return f"Diagnóstico {self.id_recipe_diagnostico}"
+
+
+class Recipe(models.Model):
+    """
+    Registro principal de la receta médica.
+    Relaciona al doctor, la cita, el paciente y la sede con todos los
+    apartados de la receta (FK a cada tabla hija).
+    → tabla recipes
+    """
+    id_recipes = models.BigAutoField(primary_key=True)
+    id_doctor = models.ForeignKey(
+        Doctor, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_doctor'
+    )
+    id_cita = models.ForeignKey(
+        Cita, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cita'
+    )
+    id_paciente = models.ForeignKey(
+        PacienteDatosPersonales, on_delete=models.SET_NULL,
+        null=True, blank=True, db_column='id_paciente'
+    )
+    # FK a los apartados de la receta (db_column respeta los nombres mixtos del esquema)
+    id_Recipe_estudios = models.ForeignKey(
+        RecipeEstudios, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_estudios'
+    )
+    id_Recipe_medicamentos_especiales = models.ForeignKey(
+        RecipeMedicamentosEspeciales, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_medicamentos_especiales'
+    )
+    id_Recipe_tratamiento = models.ForeignKey(
+        RecipeTratamiento, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_tratamiento'
+    )
+    id_Recipe_reposo = models.ForeignKey(
+        RecipeReposo, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_reposo'
+    )
+    id_Recipes_ordenes_medicas = models.ForeignKey(
+        RecipesOrdenesMedicas, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipes_ordenes_medicas'
+    )
+    id_Recipe_diagnostico = models.ForeignKey(
+        RecipeDiagnostico, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_Recipe_diagnostico'
+    )
+    id_sede = models.ForeignKey(
+        Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede'
+    )
+    status = models.BooleanField(null=True, blank=True, default=True)
+    fecha_emision = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'recipes'
+        verbose_name = 'Receta'
+        verbose_name_plural = 'Recetas'
+        ordering = ['-fecha_emision']
+
+    def __str__(self):
+        return f"Receta #{self.id_recipes}"

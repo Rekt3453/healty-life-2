@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
-from .forms import RegistroPacienteForm, RegistroStaffForm
+from .forms import RegistroPacienteForm, RegistroStaffForm, RegistrarPacienteEspecialForm, EditarPacienteEspecialForm, HistorialMedicoForm
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin, UserSuperAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador,
@@ -17,7 +17,12 @@ from .models import (
     RecuperacionContrasenaSuperadmin,
 )
 from usuarios.decorators import rol_requerido
-from citas.models import Cita, PagoCita, HistorialMedicoPaciente, Alergias, TipoSangre, Vacunas, EspecialidadDoctor, Consultorio, Horario
+from citas.models import (
+    Cita, PagoCita, HistorialMedicoPaciente,
+    Alergias, TipoSangre, Vacunas, Enfermedades,
+    HistorialAlergias, HistorialEnfermedades, HistoriaVacunas,
+    EspecialidadDoctor, Especialidad, Consultorio, Horario,
+)
 from .authentication import CustomAuthBackend, is_rate_limited
 from .email_config import enviar_correo_confirmacion
 from .services.auth_service import resolve_and_check
@@ -346,6 +351,335 @@ def dashboard_paciente(request):
         'total_citas':      stats['total_citas'],
     })
 
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def registrar_paciente_especial(request):
+    """
+    Vista para que el paciente-tutor registre a un menor de edad.
+    No se crean credenciales de acceso; el menor queda vinculado al tutor.
+    """
+    from django.db import transaction
+    from django.utils import timezone as tz
+
+    auth_backend = CustomAuthBackend()
+    paciente_tutor = auth_backend.get_datos_personales(request.user)
+
+    if not paciente_tutor:
+        messages.error(request, 'No se encontró tu perfil de paciente.')
+        return redirect('dashboard_paciente')
+
+    form = RegistrarPacienteEspecialForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        # Guardar en tabla paciente_especial dentro de una transacción atómica
+        # (la validación de edad < 18 ya fue verificada en el formulario)
+        with transaction.atomic():
+            PacienteEspecial.objects.create(
+                id_paciente_tutor=paciente_tutor,
+                id_sede=paciente_tutor.id_sede,
+                nombre_1=form.cleaned_data['nombre_1'],
+                nombre_2=form.cleaned_data.get('nombre_2') or '',
+                apellido_1=form.cleaned_data['apellido_1'],
+                apellido_2=form.cleaned_data.get('apellido_2') or '',
+                sexo=form.cleaned_data['sexo'],
+                fecha_nacimiento=form.cleaned_data['fecha_nacimiento'],
+                telefono=form.cleaned_data.get('telefono') or '',
+                fecha_registro=tz.now(),
+                status=True,
+            )
+
+        nombre_menor = (
+            f"{form.cleaned_data['nombre_1']} {form.cleaned_data['apellido_1']}"
+        )
+        messages.success(
+            request, f'✅ Paciente especial "{nombre_menor}" registrado correctamente.'
+        )
+        return redirect('lista_pacientes_especiales')
+
+    return render(request, 'usuarios/registrar_paciente_especial.html', {
+        'form':   form,
+        'nombre': paciente_tutor.nombre_completo,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def lista_pacientes_especiales(request):
+    """
+    Lista los menores de edad (pacientes especiales) vinculados al tutor.
+    """
+    auth_backend = CustomAuthBackend()
+    paciente_tutor = auth_backend.get_datos_personales(request.user)
+
+    menores = PacienteEspecial.objects.none()
+    if paciente_tutor:
+        menores = PacienteEspecial.objects.filter(
+            id_paciente_tutor=paciente_tutor,
+            status=True,
+        ).order_by('nombre_1', 'apellido_1')
+
+    return render(request, 'usuarios/lista_pacientes_especiales.html', {
+        'menores':         menores,
+        'nombre':          paciente_tutor.nombre_completo if paciente_tutor else request.user.username,
+        'paciente_tutor':  paciente_tutor,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def editar_paciente_especial(request, id_paciente_especial):
+    """
+    Permite al tutor-paciente editar los datos de un menor ya registrado.
+    Sólo el tutor propietario del registro puede editarlo (verificación de
+    id_paciente_tutor contra el perfil del usuario autenticado).
+
+    GET:  precarga el formulario con los datos actuales del menor.
+    POST: valida y guarda los cambios; redirige a la lista de menores.
+    """
+    from django.shortcuts import get_object_or_404
+
+    auth_backend = CustomAuthBackend()
+    paciente_tutor = auth_backend.get_datos_personales(request.user)
+
+    if not paciente_tutor:
+        messages.error(request, 'No se encontró tu perfil de paciente.')
+        return redirect('dashboard_paciente')
+
+    # Obtener el menor; exige que pertenezca al tutor autenticado
+    menor = get_object_or_404(
+        PacienteEspecial,
+        id_paciente_especial=id_paciente_especial,
+        id_paciente_tutor=paciente_tutor,
+        status=True,
+    )
+
+    # Convertir DateTimeField a date para el DateInput del formulario
+    fecha_inicial = (
+        menor.fecha_nacimiento.date()
+        if hasattr(menor.fecha_nacimiento, 'date')
+        else menor.fecha_nacimiento
+    )
+
+    initial = {
+        'nombre_1':        menor.nombre_1,
+        'nombre_2':        menor.nombre_2 or '',
+        'apellido_1':      menor.apellido_1,
+        'apellido_2':      menor.apellido_2 or '',
+        'sexo':            menor.sexo or '',
+        'fecha_nacimiento': fecha_inicial,
+        'telefono':        menor.telefono or '',
+    }
+
+    if request.method == 'POST':
+        form = EditarPacienteEspecialForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            # Actualizar sólo los campos editables; el resto queda intacto
+            menor.nombre_1         = cd['nombre_1']
+            menor.nombre_2         = cd.get('nombre_2') or ''
+            menor.apellido_1       = cd['apellido_1']
+            menor.apellido_2       = cd.get('apellido_2') or ''
+            menor.sexo             = cd['sexo']
+            menor.fecha_nacimiento = cd['fecha_nacimiento']
+            menor.telefono         = cd.get('telefono') or ''
+            menor.save()
+
+            nombre_menor = f"{menor.nombre_1} {menor.apellido_1}"
+            messages.success(
+                request,
+                f'✅ Datos de "{nombre_menor}" actualizados correctamente.'
+            )
+            return redirect('lista_pacientes_especiales')
+    else:
+        form = EditarPacienteEspecialForm(initial=initial)
+
+    return render(request, 'usuarios/editar_paciente_especial.html', {
+        'form':   form,
+        'menor':  menor,
+        'nombre': paciente_tutor.nombre_completo,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def historial_medico(request):
+    """
+    Permite al paciente adulto ver y editar su historial médico.
+
+    GET:  carga el formulario pre-relleno con el historial existente (si lo hay).
+    POST: crea o actualiza historial_medico_paciente y sincroniza las relaciones
+          M2M (alergias, vacunas, enfermedades) mediante las tablas intermedias.
+    """
+    auth_backend = CustomAuthBackend()
+    paciente = auth_backend.get_datos_personales(request.user)
+
+    if not paciente:
+        messages.error(request, 'No se encontró tu perfil de paciente.')
+        return redirect('dashboard_paciente')
+
+    # Buscar historial existente vinculado al paciente adulto
+    historial = HistorialMedicoPaciente.objects.filter(id_paciente=paciente).first()
+
+    if request.method == 'POST':
+        form = HistorialMedicoForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            if historial:
+                # Actualizar tipo de sangre en el registro existente
+                historial.id_tipo_sangre = cd.get('id_tipo_sangre')
+                historial.save()
+            else:
+                # Crear un nuevo registro de historial para el paciente adulto
+                historial = HistorialMedicoPaciente.objects.create(
+                    id_paciente    = paciente,
+                    id_sede        = paciente.id_sede,
+                    id_tipo_sangre = cd.get('id_tipo_sangre'),
+                    status         = True,
+                )
+
+            # Sincronizar M2M: alergias (eliminar las anteriores y crear las nuevas)
+            HistorialAlergias.objects.filter(id_historial_medico=historial).delete()
+            for alergia in cd.get('alergias') or []:
+                HistorialAlergias.objects.create(
+                    id_alergias=alergia, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: vacunas
+            HistoriaVacunas.objects.filter(id_historial_medico=historial).delete()
+            for vacuna in cd.get('vacunas') or []:
+                HistoriaVacunas.objects.create(
+                    id_vacunas=vacuna, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: enfermedades
+            HistorialEnfermedades.objects.filter(id_historial_medico=historial).delete()
+            for enfermedad in cd.get('enfermedades') or []:
+                HistorialEnfermedades.objects.create(
+                    id_enfermedades=enfermedad, id_historial_medico=historial
+                )
+
+            messages.success(request, '✅ Historial médico actualizado correctamente.')
+            return redirect('dashboard_paciente')
+    else:
+        # Precargar el formulario con los datos del historial existente
+        initial = {}
+        if historial:
+            initial = {
+                'id_tipo_sangre': historial.id_tipo_sangre,
+                'alergias':       historial.alergias.all(),
+                'vacunas':        historial.vacunas.all(),
+                'enfermedades':   historial.enfermedades.all(),
+            }
+        form = HistorialMedicoForm(initial=initial)
+
+    return render(request, 'usuarios/historial_medico.html', {
+        'form':      form,
+        'historial': historial,
+        'nombre':    paciente.nombre_completo,
+    })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def historial_medico_menor(request, id_paciente_especial):
+    """
+    Permite al tutor ver y editar el historial médico de un menor registrado.
+
+    El historial se vincula al menor mediante la FK id_paciente_especial en
+    historial_medico_paciente; id_paciente queda NULL.
+    Las relaciones M2M se sincronizan manualmente con las tablas intermedias.
+
+    GET:  carga el formulario pre-relleno si el menor ya tiene historial.
+    POST: crea o actualiza el historial y sincroniza las relaciones M2M.
+    """
+    from django.shortcuts import get_object_or_404
+
+    auth_backend = CustomAuthBackend()
+    paciente_tutor = auth_backend.get_datos_personales(request.user)
+
+    if not paciente_tutor:
+        messages.error(request, 'No se encontró tu perfil de paciente.')
+        return redirect('dashboard_paciente')
+
+    # Verificar propiedad: el menor debe pertenecer al tutor autenticado
+    menor = get_object_or_404(
+        PacienteEspecial,
+        id_paciente_especial=id_paciente_especial,
+        id_paciente_tutor=paciente_tutor,
+        status=True,
+    )
+
+    # Buscar historial existente vinculado directamente al menor vía FK
+    historial = HistorialMedicoPaciente.objects.filter(
+        id_paciente_especial=menor
+    ).first()
+
+    if request.method == 'POST':
+        form = HistorialMedicoForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            if historial:
+                # Actualizar tipo de sangre en el registro existente del menor
+                historial.id_tipo_sangre = cd.get('id_tipo_sangre')
+                historial.save()
+            else:
+                # Crear nuevo historial; id_paciente=None porque el menor no
+                # tiene fila en paciente_datos_personales.
+                # La vinculación es exclusivamente vía id_paciente_especial.
+                historial = HistorialMedicoPaciente.objects.create(
+                    id_paciente          = None,
+                    id_paciente_especial = menor,
+                    id_sede              = menor.id_sede,
+                    id_tipo_sangre       = cd.get('id_tipo_sangre'),
+                    status               = True,
+                )
+
+            # Sincronizar M2M: alergias
+            HistorialAlergias.objects.filter(id_historial_medico=historial).delete()
+            for alergia in cd.get('alergias') or []:
+                HistorialAlergias.objects.create(
+                    id_alergias=alergia, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: vacunas
+            HistoriaVacunas.objects.filter(id_historial_medico=historial).delete()
+            for vacuna in cd.get('vacunas') or []:
+                HistoriaVacunas.objects.create(
+                    id_vacunas=vacuna, id_historial_medico=historial
+                )
+
+            # Sincronizar M2M: enfermedades
+            HistorialEnfermedades.objects.filter(id_historial_medico=historial).delete()
+            for enfermedad in cd.get('enfermedades') or []:
+                HistorialEnfermedades.objects.create(
+                    id_enfermedades=enfermedad, id_historial_medico=historial
+                )
+
+            nombre_menor = f"{menor.nombre_1} {menor.apellido_1}"
+            messages.success(
+                request,
+                f'✅ Historial médico de {nombre_menor} actualizado correctamente.'
+            )
+            return redirect('lista_pacientes_especiales')
+    else:
+        initial = {}
+        if historial:
+            initial = {
+                'id_tipo_sangre': historial.id_tipo_sangre,
+                'alergias':       historial.alergias.all(),
+                'vacunas':        historial.vacunas.all(),
+                'enfermedades':   historial.enfermedades.all(),
+            }
+        form = HistorialMedicoForm(initial=initial)
+
+    return render(request, 'usuarios/historial_medico_menor.html', {
+        'form':      form,
+        'historial': historial,
+        'menor':     menor,
+        'nombre':    paciente_tutor.nombre_completo,
+    })
+
+
 @login_required(login_url='/login/medico/')
 def dashboard_medico(request):
     # Verificar que el usuario sea médico
@@ -581,6 +915,7 @@ def editar_recepcionista_view(request, id_recepcionista):
                 request.POST,
                 recepcionista_pk=recepcionista.pk,
                 user_recepcionista_pk=user_recepcionista.pk if user_recepcionista else None,
+                sede_id=sede.pk if sede else None,
             )
             if form.is_valid():
                 try:
@@ -611,6 +946,8 @@ def editar_recepcionista_view(request, id_recepcionista):
                 'sexo':       recepcionista.sexo or 'M',
                 'telefono':   recepcionista.telefono or '',
                 'fecha_nacimiento': recepcionista.fecha_nacimiento.date() if recepcionista.fecha_nacimiento else None,
+                # Precarga el horario actual de la recepcionista
+                'id_horario': Horario.objects.filter(pk=recepcionista.id_horario).first() if recepcionista.id_horario else None,
             })
             if direccion:
                 initial.update({
@@ -627,6 +964,7 @@ def editar_recepcionista_view(request, id_recepcionista):
                 initial=initial,
                 recepcionista_pk=recepcionista.pk,
                 user_recepcionista_pk=user_recepcionista.pk if user_recepcionista else None,
+                sede_id=sede.pk if sede else None,
             )
 
         return render(request, 'usuarios/editar_recepcionista.html', {
@@ -712,7 +1050,7 @@ def registrar_recepcionista(request):
         sede = user.id_sede
         if request.method == 'POST':
             from usuarios.forms import RegistrarRecepcionistaForm
-            form = RegistrarRecepcionistaForm(request.POST)
+            form = RegistrarRecepcionistaForm(request.POST, sede_id=sede.id_sede if sede else None)
             if form.is_valid():
                 try:
                     password_plana = form.cleaned_data['password1']
@@ -740,7 +1078,7 @@ def registrar_recepcionista(request):
                 print(f"Errores formulario recepcionista: {form.errors}")
         else:
             from usuarios.forms import RegistrarRecepcionistaForm
-            form = RegistrarRecepcionistaForm()
+            form = RegistrarRecepcionistaForm(sede_id=sede.id_sede if sede else None)
         return render(request, 'usuarios/registrar_recepcionista.html', {'form': form, 'sede': sede})
     except Exception as e:
         print(f"Error en registrar_recepcionista: {e}")
@@ -1057,3 +1395,197 @@ def configurar_preguntas_paciente(request, user_id=None, token=None):
         'preguntas':     seleccionadas,
         'ids_preguntas': ','.join(ids_mostrar),
     })
+
+
+# ==================== GESTIÓN DE ESPECIALIDADES (GERENTE) ====================
+
+def _get_gerente_sede(request):
+    """Devuelve (user, sede) si la sesión es válida con rol gerente, o (None, None)."""
+    user_id = request.session.get('_auth_user_id')
+    if not user_id:
+        return None, None
+    user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+    if not user:
+        return None, None
+    if CustomAuthBackend().get_rol(user) != 'gerente':
+        return None, None
+    return user, user.id_sede
+
+
+def lista_especialidades(request):
+    """Lista las especialidades de la sede del gerente.
+    Además, auto-crea los registros EspecialidadDoctor que falten para que
+    el dropdown de doctor los muestre correctamente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    especialidades = Especialidad.objects.filter(id_sede=sede).order_by('tipo_especialidad')
+    # Reparación automática: garantiza que cada especialidad tenga su registro puente
+    reparadas = 0
+    for esp in especialidades:
+        if not EspecialidadDoctor.objects.filter(id_especialidad=esp).exists():
+            EspecialidadDoctor.objects.create(id_especialidad=esp)
+            reparadas += 1
+    if reparadas:
+        messages.info(request, f'Se crearon {reparadas} vínculo(s) de especialidad faltante(s).')
+    return render(request, 'usuarios/lista_especialidades.html', {
+        'especialidades': especialidades,
+        'sede': sede,
+    })
+
+
+# Opciones fijas de clasificación de especialidad compartidas entre vistas y plantilla
+CLASIFICACION_ESPECIALIDAD_CHOICES = [
+    ('Pediatría', 'Pediatría'),
+    ('Adultos', 'Adultos'),
+    ('General', 'General'),
+]
+
+
+def crear_especialidad(request):
+    """Crea una Especialidad para la sede y genera automáticamente el registro EspecialidadDoctor.
+    Ahora también guarda la clasificación (Pediatría / Adultos / General)."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo_especialidad', '').strip()
+        clasificacion = request.POST.get('clasificacion_especialidad', '').strip()
+        valores_validos = [c[0] for c in CLASIFICACION_ESPECIALIDAD_CHOICES]
+        errores = []
+        if not tipo:
+            errores.append('El nombre de la especialidad es obligatorio.')
+        if not clasificacion or clasificacion not in valores_validos:
+            errores.append('Debes seleccionar una clasificación válida (Pediatría, Adultos o General).')
+        if errores:
+            for e in errores:
+                messages.error(request, e)
+        else:
+            try:
+                # Evitar duplicados por nombre en la misma sede
+                if Especialidad.objects.filter(tipo_especialidad__iexact=tipo, id_sede=sede).exists():
+                    messages.error(request, f'Ya existe una especialidad con el nombre "{tipo}" en esta sede.')
+                else:
+                    especialidad = Especialidad.objects.create(
+                        tipo_especialidad=tipo,
+                        clasificacion_especialidad=clasificacion,
+                        id_sede=sede,
+                        status=True,
+                    )
+                    # Crear el registro EspecialidadDoctor vinculado para que el
+                    # formulario de doctor pueda seleccionarla
+                    EspecialidadDoctor.objects.create(id_especialidad=especialidad)
+                    messages.success(request, f'Especialidad "{tipo}" creada correctamente.')
+                    return redirect('lista_especialidades')
+            except Exception as e:
+                messages.error(request, f'Error al crear la especialidad: {e}')
+    return render(request, 'usuarios/crear_especialidad.html', {
+        'sede': sede,
+        'clasificacion_choices': CLASIFICACION_ESPECIALIDAD_CHOICES,
+    })
+
+
+def toggle_especialidad_status(request, id_especialidad):
+    """Activa o desactiva una especialidad de la sede del gerente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    especialidad = Especialidad.objects.filter(pk=id_especialidad, id_sede=sede).first()
+    if not especialidad:
+        messages.error(request, 'Especialidad no encontrada.')
+    else:
+        especialidad.status = not especialidad.status
+        especialidad.save(update_fields=['status'])
+        estado_txt = 'activada' if especialidad.status else 'desactivada'
+        messages.success(request, f'Especialidad "{especialidad.tipo_especialidad}" {estado_txt}.')
+    return redirect('lista_especialidades')
+
+
+def editar_especialidad(request, id_especialidad):
+    """Permite al gerente editar el nombre y la clasificación de una especialidad existente.
+    No permite cambiar la sede ni el estado (el toggle ya lo cubre)."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    especialidad = Especialidad.objects.filter(pk=id_especialidad, id_sede=sede).first()
+    if not especialidad:
+        messages.error(request, 'Especialidad no encontrada o no pertenece a tu sede.')
+        return redirect('lista_especialidades')
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo_especialidad', '').strip()
+        clasificacion = request.POST.get('clasificacion_especialidad', '').strip()
+        valores_validos = [c[0] for c in CLASIFICACION_ESPECIALIDAD_CHOICES]
+        errores = []
+        if not tipo:
+            errores.append('El nombre de la especialidad es obligatorio.')
+        if not clasificacion or clasificacion not in valores_validos:
+            errores.append('Debes seleccionar una clasificación válida (Pediatría, Adultos o General).')
+        if errores:
+            for e in errores:
+                messages.error(request, e)
+        else:
+            # Verificar duplicado de nombre en la misma sede (excluyendo la especialidad actual)
+            if Especialidad.objects.filter(
+                tipo_especialidad__iexact=tipo, id_sede=sede
+            ).exclude(pk=id_especialidad).exists():
+                messages.error(request, f'Ya existe otra especialidad con el nombre "{tipo}" en esta sede.')
+            else:
+                try:
+                    especialidad.tipo_especialidad = tipo
+                    especialidad.clasificacion_especialidad = clasificacion
+                    especialidad.save(update_fields=['tipo_especialidad', 'clasificacion_especialidad'])
+                    messages.success(request, f'Especialidad "{tipo}" actualizada correctamente.')
+                    return redirect('lista_especialidades')
+                except Exception as e:
+                    messages.error(request, f'Error al guardar los cambios: {e}')
+    return render(request, 'usuarios/editar_especialidad.html', {
+        'sede': sede,
+        'especialidad': especialidad,
+        'clasificacion_choices': CLASIFICACION_ESPECIALIDAD_CHOICES,
+    })
+
+
+# ==================== GESTIÓN DE HORARIOS (GERENTE) ====================
+
+def lista_horarios(request):
+    """Lista los horarios de la sede del gerente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    horarios = Horario.objects.filter(id_sede=sede).order_by('hora_inicio')
+    return render(request, 'usuarios/lista_horarios.html', {
+        'horarios': horarios,
+        'sede': sede,
+    })
+
+
+def crear_horario(request):
+    """Crea un Horario para la sede del gerente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    if request.method == 'POST':
+        hora_inicio = request.POST.get('hora_inicio', '').strip()
+        hora_fin    = request.POST.get('hora_fin', '').strip()
+        if not hora_inicio or not hora_fin:
+            messages.error(request, 'Hora de inicio y fin son obligatorias.')
+        elif hora_inicio >= hora_fin:
+            messages.error(request, 'La hora de inicio debe ser anterior a la hora de fin.')
+        else:
+            try:
+                Horario.objects.create(
+                    id_sede=sede,
+                    hora_inicio=hora_inicio,
+                    hora_fin=hora_fin,
+                )
+                messages.success(request, f'Horario {hora_inicio}–{hora_fin} creado correctamente.')
+                return redirect('lista_horarios')
+            except Exception as e:
+                messages.error(request, f'Error al crear el horario: {e}')
+    return render(request, 'usuarios/crear_horario.html', {'sede': sede})

@@ -1,8 +1,14 @@
 import logging
+import threading
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from .models import UserPaciente, UserDoctor, UserRecepcionista, UserAdmin
+
+# Thread-local que UserModelHintMiddleware rellena antes de que
+# AuthenticationMiddleware llame a get_user(). Evita colisiones de PK
+# entre las tablas UserPaciente, UserDoctor, UserRecepcionista y UserAdmin.
+_hint_local = threading.local()
 
 logger = logging.getLogger('usuarios.auth')
 
@@ -118,15 +124,43 @@ class CustomAuthBackend(BaseBackend):
     
     def get_user(self, user_id):
         """
-        Obtiene el usuario por ID buscando en todas las tablas de usuario.
-        El hint de thread-local fue eliminado; se itera en orden fijo.
-        El orden es suficiente porque cada tabla usa PKs independientes.
+        Obtiene el usuario por ID.
+
+        Usa el hint '_hl_user_model' almacenado en el thread-local _hint_local
+        (establecido por UserModelHintMiddleware antes de que
+        AuthenticationMiddleware llame a este método) para intentar la tabla
+        correcta primero.  Esto resuelve colisiones de PK entre las tablas
+        de usuarios (cada tabla tiene su propia secuencia en Postgres, por lo
+        que el mismo entero puede aparecer en varias a la vez).
         """
-        for Model in [UserPaciente, UserDoctor, UserRecepcionista, UserAdmin]:
+        # Mapa nombre-de-clase → modelo
+        _MODEL_MAP = {
+            'UserPaciente':      UserPaciente,
+            'UserDoctor':        UserDoctor,
+            'UserRecepcionista': UserRecepcionista,
+            'UserAdmin':         UserAdmin,
+        }
+        _ORDER = [UserPaciente, UserDoctor, UserRecepcionista, UserAdmin]
+
+        # Leer el hint que dejó UserModelHintMiddleware en este mismo hilo
+        hint = getattr(_hint_local, 'model', None)
+
+        # 1) Intentar la tabla indicada por el hint (ruta rápida y correcta)
+        if hint and hint in _MODEL_MAP:
+            try:
+                return _MODEL_MAP[hint].objects.get(pk=user_id)
+            except (_MODEL_MAP[hint].DoesNotExist, ValueError, TypeError):
+                pass  # Improbable, pero no falla: continúa con las demás
+
+        # 2) Iterar el resto de modelos como respaldo
+        for Model in _ORDER:
+            if hint and Model.__name__ == hint:
+                continue  # Ya se intentó arriba
             try:
                 return Model.objects.get(pk=user_id)
             except (Model.DoesNotExist, ValueError, TypeError):
                 pass
+
         return None
     
     def get_rol(self, user):

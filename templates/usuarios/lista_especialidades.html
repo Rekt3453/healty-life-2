@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especialidades - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #f1f5f9; }
+        .page-header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,.07); }
+        .badge-active   { background: #dcfce7; color: #166534; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="page-header text-white py-6 px-6 mb-8">
+    <div class="max-w-5xl mx-auto flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Especialidades</h1>
+            <p class="text-green-100 text-sm mt-1">Sede: {{ sede }}</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'crear_especialidad' %}"
+               class="bg-white text-green-700 hover:bg-green-50 text-sm font-semibold px-4 py-2 rounded-lg transition">
+                + Agregar Especialidad
+            </a>
+            <a href="{% url 'dashboard_gerente' %}"
+               class="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-6 pb-12">
+
+    <!-- Mensajes -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg p-4 text-sm font-medium
+            {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+            {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">
+                Especialidades registradas
+                <span class="ml-2 text-sm font-normal text-gray-500">({{ especialidades.count }})</span>
+            </h2>
+            <a href="{% url 'crear_especialidad' %}"
+               class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                + Agregar
+            </a>
+        </div>
+
+        {% if especialidades %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-3 rounded-tl-lg">Especialidad</th>
+                        <th class="px-4 py-3">Clasificación</th>
+                        <th class="px-4 py-3">Estado</th>
+                        <th class="px-4 py-3 rounded-tr-lg text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for esp in especialidades %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ esp.tipo_especialidad }}</td>
+                        <td class="px-4 py-3">
+                            {% if esp.clasificacion_especialidad %}
+                            <span class="text-xs font-semibold px-2 py-1 rounded-full
+                                {% if esp.clasificacion_especialidad == 'Pediatría' %}bg-blue-100 text-blue-700
+                                {% elif esp.clasificacion_especialidad == 'Adultos' %}bg-purple-100 text-purple-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ esp.clasificacion_especialidad }}
+                            </span>
+                            {% else %}
+                            <span class="text-xs text-gray-400 italic">Sin clasificar</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if esp.status %}
+                            <span class="badge-active text-xs font-semibold px-2 py-1 rounded-full">Activa</span>
+                            {% else %}
+                            <span class="badge-inactive text-xs font-semibold px-2 py-1 rounded-full">Inactiva</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-right space-x-2">
+                            <a href="{% url 'editar_especialidad' esp.id_especialidad %}"
+                               class="text-xs font-semibold px-3 py-1.5 rounded-lg transition
+                                      bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                                Editar
+                            </a>
+                            <a href="{% url 'toggle_especialidad_status' esp.id_especialidad %}"
+                               onclick="return confirm('¿Confirmas cambiar el estado de esta especialidad?')"
+                               class="text-xs font-semibold px-3 py-1.5 rounded-lg transition
+                               {% if esp.status %}bg-red-100 text-red-700 hover:bg-red-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %}">
+                                {% if esp.status %}Desactivar{% else %}Activar{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-gray-500">
+            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="font-medium">No hay especialidades registradas</p>
+            <p class="text-sm mt-1">Crea la primera especialidad para esta sede.</p>
+            <a href="{% url 'crear_especialidad' %}"
+               class="mt-4 inline-block bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                + Agregar Especialidad
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>
