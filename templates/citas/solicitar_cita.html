@@ -290,6 +290,12 @@
         function spinnerOff(id) { document.getElementById(id).classList.add('hidden'); }
 
         function llenarSelect(sel, items, campo_id, campo_txt, placeholder) {
+            if (!Array.isArray(items)) {
+                console.error('llenarSelect: se esperaba array, recibido:', items);
+                sel.innerHTML = `<option value="">Error al cargar opciones</option>`;
+                sel.disabled = true;
+                return;
+            }
             sel.innerHTML = `<option value="">${placeholder}</option>`;
             items.forEach(it => {
                 const opt = document.createElement('option');
@@ -298,6 +304,9 @@
                 sel.appendChild(opt);
             });
             sel.disabled = items.length === 0;
+            if (items.length === 0) {
+                sel.innerHTML = `<option value="">No hay opciones disponibles</option>`;
+            }
         }
 
         /**
@@ -352,13 +361,21 @@
             const sedeId = selSede.value;
             spinnerOn('spinner-med');
             fetch(`{% url 'ajax_doctores' %}?especialidad_id=${espId}&sede_id=${sedeId}`)
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) console.error('ajax_doctores HTTP error:', r.status);
+                    return r.json();
+                })
                 .then(data => {
                     spinnerOff('spinner-med');
+                    if (data && data.error) {
+                        console.error('ajax_doctores error:', data.error);
+                        selMed.innerHTML = `<option value="">Error: ${data.error}</option>`;
+                        selMed.disabled = true;
+                        return;
+                    }
                     llenarSelect(selMed, data, 'id', 'nombre', 'Selecciona médico');
-                    selMed.disabled = data.length === 0;
                 })
-                .catch(() => spinnerOff('spinner-med'));
+                .catch(err => { console.error('ajax_doctores fetch error:', err); spinnerOff('spinner-med'); });
         });
 
         // Médico cambia → habilitar fecha y cargar servicios
