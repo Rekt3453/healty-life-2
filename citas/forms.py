@@ -1,6 +1,6 @@
 from django import forms
 from django.utils import timezone
-from .models import Cita, ServicioEspecialidad, Consultorio, Especialidad, Doctor, PagoCita
+from .models import Cita, ServicioEspecialidad, Consultorio, Especialidad, Doctor, PagoCita, ConsultaMedica
 from usuarios.models import PacienteDatosPersonales, Sede
 
 
@@ -219,3 +219,21 @@ class RecetaForm(forms.Form):
         }),
         required=False,
     )
+
+
+class ConsultaMedicaForm(forms.ModelForm):
+    class Meta:
+        model = ConsultaMedica
+        fields = [
+            'motivo_consulta', 'enfermedad_actual', 'antecedentes',
+            'examen_fisico', 'diagnostico', 'plan_tratamiento', 'observaciones',
+        ]
+        widgets = {
+            'motivo_consulta':  forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'enfermedad_actual': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'antecedentes':     forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'examen_fisico':    forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'diagnostico':      forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'plan_tratamiento': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'observaciones':    forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+        }

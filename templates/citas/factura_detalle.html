@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Factura {{ factura.numero }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <!-- Mensajes -->
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="card border-0 shadow-sm" id="factura-print">
+
+        <!-- Header -->
+        <div class="card-header d-flex justify-content-between align-items-center"
+             style="background-color:#2E7D32; color:white;">
+          <h5 class="mb-0">
+            <i class="bi bi-receipt me-2"></i>Factura
+          </h5>
+          <span class="badge bg-light text-dark fs-6">{{ factura.get_estado_display }}</span>
+        </div>
+
+        <div class="card-body p-4">
+
+          <!-- Número y fecha -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <small class="text-muted d-block">Número de factura</small>
+              <span class="fw-bold fs-5">{{ factura.numero }}</span>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <small class="text-muted d-block">Fecha de emisión</small>
+              <span>{{ factura.fecha_emision|date:"d/m/Y H:i" }}</span>
+            </div>
+          </div>
+
+          <!-- Datos de la cita -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <small class="text-muted d-block">Paciente</small>
+              <strong>{{ factura.id_cita.id_paciente }}</strong>
+            </div>
+            <div class="col-md-6">
+              <small class="text-muted d-block">Médico</small>
+              <strong>{{ factura.id_cita.id_doctor }}</strong>
+            </div>
+            <div class="col-md-6 mt-2">
+              <small class="text-muted d-block">Especialidad</small>
+              <span>{{ factura.id_cita.id_especialidades }}</span>
+            </div>
+            <div class="col-md-6 mt-2">
+              <small class="text-muted d-block">Sede</small>
+              <span>{{ factura.id_cita.id_sede }}</span>
+            </div>
+          </div>
+
+          <!-- Tabla de montos -->
+          <table class="table table-bordered mb-4">
+            <thead class="table-light">
+              <tr>
+                <th>Descripción</th>
+                <th class="text-end">Subtotal</th>
+                <th class="text-end">Impuesto</th>
+                <th class="text-end">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ factura.descripcion }}</td>
+                <td class="text-end">{{ factura.subtotal }}</td>
+                <td class="text-end">{{ factura.impuesto }}</td>
+                <td class="text-end fw-bold fs-5" style="color:#2E7D32;">{{ factura.total }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Anulación -->
+          {% if factura.estado == 'anulada' %}
+          <div class="alert alert-danger">
+            <i class="bi bi-x-circle me-1"></i>
+            <strong>FACTURA ANULADA</strong>
+            {% if factura.motivo_anulacion %} — {{ factura.motivo_anulacion }}{% endif %}
+          </div>
+          {% endif %}
+
+          <!-- Acciones -->
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'factura_pdf' factura.id_factura %}"
+               class="btn btn-outline-success">
+              <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+              <i class="bi bi-printer me-1"></i>Imprimir
+            </button>
+            <a href="{% url 'mis_facturas' %}" class="btn btn-outline-dark ms-auto">
+              <i class="bi bi-arrow-left me-1"></i>Volver
+            </a>
+          </div>
+
+        </div>
+      </div><!-- /card -->
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  nav, .btn, .alert-dismissible .btn-close { display: none !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+}
+</style>
+{% endblock %}

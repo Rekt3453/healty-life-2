@@ -122,6 +122,19 @@ class PagoCita(models.Model):
     status = models.BooleanField(null=True, blank=True, default=True)
     id_cita = models.BigIntegerField(blank=True, null=True)
 
+    ESTADO_PENDIENTE = 'pendiente'
+    ESTADO_APROBADO  = 'aprobado'
+    ESTADO_RECHAZADO = 'rechazado'
+    ESTADOS_PAGO = [
+        (ESTADO_PENDIENTE, 'Pendiente'),
+        (ESTADO_APROBADO,  'Aprobado'),
+        (ESTADO_RECHAZADO, 'Rechazado'),
+    ]
+    estado_pago = models.CharField(
+        max_length=20, choices=ESTADOS_PAGO,
+        default=ESTADO_PENDIENTE, blank=True, null=True,
+    )
+
     class Meta:
         managed = False
         db_table = 'pagos_cita'
@@ -160,6 +173,37 @@ class Cita(models.Model):
         db_column='id_servicio_especialidad'
     )
 
+    ESTADO_SOLICITADA    = 'solicitada'
+    ESTADO_APROBADA      = 'aprobada'
+    ESTADO_PAGO_PENDIENTE = 'pago_pendiente'
+    ESTADO_CONFIRMADA    = 'confirmada'
+    ESTADO_EN_CONSULTA   = 'en_consulta'
+    ESTADO_ATENDIDA      = 'atendida'
+    ESTADO_CANCELADA     = 'cancelada'
+    ESTADO_RECHAZADA     = 'rechazada'
+    ESTADO_NO_ASISTIO    = 'no_asistio'
+
+    ESTADOS = [
+        (ESTADO_SOLICITADA,     'Solicitada'),
+        (ESTADO_APROBADA,       'Aprobada'),
+        (ESTADO_PAGO_PENDIENTE, 'Pago Pendiente'),
+        (ESTADO_CONFIRMADA,     'Confirmada'),
+        (ESTADO_EN_CONSULTA,    'En Consulta'),
+        (ESTADO_ATENDIDA,       'Atendida'),
+        (ESTADO_CANCELADA,      'Cancelada'),
+        (ESTADO_RECHAZADA,      'Rechazada'),
+        (ESTADO_NO_ASISTIO,     'No Asistió'),
+    ]
+
+    estado = models.CharField(
+        max_length=30, choices=ESTADOS,
+        default=ESTADO_PAGO_PENDIENTE, blank=True, null=True,
+    )
+    motivo_cancelacion = models.TextField(blank=True, null=True)
+    fecha_cancelacion  = models.DateTimeField(blank=True, null=True)
+    cancelada_por      = models.CharField(max_length=100, blank=True, null=True)
+    fecha_atencion     = models.DateTimeField(blank=True, null=True)
+
     class Meta:
         managed = False
         db_table = 'citas'
@@ -169,10 +213,6 @@ class Cita(models.Model):
 
     def __str__(self):
         return f"Cita {self.id_citas}"
-
-    @property
-    def estado(self):
-        return 'activa' if self.status else 'cancelada'
 
     @property
     def fecha(self):
@@ -463,3 +503,83 @@ class Recipe(models.Model):
 
     def __str__(self):
         return f"Receta #{self.id_recipes}"
+
+
+class ConsultaMedica(models.Model):
+    ESTADO_ABIERTA = "abierta"
+    ESTADO_CERRADA = "cerrada"
+    ESTADO_ANULADA = "anulada"
+
+    ESTADOS = [
+        (ESTADO_ABIERTA, "Abierta"),
+        (ESTADO_CERRADA, "Cerrada"),
+        (ESTADO_ANULADA, "Anulada"),
+    ]
+
+    id_consulta = models.BigAutoField(primary_key=True)
+    id_cita = models.OneToOneField(
+        "Cita",
+        on_delete=models.PROTECT,
+        db_column="id_cita",
+        related_name="consulta_medica",
+    )
+    motivo_consulta = models.TextField()
+    enfermedad_actual = models.TextField(blank=True, null=True)
+    antecedentes = models.TextField(blank=True, null=True)
+    examen_fisico = models.TextField(blank=True, null=True)
+    diagnostico = models.TextField(blank=True, null=True)
+    plan_tratamiento = models.TextField(blank=True, null=True)
+    observaciones = models.TextField(blank=True, null=True)
+    fecha_inicio = models.DateTimeField(auto_now_add=True)
+    fecha_cierre = models.DateTimeField(blank=True, null=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default=ESTADO_ABIERTA)
+
+    class Meta:
+        managed = False
+        db_table = "consultas_medicas"
+
+    def __str__(self):
+        return f"Consulta #{self.id_consulta} - {self.get_estado_display()}"
+
+
+class Factura(models.Model):
+    ESTADO_BORRADOR = "borrador"
+    ESTADO_EMITIDA  = "emitida"
+    ESTADO_PAGADA   = "pagada"
+    ESTADO_ANULADA  = "anulada"
+
+    ESTADOS = [
+        (ESTADO_BORRADOR, "Borrador"),
+        (ESTADO_EMITIDA,  "Emitida"),
+        (ESTADO_PAGADA,   "Pagada"),
+        (ESTADO_ANULADA,  "Anulada"),
+    ]
+
+    id_factura  = models.BigAutoField(primary_key=True)
+    numero      = models.CharField(max_length=50, unique=True)
+    id_cita     = models.OneToOneField(
+        "Cita",
+        on_delete=models.PROTECT,
+        db_column="id_cita",
+        related_name="factura",
+    )
+    id_pago_cita = models.ForeignKey(
+        "PagoCita",
+        on_delete=models.PROTECT,
+        db_column="id_pago_cita",
+    )
+    descripcion      = models.CharField(max_length=255)
+    subtotal         = models.DecimalField(max_digits=12, decimal_places=2)
+    impuesto         = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total            = models.DecimalField(max_digits=12, decimal_places=2)
+    estado           = models.CharField(max_length=20, choices=ESTADOS, default=ESTADO_EMITIDA)
+    fecha_emision    = models.DateTimeField(auto_now_add=True)
+    fecha_anulacion  = models.DateTimeField(blank=True, null=True)
+    motivo_anulacion = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "facturas"
+
+    def __str__(self):
+        return f"Factura {self.numero} — {self.get_estado_display()}"

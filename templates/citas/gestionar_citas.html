@@ -144,79 +144,58 @@
             </div>
         {% endif %}
 
-        <!-- Tabla de Citas Pendientes -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-900">Citas Pendientes de Aprobación</h2>
-                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
-                        {{ citas_pendientes.count }} pendientes
-                    </span>
-                </div>
+        <!-- ── Sección 1: Solicitudes nuevas ── -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-900">Solicitudes Nuevas</h2>
+                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
+                    {{ citas_solicitud.count }} solicitudes
+                </span>
             </div>
-            
-            {% if citas_pendientes %}
+
+            {% if citas_solicitud %}
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sede</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Solicitada</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Médico</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paciente</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Servicio</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sede</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hora</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Médico</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for cita in citas_pendientes %}
+                        {% for cita in citas_solicitud %}
                         <tr class="table-row">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {% if cita.id_paciente.nombre_completo %}
-                                    {{ cita.id_paciente.nombre_completo }}
-                                {% elif cita.id_paciente %}
-                                    {{ cita.id_paciente }}
-                                {% else %}
-                                    <span class="text-gray-400 italic">Sin paciente</span>
-                                {% endif %}
+                                {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_servicio_especialidad }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_sede.nombre_sede }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_servicio_especialidad|default:"—" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|date:"d/m/Y" }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|time:"H:i" }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {% if cita.id_doctor %}
-                                    {{ cita.id_doctor.nombre_completo|default:cita.id_doctor }}
-                                {% else %}
-                                    <span class="text-gray-400 italic">No asignado</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {% if cita.status %}
-                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Activa</span>
-                                {% else %}
-                                    <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Cancelada</span>
-                                {% endif %}
+                                {{ cita.id_doctor|default:"<span class='text-gray-400 italic'>No asignado</span>" }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                {% if not cita.id_doctor %}
-                                    <span class="text-xs text-gray-500">Sin médico asignado</span>
-                                {% else %}
-                                    <form method="POST" action="{% url 'aprobar_cita' cita.id_citas %}" class="inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn-action px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200"
-                                                onclick="return confirm('¿Aprobar esta cita?')">
-                                            Aprobar
-                                        </button>
-                                    </form>
+                                {% if cita.id_doctor %}
+                                <form method="POST" action="{% url 'aprobar_cita' cita.id_citas %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('¿Aprobar esta cita?')"
+                                            class="btn-action px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200">
+                                        Aprobar
+                                    </button>
+                                </form>
                                 {% endif %}
                                 <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn-action px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200" onclick="return confirm('¿Rechazar esta cita?')">
+                                    <button type="submit" onclick="return confirm('¿Rechazar esta cita?')"
+                                            class="btn-action px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200">
                                         Rechazar
                                     </button>
                                 </form>
@@ -227,12 +206,84 @@
                 </table>
             </div>
             {% else %}
-            <div class="px-6 py-12 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No hay citas pendientes</h3>
-                <p class="mt-1 text-sm text-gray-500">Todas las solicitudes han sido procesadas.</p>
+            <div class="px-6 py-10 text-center text-gray-400">
+                <p class="text-sm">No hay solicitudes nuevas.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ── Sección 2: Pagos por confirmar ── -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-900">Pagos por Confirmar</h2>
+                <span class="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                    {{ citas_pago.count }} en revisión
+                </span>
+            </div>
+
+            {% if citas_pago %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paciente</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método Pago</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Referencia</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Cita</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Médico</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for cita in citas_pago %}
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ cita.id_pago_cita.metodo_pago|default:"—" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ cita.id_pago_cita.referencia_pago|default:"—" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                {% if cita.id_pago_cita.monto_pagar %}
+                                    $ {{ cita.id_pago_cita.monto_pagar }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ cita.id_doctor|default:"—" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('¿Confirmar pago y activar cita?')"
+                                            class="btn-action px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200">
+                                        Confirmar Pago
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('¿Rechazar esta cita?')"
+                                            class="btn-action px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200">
+                                        Rechazar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="px-6 py-10 text-center text-gray-400">
+                <p class="text-sm">No hay pagos pendientes de confirmación.</p>
             </div>
             {% endif %}
         </div>

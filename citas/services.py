@@ -9,31 +9,25 @@ class CitaService:
     @staticmethod
     @transaction.atomic
     def cancelar_cita(cita, *, cancelada_por, motivo):
-        from citas.models import Cita, PagoCita
-        if getattr(cita, 'estado', None) == 'atendida':
-            raise ValueError("No se puede cancelar una cita ya atendida.")
+        from citas.models import Cita as CitaModel
+        if cita.estado == CitaModel.ESTADO_CANCELADA:
+            raise ValueError("La cita ya está cancelada.")
 
-        cita.estado = Cita.ESTADO_CANCELADA
         cita.status = False
-        cita.cancelada_por = str(cancelada_por)
+        cita.estado = CitaModel.ESTADO_CANCELADA
         cita.motivo_cancelacion = motivo
         cita.fecha_cancelacion = timezone.now()
+        cita.cancelada_por = str(cancelada_por)
         cita.save(update_fields=[
-            'estado', 'status', 'cancelada_por',
-            'motivo_cancelacion', 'fecha_cancelacion',
+            'status', 'estado', 'motivo_cancelacion',
+            'fecha_cancelacion', 'cancelada_por',
         ])
-
-        pago = getattr(cita, 'id_pago_cita', None)
-        if pago and pago.status:
-            pago.estado_pago = PagoCita.ESTADO_ANULACION_PENDIENTE
-            pago.save(update_fields=['estado_pago'])
-
         return cita
 
     @staticmethod
     @transaction.atomic
     def aprobar_pago(cita):
-        from citas.models import Cita, PagoCita
+        from citas.models import Cita as CitaModel, PagoCita
         pago = getattr(cita, 'id_pago_cita', None)
         if not pago:
             raise ValueError("La cita no tiene pago asociado.")
@@ -42,8 +36,9 @@ class CitaService:
         pago.estado_pago = PagoCita.ESTADO_APROBADO
         pago.save(update_fields=['status', 'estado_pago'])
 
-        cita.estado = Cita.ESTADO_CONFIRMADA
-        cita.save(update_fields=['estado'])
+        cita.status = True
+        cita.estado = CitaModel.ESTADO_APROBADA
+        cita.save(update_fields=['status', 'estado'])
 
         return cita
 

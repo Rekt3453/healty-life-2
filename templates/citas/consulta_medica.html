@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Consulta Médica — Cita #{{ cita.pk }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+
+      <!-- Encabezado -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center"
+             style="background-color:#2E7D32; color:white;">
+          <h5 class="mb-0">
+            <i class="bi bi-clipboard2-pulse me-2"></i>Consulta Médica — Cita #{{ cita.pk }}
+          </h5>
+          <span class="badge {% if consulta.estado == 'cerrada' %}bg-secondary{% elif consulta.estado == 'anulada' %}bg-danger{% else %}bg-light text-dark{% endif %}">
+            {{ consulta.get_estado_display }}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <small class="text-muted d-block">Paciente</small>
+              <strong>{{ cita.id_paciente }}</strong>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted d-block">Fecha de consulta</small>
+              <strong>{{ cita.fecha_consulta|date:"d/m/Y H:i" }}</strong>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted d-block">Especialidad</small>
+              <strong>{{ cita.id_especialidades }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensajes -->
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- Formulario o vista de solo lectura -->
+      {% if consulta.estado != 'cerrada' %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-semibold">Motivo de consulta <span class="text-danger">*</span></label>
+                {{ form.motivo_consulta }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Enfermedad actual</label>
+                {{ form.enfermedad_actual }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Antecedentes</label>
+                {{ form.antecedentes }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Examen físico</label>
+                {{ form.examen_fisico }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Diagnóstico</label>
+                {{ form.diagnostico }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Plan de tratamiento</label>
+                {{ form.plan_tratamiento }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Observaciones</label>
+                {{ form.observaciones }}
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-save me-1"></i>Guardar borrador
+              </button>
+              <a href="{% url 'cerrar_consulta' cita.pk %}"
+                 class="btn btn-dark"
+                 onclick="return confirm('¿Cerrar consulta? Esta acción no se puede deshacer.')">
+                <i class="bi bi-check-circle me-1"></i>Cerrar y marcar atendida
+              </a>
+              <a href="{% url 'citas_pendientes_medico' %}" class="btn btn-outline-secondary ms-auto">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Consulta cerrada: solo lectura -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="alert alert-secondary mb-3">
+            <i class="bi bi-lock me-1"></i>
+            <strong>Consulta cerrada</strong> el {{ consulta.fecha_cierre|date:"d/m/Y H:i" }}
+          </div>
+          <dl class="row">
+            <dt class="col-sm-3">Motivo de consulta</dt>
+            <dd class="col-sm-9">{{ consulta.motivo_consulta|default:"—" }}</dd>
+
+            <dt class="col-sm-3">Enfermedad actual</dt>
+            <dd class="col-sm-9">{{ consulta.enfermedad_actual|default:"—" }}</dd>
+
+            <dt class="col-sm-3">Antecedentes</dt>
+            <dd class="col-sm-9">{{ consulta.antecedentes|default:"—" }}</dd>
+
+            <dt class="col-sm-3">Examen físico</dt>
+            <dd class="col-sm-9">{{ consulta.examen_fisico|default:"—" }}</dd>
+
+            <dt class="col-sm-3">Diagnóstico</dt>
+            <dd class="col-sm-9">{{ consulta.diagnostico|default:"—" }}</dd>
+
+            <dt class="col-sm-3">Plan de tratamiento</dt>
+            <dd class="col-sm-9">{{ consulta.plan_tratamiento|default:"—" }}</dd>
+
+            <dt class="col-sm-3">Observaciones</dt>
+            <dd class="col-sm-9">{{ consulta.observaciones|default:"—" }}</dd>
+          </dl>
+          <a href="{% url 'citas_pendientes_medico' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

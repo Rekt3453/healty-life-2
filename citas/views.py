@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -11,8 +11,10 @@ from usuarios.decorators import rol_requerido
 from usuarios.models import PacienteDatosPersonales, Doctor, PacienteEspecial
 from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
-    ServicioEspecialidad, EspecialidadDoctor, Consultorio,
+    ServicioEspecialidad, EspecialidadDoctor, Consultorio, ConsultaMedica, Factura,
 )
+from .services import CitaService, FacturacionService
+from .forms import ConsultaMedicaForm
 
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
@@ -117,6 +119,7 @@ def solicitar_cita(request):
                         id_sede=sede,
                         fecha_consulta=fecha_hora,
                         status=False,
+                        estado_pago=PagoCita.ESTADO_PENDIENTE,
                     )
 
                     Cita.objects.create(
@@ -130,6 +133,7 @@ def solicitar_cita(request):
                         fecha_emision=timezone.now(),
                         motivo=motivo,
                         status=True,
+                        estado=Cita.ESTADO_SOLICITADA,
                     )
 
                     nombre_destino = nombre_menor if menor_obj else "ti"
@@ -171,7 +175,6 @@ def citas_pendientes_medico(request):
     citas_pendientes = Cita.objects.none()
     citas_asignadas  = Cita.objects.none()
     if datos_medico:
-        # Base: todas las citas activas de este médico
         base_qs = Cita.objects.filter(
             id_doctor=datos_medico,
             status=True,
@@ -179,13 +182,14 @@ def citas_pendientes_medico(request):
             'id_paciente', 'id_especialidades', 'id_sede', 'id_pago_cita'
         ).order_by('fecha_consulta')
 
-        # Pendientes: pago inexistente o no confirmado por recepcionista
+        # Confirmadas: pago aprobado por recepcionista, listas para consulta
         citas_pendientes = base_qs.filter(
-            Q(id_pago_cita__isnull=True) | Q(id_pago_cita__status=False)
-        )
+            Q(estado=Cita.ESTADO_CONFIRMADA) |
+            Q(estado__isnull=True, id_pago_cita__status=True)
+        ).exclude(estado=Cita.ESTADO_EN_CONSULTA)
 
-        # Asignadas: pago confirmado → recepcionista aceptó la cita
-        citas_asignadas = base_qs.filter(id_pago_cita__status=True)
+        # En consulta: médico ya inició la consulta
+        citas_asignadas = base_qs.filter(estado=Cita.ESTADO_EN_CONSULTA)
 
     return render(request, 'citas/citas_pendientes_medico.html', {
         'citas_pendientes': citas_pendientes,
@@ -231,23 +235,51 @@ def gestionar_horarios(request):
 
 @rol_requerido('recepcionista', 'gerente')
 def gestionar_citas(request):
-    """Recepcionista/gerente: citas activas pendientes de aprobación de pago."""
+    """Recepcionista/gerente: dos secciones — solicitudes nuevas y pagos por confirmar."""
+    _base = Cita.objects.select_related(
+        'id_paciente', 'id_doctor', 'id_sede',
+        'id_especialidades', 'id_servicio_especialidad', 'id_pago_cita'
+    ).order_by('-fecha_consulta')
+
     try:
-        citas = Cita.objects.filter(
-            status=True,
-            id_pago_cita__status=False
-        ).select_related(
-            'id_paciente', 'id_doctor', 'id_sede',
-            'id_especialidades', 'id_servicio_especialidad', 'id_pago_cita'
-        ).order_by('-fecha_consulta')
-        total = citas.count()
+        citas_solicitud = _base.filter(estado=Cita.ESTADO_SOLICITADA)
     except Exception:
-        citas = []
-        total = 0
+        citas_solicitud = Cita.objects.none()
+
+    try:
+        citas_pago = _base.filter(estado=Cita.ESTADO_PAGO_PENDIENTE)
+    except Exception:
+        citas_pago = Cita.objects.none()
+
     return render(request, 'citas/gestionar_citas.html', {
-        'citas_pendientes': citas,
-        'total': total,
+        'citas_solicitud': citas_solicitud,
+        'citas_pago':      citas_pago,
+        'total': citas_solicitud.count() + citas_pago.count(),
     })
+
+
+@rol_requerido('recepcionista', 'gerente')
+def confirmar_pago(request, cita_id):
+    """Recepcionista confirma que el pago del paciente fue verificado → estado='confirmada'."""
+    if request.method == 'POST':
+        cita = get_object_or_404(
+            Cita.objects.select_related('id_pago_cita'), id_citas=cita_id
+        )
+        try:
+            from django.db import transaction as _tx
+            with _tx.atomic():
+                pago = cita.id_pago_cita
+                if pago:
+                    pago.status = True
+                    pago.estado_pago = PagoCita.ESTADO_APROBADO
+                    pago.save(update_fields=['status', 'estado_pago'])
+                cita.estado = Cita.ESTADO_CONFIRMADA
+                cita.status = True
+                cita.save(update_fields=['estado', 'status'])
+            messages.success(request, f"✅ Pago de cita #{cita_id} confirmado. Cita lista para consulta.")
+        except Exception as e:
+            messages.error(request, f"Error al confirmar pago: {e}")
+    return redirect('gestionar_citas')
 
 
 @login_required(login_url='/login/medico/')
@@ -293,17 +325,12 @@ def calendario_citas(request):
 def aprobar_cita(request, cita_id):
     """Aprobar cita: confirma el pago y activa la cita para que el médico la vea."""
     if request.method == 'POST':
-        cita = get_object_or_404(Cita, id_citas=cita_id)
-        # 1) Confirmar el pago vinculado
-        if cita.id_pago_cita:
-            cita.id_pago_cita.status = True
-            cita.id_pago_cita.save()
-        # 2) Safety net: garantizar que la cita esté activa (status=True)
-        #    para que el queryset del médico la incluya correctamente
-        if not cita.status:
-            cita.status = True
-            cita.save()
-        messages.success(request, f"✅ Cita #{cita_id} aprobada correctamente.")
+        cita = get_object_or_404(Cita.objects.select_related('id_pago_cita'), id_citas=cita_id)
+        try:
+            CitaService.aprobar_pago(cita)
+            messages.success(request, f"✅ Cita #{cita_id} aprobada correctamente.")
+        except ValueError as e:
+            messages.error(request, str(e))
     return redirect('gestionar_citas')
 
 
@@ -313,7 +340,8 @@ def rechazar_cita(request, cita_id):
     cita = get_object_or_404(Cita, id_citas=cita_id)
     if request.method == 'POST':
         cita.status = False
-        cita.save()
+        cita.estado = Cita.ESTADO_RECHAZADA
+        cita.save(update_fields=['status', 'estado'])
         messages.info(request, f"Cita #{cita_id} rechazada.")
     return redirect('gestionar_citas')
 
@@ -553,14 +581,70 @@ def cancelar_cita_paciente(request, cita_id):
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
     cita = get_object_or_404(Cita, id_citas=cita_id, id_paciente=paciente)
     if request.method == 'POST':
-        if cita.status:
-            cita.status = False
-            cita.save()
+        try:
+            CitaService.cancelar_cita(cita, cancelada_por=user, motivo='Cancelada por el paciente')
             messages.info(request, f"Cita #{cita_id} cancelada correctamente.")
-        else:
-            messages.warning(request, "La cita ya estaba cancelada.")
+        except ValueError as e:
+            messages.warning(request, str(e))
         return redirect('mis_citas')
     return render(request, 'citas/cancelar_cita.html', {'cita': cita})
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def pagar_cita(request, cita_id):
+    """Paciente registra el pago de una cita aprobada por la recepcionista."""
+    user = request.user
+    paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+    cita = get_object_or_404(
+        Cita.objects.select_related('id_pago_cita'),
+        id_citas=cita_id,
+        id_paciente=paciente,
+    )
+
+    estados_pagables = [Cita.ESTADO_APROBADA, Cita.ESTADO_SOLICITADA]
+    if cita.estado not in estados_pagables:
+        messages.warning(request, "Esta cita no está disponible para pago.")
+        return redirect('mis_citas')
+
+    METODOS_PAGO = [
+        ('transferencia', 'Transferencia bancaria'),
+        ('tarjeta',       'Tarjeta de crédito/débito'),
+        ('efectivo',      'Efectivo'),
+        ('otro',          'Otro'),
+    ]
+
+    if request.method == 'POST':
+        metodo    = request.POST.get('metodo_pago', '').strip()
+        referencia = request.POST.get('referencia_pago', '').strip()
+        if not metodo:
+            messages.error(request, "Debes seleccionar un método de pago.")
+        else:
+            try:
+                from django.db import transaction as _tx
+                with _tx.atomic():
+                    pago = cita.id_pago_cita
+                    if pago:
+                        pago.metodo_pago      = metodo
+                        pago.referencia_pago  = referencia
+                        pago.estado_pago      = PagoCita.ESTADO_PENDIENTE
+                        pago.save(update_fields=['metodo_pago', 'referencia_pago', 'estado_pago'])
+
+                    cita.estado = Cita.ESTADO_PAGO_PENDIENTE
+                    cita.save(update_fields=['estado'])
+
+                messages.success(
+                    request,
+                    "✅ Pago registrado. La recepcionista verificará y confirmará tu cita."
+                )
+                return redirect('mis_citas')
+            except Exception as e:
+                messages.error(request, f"Error al registrar el pago: {e}")
+
+    return render(request, 'citas/pagar_cita.html', {
+        'cita':         cita,
+        'metodos_pago': METODOS_PAGO,
+    })
 
 
 # ─── Vista de receta médica ────────────────────────────────────────────────────
@@ -667,4 +751,191 @@ def realizar_receta(request, cita_id):
         'cita':         cita,
         'paciente':     paciente,
         'datos_medico': datos_medico,
+    })
+
+
+# ─── Consulta médica ──────────────────────────────────────────────────────────
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def iniciar_consulta(request, cita_id):
+    """Médico inicia o continúa una consulta médica."""
+    cita = get_object_or_404(Cita, pk=cita_id)
+
+    consulta, created = ConsultaMedica.objects.get_or_create(
+        id_cita=cita,
+        defaults={'motivo_consulta': cita.motivo or ''}
+    )
+
+    # Marcar la cita como en consulta al abrirla por primera vez
+    if created or cita.estado != Cita.ESTADO_EN_CONSULTA:
+        cita.estado = Cita.ESTADO_EN_CONSULTA
+        cita.save(update_fields=['estado'])
+
+    if request.method == 'POST':
+        form = ConsultaMedicaForm(request.POST, instance=consulta)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Consulta guardada.')
+            return redirect('iniciar_consulta', cita_id=cita_id)
+    else:
+        form = ConsultaMedicaForm(instance=consulta)
+
+    return render(request, 'citas/consulta_medica.html', {
+        'form':     form,
+        'cita':     cita,
+        'consulta': consulta,
+    })
+
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def cerrar_consulta(request, cita_id):
+    """Médico cierra la consulta y marca la cita como atendida."""
+    cita = get_object_or_404(Cita, pk=cita_id)
+    consulta = get_object_or_404(ConsultaMedica, id_cita=cita)
+
+    if consulta.estado == ConsultaMedica.ESTADO_CERRADA:
+        messages.warning(request, 'Esta consulta ya está cerrada.')
+        return redirect('iniciar_consulta', cita_id=cita_id)
+
+    if request.method == 'POST':
+        now = timezone.now()
+        consulta.estado = ConsultaMedica.ESTADO_CERRADA
+        consulta.fecha_cierre = now
+        consulta.save(update_fields=['estado', 'fecha_cierre'])
+
+        cita.estado = Cita.ESTADO_ATENDIDA
+        cita.fecha_atencion = now
+        cita.save(update_fields=['estado', 'fecha_atencion'])
+
+        messages.success(request, '✅ Consulta cerrada. Cita marcada como atendida.')
+        return redirect('citas_pendientes_medico')
+
+    return render(request, 'citas/consulta_medica.html', {
+        'form':     ConsultaMedicaForm(instance=consulta),
+        'cita':     cita,
+        'consulta': consulta,
+    })
+
+
+# ─── Facturación ──────────────────────────────────────────────────────────
+
+@login_required(login_url='/login/')
+def detalle_factura(request, cita_id):
+    """Devuelve o genera la factura de una cita con pago aprobado."""
+    cita = get_object_or_404(Cita.objects.select_related('id_pago_cita'), pk=cita_id)
+    try:
+        factura = cita.factura
+    except Factura.DoesNotExist:
+        try:
+            factura = FacturacionService.generar_factura_cita(cita)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect('mis_citas')
+    return render(request, 'citas/factura_detalle.html', {'factura': factura})
+
+
+@login_required(login_url='/login/')
+def factura_pdf(request, factura_id):
+    """Genera y descarga la factura en PDF usando ReportLab."""
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+
+    factura = get_object_or_404(Factura, pk=factura_id)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="factura-{factura.numero}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+
+    # Header verde
+    p.setFillColorRGB(0.18, 0.49, 0.20)
+    p.rect(0, height - 80, width, 80, fill=True, stroke=False)
+    p.setFillColorRGB(1, 1, 1)
+    p.setFont('Helvetica-Bold', 22)
+    p.drawString(50, height - 48, 'FACTURA')
+    p.setFont('Helvetica', 12)
+    p.drawString(50, height - 66, str(factura.numero))
+
+    # Datos
+    p.setFillColorRGB(0, 0, 0)
+    y = height - 115
+    lineas = [
+        ('Fecha de emisión:', factura.fecha_emision.strftime('%d/%m/%Y %H:%M')),
+        ('Paciente:',        str(factura.id_cita.id_paciente)),
+        ('Médico:',          str(factura.id_cita.id_doctor)),
+        ('Servicio:',        factura.descripcion),
+    ]
+    for etiqueta, valor in lineas:
+        p.setFont('Helvetica-Bold', 11)
+        p.drawString(50, y, etiqueta)
+        p.setFont('Helvetica', 11)
+        p.drawString(200, y, valor)
+        y -= 22
+
+    # Montos
+    y -= 15
+    p.setFont('Helvetica-Bold', 11)
+    p.drawString(50, y, 'Subtotal:');  p.setFont('Helvetica', 11); p.drawString(200, y, str(factura.subtotal)); y -= 20
+    p.setFont('Helvetica-Bold', 11)
+    p.drawString(50, y, 'Impuesto:'); p.setFont('Helvetica', 11); p.drawString(200, y, str(factura.impuesto)); y -= 20
+    p.setFont('Helvetica-Bold', 14)
+    p.drawString(50, y, 'TOTAL:');    p.drawString(200, y, str(factura.total))
+
+    # Sello ANULADA
+    if factura.estado == 'anulada':
+        p.saveState()
+        p.setFillColorRGB(0.8, 0, 0)
+        p.setFont('Helvetica-Bold', 48)
+        p.translate(width / 2, height / 2)
+        p.rotate(35)
+        p.drawCentredString(0, 0, 'ANULADA')
+        p.restoreState()
+
+    p.showPage()
+    p.save()
+    return response
+
+
+# ─── Facturación global (recepcionista / gerente) ─────────────────────────────
+
+@login_required(login_url='/login/recepcionista/')
+@rol_requerido('recepcionista', 'gerente')
+def gestionar_facturas(request):
+    """Lista global de facturas con filtros por estado, fecha y búsqueda de paciente."""
+    qs = Factura.objects.select_related(
+        'id_cita__id_paciente', 'id_cita__id_doctor', 'id_cita__id_sede'
+    ).order_by('-fecha_emision')
+
+    # Filtros
+    estado  = request.GET.get('estado', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+    busqueda    = request.GET.get('q', '').strip()
+
+    if estado:
+        qs = qs.filter(estado=estado)
+    if fecha_desde:
+        qs = qs.filter(fecha_emision__date__gte=fecha_desde)
+    if fecha_hasta:
+        qs = qs.filter(fecha_emision__date__lte=fecha_hasta)
+    if busqueda:
+        qs = qs.filter(
+            Q(numero__icontains=busqueda) |
+            Q(id_cita__id_paciente__nombre_1__icontains=busqueda) |
+            Q(id_cita__id_paciente__apellido_1__icontains=busqueda)
+        )
+
+    paginator = Paginator(qs, 20)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'citas/gestionar_facturas.html', {
+        'page_obj':       page_obj,
+        'estados_choices': Factura.ESTADOS,
+        'estado_actual':  estado,
+        'fecha_desde':    fecha_desde,
+        'fecha_hasta':    fecha_hasta,
+        'busqueda':       busqueda,
     })

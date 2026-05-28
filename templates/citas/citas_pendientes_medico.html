@@ -1,325 +1,656 @@
 {% load static %}
+
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Citas Pendientes - Healthy Life</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+
     <style>
+
         .hero-section {
+
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
             min-height: 100vh;
+
         }
+
         
+
         .card {
+
             backdrop-filter: blur(10px);
+
             background: rgba(255, 255, 255, 0.95);
+
             border: 1px solid rgba(255, 255, 255, 0.2);
+
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
         }
+
         
+
         .table-row:hover {
+
             background-color: #f9fafb;
+
         }
+
         
+
         .btn-action {
+
             transition: all 0.3s ease;
+
         }
+
         
+
         .btn-action:hover {
+
             transform: translateY(-1px);
+
         }
+
         
+
         .badge-pendiente {
+
             background-color: #fef3c7;
+
             color: #92400e;
+
         }
+
         
+
         .badge-asignada {
+
             background-color: #dbeafe;
+
             color: #1e40af;
+
         }
+
         
+
         .badge-aprobada {
+
             background-color: #d1fae5;
+
             color: #065f46;
+
         }
+
         
+
         .floating-shapes {
+
             position: absolute;
+
             width: 100%;
+
             height: 100%;
+
             overflow: hidden;
+
             z-index: 0;
+
         }
+
         
+
         .shape {
+
             position: absolute;
+
             border-radius: 50%;
+
             background: rgba(255, 255, 255, 0.1);
+
             animation: float 8s ease-in-out infinite;
+
         }
+
         
+
         .shape:nth-child(1) {
+
             width: 100px;
+
             height: 100px;
+
             left: 5%;
+
             animation-delay: 0s;
+
         }
+
         
+
         .shape:nth-child(2) {
+
             width: 150px;
+
             height: 150px;
+
             right: 10%;
+
             animation-delay: 3s;
+
         }
+
         
+
         .shape:nth-child(3) {
+
             width: 80px;
+
             height: 80px;
+
             left: 80%;
+
             animation-delay: 6s;
+
         }
+
         
+
         @keyframes float {
+
             0%, 100% {
+
                 transform: translateY(0px) rotate(0deg);
+
             }
+
             50% {
+
                 transform: translateY(-30px) rotate(180deg);
+
             }
+
         }
+
     </style>
+
 </head>
+
 <body class="bg-gray-50">
+
     <div class="hero-section relative">
+
         <!-- Formas flotantes de fondo -->
+
         <div class="floating-shapes">
+
             <div class="shape"></div>
+
             <div class="shape"></div>
+
             <div class="shape"></div>
+
         </div>
+
         
+
         <!-- Header -->
+
         <header class="relative z-10">
+
             <nav class="container mx-auto px-4 py-6">
+
                 <div class="flex justify-between items-center">
+
                     <div class="flex items-center space-x-4">
+
                         <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+
                             <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+
                         </svg>
+
                         <span class="text-2xl font-bold text-white">Healthy Life</span>
+
                     </div>
+
                     
+
                     <div class="flex items-center space-x-4">
+
                         <a href="{% url 'calendario_citas' %}" class="text-white hover:text-green-100 transition-colors flex items-center space-x-2">
+
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+
                             </svg>
+
                             <span>Calendario</span>
+
                         </a>
+
                         <a href="{% url 'dashboard_medico' %}" class="text-white hover:text-green-100 transition-colors flex items-center space-x-2">
+
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+
                             </svg>
+
                             <span>Dashboard</span>
+
                         </a>
+
                     </div>
+
                 </div>
+
             </nav>
+
         </header>
 
+
+
         <!-- Contenido principal -->
+
         <main class="relative z-10 container mx-auto px-4 py-12">
+
             <div class="max-w-6xl mx-auto">
+
                 <!-- Título -->
+
                 <div class="text-center mb-8">
+
                     <h1 class="text-4xl font-bold text-white mb-4">Mis Citas Pendientes</h1>
+
                     <p class="text-xl text-green-100">Gestiona las citas que requieren tu atención</p>
+
                 </div>
+
+
 
                 <!-- Estadísticas -->
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
                     <div class="card rounded-xl p-6 text-center">
+
                         <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+
                             <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+
                             </svg>
+
                         </div>
+
                         <h3 class="text-lg font-semibold text-gray-900">Pendientes</h3>
+
                         <p class="text-3xl font-bold text-yellow-600">{{ citas_pendientes.count }}</p>
+
                     </div>
+
                     
+
                     <div class="card rounded-xl p-6 text-center">
+
                         <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+
                             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+
                             </svg>
+
                         </div>
+
                         <h3 class="text-lg font-semibold text-gray-900">Asignadas</h3>
+
                         <p class="text-3xl font-bold text-blue-600">{{ citas_asignadas.count }}</p>
+
                     </div>
+
                     
+
                     <div class="card rounded-xl p-6 text-center">
+
                         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+
                             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+
                             </svg>
+
                         </div>
+
                         <h3 class="text-lg font-semibold text-gray-900">Total Atención</h3>
+
                         <p class="text-3xl font-bold text-green-600">{{ citas_pendientes.count|add:citas_asignadas.count }}</p>
+
                     </div>
+
                 </div>
 
+
+
                 <!-- Citas Pendientes -->
+
                 {% if citas_pendientes %}
+
                     <div class="card rounded-xl p-6 mb-8">
+
                         <div class="flex items-center justify-between mb-6">
+
                             <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+
                                 <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+
                                 </svg>
-                                Citas Pendientes de Asignación
+
+                                Citas Confirmadas — Listas para Consulta
+
                             </h2>
-                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
-                                {{ citas_pendientes.count }} pendientes
+
+                            <span class="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+
+                                {{ citas_pendientes.count }} confirmadas
+
                             </span>
+
                         </div>
+
                         
+
                         <div class="overflow-x-auto">
+
                             <table class="min-w-full divide-y divide-gray-200">
+
                                 <thead class="bg-gray-50">
+
                                     <tr>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Especialidad</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+
                                     </tr>
+
                                 </thead>
+
                                 <tbody class="bg-white divide-y divide-gray-200">
+
                                     {% for cita in citas_pendientes %}
+
                                     <tr class="table-row">
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_paciente.nombre_completo|default:"-" }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_especialidades.tipo_especialidad|default:"-" }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|date:"d/m/Y"|default:"-" }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|time:"H:i"|default:"-" }}</td>
+
                                         <td class="px-6 py-4 text-sm text-gray-900">
+
                                             <div class="max-w-xs truncate">{{ cita.motivo|default:"Sin motivo" }}</div>
+
                                         </td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <a href="{% url 'confirmar_cita' cita.id_citas %}" class="btn-action inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full hover:bg-blue-200">
-                                                Confirmar
+
+                                            <a href="{% url 'iniciar_consulta' cita.id_citas %}" class="btn-action inline-block px-3 py-1 bg-teal-100 text-teal-800 text-xs font-medium rounded-full hover:bg-teal-200">
+
+                                                Iniciar Consulta
+
                                             </a>
-                                            <a href="{% url 'realizar_receta' cita.id_citas %}" class="btn-action inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200">
-                                                Realizar consulta
-                                            </a>
+
                                         </td>
+
                                     </tr>
+
                                     {% endfor %}
+
                                 </tbody>
+
                             </table>
+
                         </div>
+
                     </div>
+
                 {% endif %}
+
+
 
                 <!-- Citas Asignadas -->
+
                 {% if citas_asignadas %}
+
                     <div class="card rounded-xl p-6">
+
                         <div class="flex items-center justify-between mb-6">
+
                             <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+
                                 <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+
                                 </svg>
-                                Citas Asignadas (Esperando Confirmación)
+
+                                En Consulta
+
                             </h2>
-                            <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                                {{ citas_asignadas.count }} asignadas
+
+                            <span class="px-3 py-1 bg-teal-100 text-teal-800 text-sm font-medium rounded-full">
+
+                                {{ citas_asignadas.count }} en curso
+
                             </span>
+
                         </div>
+
                         
+
                         <div class="overflow-x-auto">
+
                             <table class="min-w-full divide-y divide-gray-200">
+
                                 <thead class="bg-gray-50">
+
                                     <tr>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Especialidad</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora Solicitada</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo</th>
+
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+
                                     </tr>
+
                                 </thead>
+
                                 <tbody class="bg-white divide-y divide-gray-200">
+
                                     {% for cita in citas_asignadas %}
+
                                     <tr class="table-row">
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_paciente.nombre_completo|default:"-" }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_especialidades.tipo_especialidad|default:"-" }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|date:"d/m/Y"|default:"-" }}</td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|time:"H:i"|default:"-" }}</td>
+
                                         <td class="px-6 py-4 text-sm text-gray-900">
+
                                             <div class="max-w-xs truncate">{{ cita.motivo|default:"Sin motivo" }}</div>
+
                                         </td>
+
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <a href="{% url 'confirmar_cita' cita.id_citas %}" class="btn-action inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200">
-                                                Confirmar Hora
+
+                                            <a href="{% url 'iniciar_consulta' cita.id_citas %}" class="btn-action inline-block px-3 py-1 bg-teal-100 text-teal-800 text-xs font-medium rounded-full hover:bg-teal-200">
+
+                                                Continuar Consulta
+
                                             </a>
-                                            <a href="{% url 'realizar_receta' cita.id_citas %}" class="btn-action inline-block px-3 py-1 bg-teal-100 text-teal-800 text-xs font-medium rounded-full hover:bg-teal-200">
-                                                Realizar consulta
+
+                                            <form method="POST" action="{% url 'cerrar_consulta' cita.id_citas %}" class="inline">
+
+                                                {% csrf_token %}
+
+                                                <button type="submit" onclick="return confirm('\u00bfCerrar la consulta y marcar como atendida?')" class="btn-action px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200">
+
+                                                    Cerrar Consulta
+
+                                                </button>
+
+                                            </form>
+
+                                            <a href="{% url 'realizar_receta' cita.id_citas %}" class="btn-action inline-block px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full hover:bg-purple-200">
+
+                                                Receta
+
                                             </a>
+
                                         </td>
+
                                     </tr>
+
                                     {% endfor %}
+
                                 </tbody>
+
                             </table>
+
                         </div>
+
                     </div>
+
                 {% endif %}
+
+
 
                 <!-- Mensaje si no hay citas -->
+
                 {% if not citas_pendientes and not citas_asignadas %}
+
                     <div class="card rounded-xl p-12 text-center">
+
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+
                         </svg>
+
                         <h3 class="mt-2 text-sm font-medium text-gray-900">No tienes citas pendientes</h3>
+
                         <p class="mt-1 text-sm text-gray-500">Todas tus citas están al día.</p>
+
                         <div class="mt-6">
+
                             <a href="{% url 'calendario_citas' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+
                                 </svg>
+
                                 Ver Calendario
+
                             </a>
+
                         </div>
+
                     </div>
+
                 {% endif %}
+
             </div>
+
         </main>
+
     </div>
 
+
+
     <script>
+
         // Animación de entrada
+
         document.addEventListener('DOMContentLoaded', function() {
+
             const cards = document.querySelectorAll('.card');
+
             cards.forEach((card, index) => {
+
                 card.style.opacity = '0';
+
                 card.style.transform = 'translateY(20px)';
+
                 
+
                 setTimeout(() => {
+
                     card.style.transition = 'all 0.6s ease';
+
                     card.style.opacity = '1';
+
                     card.style.transform = 'translateY(0)';
+
                 }, 100 * (index + 1));
+
             });
+
         });
+
     </script>
+
 </body>
+
 </html>
+
