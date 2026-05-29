@@ -1,3 +1,9 @@
+# NOTA IMPORTANTE — Base de datos externa (Supabase / PostgreSQL)
+# Los modelos marcados con `managed = False` en su clase Meta reflejan tablas
+# que existen en la base de datos Supabase y son gestionadas externamente.
+# NO uses migraciones de Django para modificar esas tablas; hazlo directamente
+# en Supabase (SQL Editor o migrations manuales).  Solo los modelos sin Meta
+# managed=False (o con managed=True) son gestionados por Django.
 from django.db import models
 from django.core.exceptions import ValidationError
 import hashlib

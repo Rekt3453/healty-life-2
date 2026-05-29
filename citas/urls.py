@@ -21,6 +21,7 @@ urlpatterns = [
     path('gestionar/', views.gestionar_citas, name='gestionar_citas'),
     path('<int:cita_id>/aprobar/', views.aprobar_cita, name='aprobar_cita'),
     path('rechazar/<int:cita_id>/', views.rechazar_cita, name='rechazar_cita'),
+    path('<int:cita_id>/adelanto/', views.registrar_adelanto, name='registrar_adelanto'),
     path('<int:cita_id>/confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),
     # Endpoints AJAX para formulario encadenado
     path('ajax/especialidades/', views.ajax_especialidades, name='ajax_especialidades'),

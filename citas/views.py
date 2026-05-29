@@ -14,7 +14,7 @@ from .models import (
     ServicioEspecialidad, EspecialidadDoctor, Consultorio, ConsultaMedica, Factura,
 )
 from .services import CitaService, FacturacionService
-from .forms import ConsultaMedicaForm
+from .forms import ConsultaMedicaForm, RegistrarAdelantoForm
 
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
@@ -201,14 +201,18 @@ def citas_pendientes_medico(request):
 @login_required(login_url='/login/medico/')
 @rol_requerido('medico')
 def confirmar_cita(request, cita_id):
-    """Médico confirma/acepta una cita pendiente."""
+    """Médico confirma/acepta una cita pendiente → estado='confirmada'."""
     from usuarios.authentication import CustomAuthBackend
     datos_medico = CustomAuthBackend().get_datos_personales(request.user)
     cita = get_object_or_404(Cita, id_citas=cita_id, id_doctor=datos_medico)
     if request.method == 'POST':
-        cita.status = True
-        cita.save()
-        messages.success(request, f"Cita #{cita_id} confirmada.")
+        try:
+            CitaService.transicionar(cita, Cita.ESTADO_CONFIRMADA)
+            cita.status = True
+            cita.save(update_fields=['status'])
+            messages.success(request, f"Cita #{cita_id} confirmada.")
+        except ValueError as e:
+            messages.error(request, str(e))
     return redirect('citas_pendientes_medico')
 
 
@@ -266,17 +270,10 @@ def confirmar_pago(request, cita_id):
             Cita.objects.select_related('id_pago_cita'), id_citas=cita_id
         )
         try:
-            from django.db import transaction as _tx
-            with _tx.atomic():
-                pago = cita.id_pago_cita
-                if pago:
-                    pago.status = True
-                    pago.estado_pago = PagoCita.ESTADO_APROBADO
-                    pago.save(update_fields=['status', 'estado_pago'])
-                cita.estado = Cita.ESTADO_CONFIRMADA
-                cita.status = True
-                cita.save(update_fields=['estado', 'status'])
+            CitaService.confirmar_pago(cita)
             messages.success(request, f"✅ Pago de cita #{cita_id} confirmado. Cita lista para consulta.")
+        except ValueError as e:
+            messages.error(request, str(e))
         except Exception as e:
             messages.error(request, f"Error al confirmar pago: {e}")
     return redirect('gestionar_citas')
@@ -297,10 +294,12 @@ def calendario_citas(request):
 
     estado_filtro = request.GET.get('estado', '')
     fecha_filtro  = request.GET.get('fecha', '')
-    if estado_filtro == 'activa':
-        citas_qs = citas_qs.filter(status=True)
-    elif estado_filtro == 'cancelada':
-        citas_qs = citas_qs.filter(status=False)
+    if estado_filtro in dict(Cita.ESTADOS):
+        citas_qs = citas_qs.filter(estado=estado_filtro)
+    elif estado_filtro == 'activa':
+        citas_qs = citas_qs.exclude(estado__in=[
+            Cita.ESTADO_CANCELADA, Cita.ESTADO_RECHAZADA, Cita.ESTADO_NO_ASISTIO
+        ])
     if fecha_filtro:
         try:
             from datetime import datetime as _dt
@@ -323,11 +322,11 @@ def calendario_citas(request):
 
 @rol_requerido('recepcionista', 'gerente')
 def aprobar_cita(request, cita_id):
-    """Aprobar cita: confirma el pago y activa la cita para que el médico la vea."""
+    """Recepcionista aprueba la solicitud de cita → estado='aprobada'."""
     if request.method == 'POST':
-        cita = get_object_or_404(Cita.objects.select_related('id_pago_cita'), id_citas=cita_id)
+        cita = get_object_or_404(Cita, id_citas=cita_id)
         try:
-            CitaService.aprobar_pago(cita)
+            CitaService.aprobar_cita(cita)
             messages.success(request, f"✅ Cita #{cita_id} aprobada correctamente.")
         except ValueError as e:
             messages.error(request, str(e))
@@ -336,14 +335,43 @@ def aprobar_cita(request, cita_id):
 
 @rol_requerido('recepcionista', 'gerente')
 def rechazar_cita(request, cita_id):
-    """Rechazar/cancelar cita (status=False)."""
+    """Rechazar cita → estado='rechazada'."""
     cita = get_object_or_404(Cita, id_citas=cita_id)
     if request.method == 'POST':
-        cita.status = False
-        cita.estado = Cita.ESTADO_RECHAZADA
-        cita.save(update_fields=['status', 'estado'])
-        messages.info(request, f"Cita #{cita_id} rechazada.")
+        try:
+            CitaService.transicionar(cita, Cita.ESTADO_RECHAZADA)
+            cita.status = False
+            cita.save(update_fields=['status'])
+            messages.info(request, f"Cita #{cita_id} rechazada.")
+        except ValueError as e:
+            messages.error(request, str(e))
     return redirect('gestionar_citas')
+
+
+@rol_requerido('recepcionista', 'gerente')
+def registrar_adelanto(request, cita_id):
+    """Recepcionista registra un adelanto de pago sin generar factura inmediata."""
+    cita = get_object_or_404(Cita.objects.select_related('id_paciente', 'id_sede'), id_citas=cita_id)
+    if request.method == 'POST':
+        form = RegistrarAdelantoForm(request.POST)
+        if form.is_valid():
+            try:
+                CitaService.registrar_adelanto(
+                    cita,
+                    monto=form.cleaned_data['monto'],
+                    metodo_pago=form.cleaned_data['metodo_pago'],
+                    referencia=form.cleaned_data.get('referencia'),
+                )
+                messages.success(request, f"✅ Adelanto registrado. Cita #{cita_id} marcada como pagada con adelanto.")
+                return redirect('gestionar_citas')
+            except ValueError as e:
+                messages.error(request, str(e))
+    else:
+        form = RegistrarAdelantoForm()
+    return render(request, 'citas/registrar_adelanto.html', {
+        'form': form,
+        'cita': cita,
+    })
 
 
 # ─── Endpoints AJAX ─────────────────────────────────────────────
@@ -761,16 +789,11 @@ def realizar_receta(request, cita_id):
 def iniciar_consulta(request, cita_id):
     """Médico inicia o continúa una consulta médica."""
     cita = get_object_or_404(Cita, pk=cita_id)
-
-    consulta, created = ConsultaMedica.objects.get_or_create(
-        id_cita=cita,
-        defaults={'motivo_consulta': cita.motivo or ''}
-    )
-
-    # Marcar la cita como en consulta al abrirla por primera vez
-    if created or cita.estado != Cita.ESTADO_EN_CONSULTA:
-        cita.estado = Cita.ESTADO_EN_CONSULTA
-        cita.save(update_fields=['estado'])
+    try:
+        consulta, _ = CitaService.iniciar_consulta(cita)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect('citas_pendientes_medico')
 
     if request.method == 'POST':
         form = ConsultaMedicaForm(request.POST, instance=consulta)
@@ -800,17 +823,12 @@ def cerrar_consulta(request, cita_id):
         return redirect('iniciar_consulta', cita_id=cita_id)
 
     if request.method == 'POST':
-        now = timezone.now()
-        consulta.estado = ConsultaMedica.ESTADO_CERRADA
-        consulta.fecha_cierre = now
-        consulta.save(update_fields=['estado', 'fecha_cierre'])
-
-        cita.estado = Cita.ESTADO_ATENDIDA
-        cita.fecha_atencion = now
-        cita.save(update_fields=['estado', 'fecha_atencion'])
-
-        messages.success(request, '✅ Consulta cerrada. Cita marcada como atendida.')
-        return redirect('citas_pendientes_medico')
+        try:
+            CitaService.cerrar_consulta(cita)
+            messages.success(request, '✅ Consulta cerrada. Cita marcada como atendida.')
+            return redirect('citas_pendientes_medico')
+        except ValueError as e:
+            messages.error(request, str(e))
 
     return render(request, 'citas/consulta_medica.html', {
         'form':     ConsultaMedicaForm(instance=consulta),

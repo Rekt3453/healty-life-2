@@ -1,3 +1,9 @@
+# NOTA IMPORTANTE — Base de datos externa (Supabase / PostgreSQL)
+# Los modelos marcados con `managed = False` en su clase Meta reflejan tablas
+# que existen en la base de datos Supabase y son gestionadas externamente.
+# NO uses migraciones de Django para modificar esas tablas; hazlo directamente
+# en Supabase (SQL Editor o migrations manuales).  Solo los modelos sin Meta
+# managed=False (o con managed=True) son gestionados por Django.
 from django.db import models
 from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico, PacienteEspecial
 
@@ -119,8 +125,12 @@ class PagoCita(models.Model):
     metodo_pago = models.CharField(max_length=100, blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     fecha_consulta = models.DateTimeField(blank=True, null=True)
+    fecha_pago = models.DateTimeField(blank=True, null=True)
     status = models.BooleanField(null=True, blank=True, default=True)
     id_cita = models.BigIntegerField(blank=True, null=True)
+    id_factura = models.ForeignKey(
+        'Factura', on_delete=models.SET_NULL, null=True, blank=True, db_column='id_factura'
+    )
 
     ESTADO_PENDIENTE = 'pendiente'
     ESTADO_APROBADO  = 'aprobado'
@@ -173,31 +183,46 @@ class Cita(models.Model):
         db_column='id_servicio_especialidad'
     )
 
-    ESTADO_SOLICITADA    = 'solicitada'
-    ESTADO_APROBADA      = 'aprobada'
-    ESTADO_PAGO_PENDIENTE = 'pago_pendiente'
-    ESTADO_CONFIRMADA    = 'confirmada'
-    ESTADO_EN_CONSULTA   = 'en_consulta'
-    ESTADO_ATENDIDA      = 'atendida'
-    ESTADO_CANCELADA     = 'cancelada'
-    ESTADO_RECHAZADA     = 'rechazada'
-    ESTADO_NO_ASISTIO    = 'no_asistio'
+    ESTADO_SOLICITADA      = 'solicitada'
+    ESTADO_APROBADA        = 'aprobada'
+    ESTADO_PAGO_PENDIENTE  = 'pago_pendiente'
+    ESTADO_PAGADA_ADELANTO = 'pagada_adelanto'
+    ESTADO_CONFIRMADA      = 'confirmada'
+    ESTADO_EN_CONSULTA     = 'en_consulta'
+    ESTADO_ATENDIDA        = 'atendida'
+    ESTADO_CANCELADA       = 'cancelada'
+    ESTADO_RECHAZADA       = 'rechazada'
+    ESTADO_NO_ASISTIO      = 'no_asistio'
 
     ESTADOS = [
-        (ESTADO_SOLICITADA,     'Solicitada'),
-        (ESTADO_APROBADA,       'Aprobada'),
-        (ESTADO_PAGO_PENDIENTE, 'Pago Pendiente'),
-        (ESTADO_CONFIRMADA,     'Confirmada'),
-        (ESTADO_EN_CONSULTA,    'En Consulta'),
-        (ESTADO_ATENDIDA,       'Atendida'),
-        (ESTADO_CANCELADA,      'Cancelada'),
-        (ESTADO_RECHAZADA,      'Rechazada'),
-        (ESTADO_NO_ASISTIO,     'No Asistió'),
+        (ESTADO_SOLICITADA,      'Solicitada'),
+        (ESTADO_APROBADA,        'Aprobada'),
+        (ESTADO_PAGO_PENDIENTE,  'Pago Pendiente'),
+        (ESTADO_PAGADA_ADELANTO, 'Pagada Adelanto'),
+        (ESTADO_CONFIRMADA,      'Confirmada'),
+        (ESTADO_EN_CONSULTA,     'En Consulta'),
+        (ESTADO_ATENDIDA,        'Atendida'),
+        (ESTADO_CANCELADA,       'Cancelada'),
+        (ESTADO_RECHAZADA,       'Rechazada'),
+        (ESTADO_NO_ASISTIO,      'No Asistió'),
     ]
+
+    TRANSICIONES_VALIDAS = {
+        ESTADO_SOLICITADA:      {ESTADO_APROBADA, ESTADO_PAGO_PENDIENTE, ESTADO_PAGADA_ADELANTO, ESTADO_CANCELADA, ESTADO_RECHAZADA},
+        ESTADO_APROBADA:        {ESTADO_PAGO_PENDIENTE, ESTADO_PAGADA_ADELANTO, ESTADO_CONFIRMADA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
+        ESTADO_PAGO_PENDIENTE:  {ESTADO_CONFIRMADA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
+        ESTADO_PAGADA_ADELANTO: {ESTADO_CONFIRMADA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
+        ESTADO_CONFIRMADA:      {ESTADO_EN_CONSULTA, ESTADO_NO_ASISTIO, ESTADO_CANCELADA},
+        ESTADO_EN_CONSULTA:     {ESTADO_ATENDIDA, ESTADO_CANCELADA},
+        ESTADO_ATENDIDA:        set(),
+        ESTADO_CANCELADA:       set(),
+        ESTADO_RECHAZADA:       set(),
+        ESTADO_NO_ASISTIO:      set(),
+    }
 
     estado = models.CharField(
         max_length=30, choices=ESTADOS,
-        default=ESTADO_PAGO_PENDIENTE, blank=True, null=True,
+        default=ESTADO_SOLICITADA, blank=True, null=True,
     )
     motivo_cancelacion = models.TextField(blank=True, null=True)
     fecha_cancelacion  = models.DateTimeField(blank=True, null=True)
@@ -213,6 +238,25 @@ class Cita(models.Model):
 
     def __str__(self):
         return f"Cita {self.id_citas}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.pk:
+            return
+        try:
+            original = Cita.objects.get(pk=self.pk)
+        except Cita.DoesNotExist:
+            return
+        estado_anterior = original.estado
+        estado_nuevo = self.estado
+        if estado_anterior == estado_nuevo:
+            return
+        permitidos = self.TRANSICIONES_VALIDAS.get(estado_anterior, set())
+        if estado_nuevo not in permitidos:
+            raise ValidationError(
+                f"Transición inválida: '{estado_anterior}' → '{estado_nuevo}'. "
+                f"Estados permitidos desde '{estado_anterior}': {sorted(permitidos) or 'ninguno (estado terminal)'}."
+            )
 
     @property
     def fecha(self):

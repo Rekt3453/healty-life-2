@@ -141,6 +141,34 @@ class CrearPagoForm(forms.ModelForm):
             self.instance.fecha_consulta = self.fecha_consulta
 
 
+class RegistrarAdelantoForm(forms.Form):
+    """Formulario para registrar adelanto de pago sin factura inmediata"""
+    monto = forms.DecimalField(
+        label="Monto del adelanto",
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        required=True
+    )
+    metodo_pago = forms.ChoiceField(
+        label="Método de pago",
+        choices=[
+            ('efectivo', 'Efectivo'),
+            ('tarjeta', 'Tarjeta de crédito/débito'),
+            ('transferencia', 'Transferencia bancaria'),
+            ('otro', 'Otro'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True
+    )
+    referencia = forms.CharField(
+        label="Referencia (opcional)",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Últimos 4 dígitos, código de autorización, etc.'})
+    )
+
+
 class CancelarCitaForm(forms.Form):
     """Formulario para cancelar cita"""
     motivo_cancelacion = forms.CharField(

@@ -4,6 +4,7 @@ Django base settings for clinica_root project.
 
 from pathlib import Path
 import os
+import warnings
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -14,7 +15,14 @@ load_dotenv(BASE_DIR / '.env')
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "change-me-in-env")
+_SECRET_KEY_FALLBACK = "change-me-in-env-not-for-production"
+SECRET_KEY = os.environ.get("SECRET_KEY", _SECRET_KEY_FALLBACK)
+if SECRET_KEY == _SECRET_KEY_FALLBACK:
+    warnings.warn(
+        "SECRET_KEY no está definida en las variables de entorno. "
+        "Usa un valor seguro en producción (variable SECRET_KEY en .env).",
+        stacklevel=1,
+    )
 
 # DEBUG y ALLOWED_HOSTS se definen en dev.py / prod.py
 
@@ -33,7 +41,8 @@ INSTALLED_APPS = [
     'citas',
     # Third party
     'crispy_forms',
-    # 'crispy_tailwind',
+    'crispy_tailwind',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -156,7 +165,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 # Login/Logout URLs
-LOGIN_URL = '/login/'
+LOGIN_URL = '/login/paciente/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
