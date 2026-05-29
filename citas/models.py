@@ -627,3 +627,90 @@ class Factura(models.Model):
 
     def __str__(self):
         return f"Factura {self.numero} — {self.get_estado_display()}"
+
+
+# ── Modelos de Reportes y Operaciones (Fase 5) ────────────────────────────────
+
+class MovimientoCaja(models.Model):
+    """Registro de movimientos de caja (ingresos/egresos) no relacionados con citas."""
+    TIPO_INGRESO = 'ingreso'
+    TIPO_EGRESO = 'egreso'
+    
+    TIPOS_MOVIMIENTO = [
+        (TIPO_INGRESO, 'Ingreso'),
+        (TIPO_EGRESO, 'Egreso'),
+    ]
+    
+    id_movimiento = models.BigAutoField(primary_key=True)
+    tipo_movimiento = models.CharField(max_length=20, choices=TIPOS_MOVIMIENTO)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    concepto = models.CharField(max_length=255)
+    metodo_pago = models.CharField(max_length=100, blank=True, null=True)
+    fecha_movimiento = models.DateTimeField(auto_now_add=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    id_usuario_registro = models.BigIntegerField(blank=True, null=True)  # Referencia al usuario
+    observaciones = models.TextField(blank=True, null=True)
+    status = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'movimientos_caja'
+        verbose_name = 'Movimiento de Caja'
+        verbose_name_plural = 'Movimientos de Caja'
+        ordering = ['-fecha_movimiento']
+    
+    def __str__(self):
+        return f"{self.get_tipo_movimiento_display()}: {self.monto} - {self.concepto}"
+
+
+class HonorarioMedico(models.Model):
+    """Registro de honorarios/comisiones a pagar a médicos por consultas atendidas."""
+    ESTADO_PENDIENTE = 'pendiente'
+    ESTADO_PAGADO = 'pagado'
+    ESTADO_ANULADO = 'anulado'
+    
+    ESTADOS_PAGO = [
+        (ESTADO_PENDIENTE, 'Pendiente'),
+        (ESTADO_PAGADO, 'Pagado'),
+        (ESTADO_ANULADO, 'Anulado'),
+    ]
+    
+    TIPO_COMISION = 'comision'
+    TIPO_FIJO = 'fijo'
+    TIPO_HORA = 'hora'
+    
+    TIPOS_PAGO = [
+        (TIPO_COMISION, 'Comisión'),
+        (TIPO_FIJO, 'Fijo'),
+        (TIPO_HORA, 'Por Hora'),
+    ]
+    
+    id_honorario = models.BigAutoField(primary_key=True)
+    id_doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, db_column='id_doctor')
+    id_cita = models.ForeignKey('Cita', on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cita')
+    id_consulta = models.ForeignKey('ConsultaMedica', on_delete=models.SET_NULL, null=True, blank=True, db_column='id_consulta')
+    monto_honorario = models.DecimalField(max_digits=12, decimal_places=2)
+    porcentaje_comision = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    tipo_pago = models.CharField(max_length=50, choices=TIPOS_PAGO, blank=True, null=True)
+    fecha_atencion = models.DateTimeField(blank=True, null=True)
+    fecha_pago = models.DateTimeField(blank=True, null=True)
+    estado_pago = models.CharField(max_length=20, choices=ESTADOS_PAGO, default=ESTADO_PENDIENTE)
+    metodo_pago = models.CharField(max_length=100, blank=True, null=True)
+    referencia_pago = models.CharField(max_length=255, blank=True, null=True)
+    id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
+    observaciones = models.TextField(blank=True, null=True)
+    status = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'honorarios_medico'
+        verbose_name = 'Honorario Médico'
+        verbose_name_plural = 'Honorarios Médicos'
+        ordering = ['-fecha_atencion']
+    
+    def __str__(self):
+        return f"Honorario {self.id_honorario} - Dr. {self.id_doctor.nombre_1} {self.id_doctor.apellido_1}: {self.monto_honorario}"

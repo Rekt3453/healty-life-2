@@ -1,5 +1,12 @@
 {% load user_tags %}
 
+<style>
+    /* Asegurar que los dropdowns tengan z-index suficiente para no superponerse */
+    .dropdown-menu {
+        z-index: 1060 !important;
+    }
+</style>
+
 <div class="px-4">
     {% if user.userprofile.rol == 'paciente' or user.userprofile.rol == 'paciente_especial' %}
         <!-- Menú Paciente -->
@@ -72,6 +79,17 @@
         <a href="{% url 'reportes_sede' %}" class="nav-link {% if request.resolver_match.url_name == 'reportes_sede' %}nav-link-active{% endif %}">
             📊 Reportes de Sede
         </a>
+        <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                📈 Reportes Operativos
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'reporte_atencion_diaria' %}">Atención Diaria</a></li>
+                <li><a class="dropdown-item" href="{% url 'reporte_caja' %}">Caja</a></li>
+                <li><a class="dropdown-item" href="{% url 'reporte_balance' %}">Balance</a></li>
+                <li><a class="dropdown-item" href="{% url 'reporte_pagos_medicos' %}">Pagos a Médicos</a></li>
+            </ul>
+        </div>
         <a href="{% url 'perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'perfil' %}nav-link-active{% endif %}">
             👤 Mi Perfil
         </a>

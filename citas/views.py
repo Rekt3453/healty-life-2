@@ -12,8 +12,10 @@ from usuarios.models import PacienteDatosPersonales, Doctor, PacienteEspecial
 from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio, ConsultaMedica, Factura,
+    MovimientoCaja, HonorarioMedico,
 )
 from .services import CitaService, FacturacionService
+from .reportes import ReportesService
 from .forms import ConsultaMedicaForm, RegistrarAdelantoForm
 
 @login_required(login_url='/login/paciente/')
@@ -25,10 +27,9 @@ def solicitar_cita(request):
     que la especialidad elegida tenga clasificación 'Pediatría' o 'General'.
     El motivo lleva un prefijo automático con el nombre del menor.
     """
-    user     = request.user
+    user = request.user
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
 
-    # Obtener los menores activos del tutor para el selector
     menores = []
     if paciente:
         menores = list(
@@ -38,123 +39,45 @@ def solicitar_cita(request):
         )
 
     if request.method == 'POST':
-        sede_id          = request.POST.get('sede')
-        especialidad_id  = request.POST.get('especialidad')
-        doctor_id        = request.POST.get('doctor') or request.POST.get('medico')
-        servicio_id      = request.POST.get('servicio') or None
-        fecha            = request.POST.get('fecha')
-        hora             = request.POST.get('hora') or request.POST.get('hora_solicitada')
-        motivo_raw       = request.POST.get('motivo', '').strip()
-        # paciente_objetivo: 'self' | 'especial_<id>'
+        sede_id = request.POST.get('sede')
+        especialidad_id = request.POST.get('especialidad')
+        doctor_id = request.POST.get('doctor') or request.POST.get('medico')
+        servicio_id = request.POST.get('servicio') or None
+        fecha = request.POST.get('fecha')
+        hora = request.POST.get('hora') or request.POST.get('hora_solicitada')
+        motivo_raw = request.POST.get('motivo', '').strip()
         paciente_objetivo = request.POST.get('paciente_objetivo', 'self')
 
         if not all([sede_id, especialidad_id, doctor_id, fecha, hora, motivo_raw]):
             messages.error(request, "Todos los campos obligatorios deben completarse.")
         else:
             try:
-                fecha_hora = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
-
-                if fecha_hora < datetime.now():
-                    messages.error(
-                        request,
-                        "No puedes solicitar una cita en una fecha/hora que ya ha pasado. "
-                        "Elige una fecha y hora futura."
-                    )
-                else:
-                    sede         = get_object_or_404(Sede, id_sede=sede_id)
-                    especialidad = get_object_or_404(Especialidad, id_especialidad=especialidad_id)
-                    doctor       = get_object_or_404(Doctor, id_doctor=doctor_id)
-
-                    # Resolver a quién pertenece la cita y construir el motivo
-                    menor_obj = None
-                    if paciente_objetivo.startswith('especial_'):
-                        # La cita es en nombre de un paciente especial (menor)
-                        try:
-                            menor_id  = int(paciente_objetivo.split('_', 1)[1])
-                            menor_obj = PacienteEspecial.objects.get(
-                                id_paciente_especial=menor_id,
-                                id_paciente_tutor=paciente,
-                                status=True,
-                            )
-                        except (PacienteEspecial.DoesNotExist, ValueError):
-                            messages.error(request, "El paciente especial seleccionado no es válido.")
-                            raise ValueError("menor inválido")
-
-                        # Validación servidor: clasificación de especialidad para menores
-                        clasificacion = especialidad.clasificacion_especialidad or ''
-                        permitidas_menor = _CLASIFICACIONES_POR_TIPO['menor']
-                        if clasificacion not in permitidas_menor:
-                            messages.error(
-                                request,
-                                f"Para un menor de edad debes seleccionar una especialidad de "
-                                f"Pediatría o General. La especialidad ‘{especialidad.tipo_especialidad}’ "
-                                f"está clasificada como ‘{clasificacion or 'Sin clasificar'}’."
-                            )
-                            raise ValueError("especialidad no válida para menor")
-
-                        nombre_menor = f"{menor_obj.nombre_1} {menor_obj.apellido_1}"
-                        motivo = f"[Cita para {nombre_menor}] {motivo_raw}"
-                    else:
-                        # Validación servidor: clasificación de especialidad para adultos
-                        clasificacion = especialidad.clasificacion_especialidad or ''
-                        permitidas_adulto = _CLASIFICACIONES_POR_TIPO['adulto']
-                        if clasificacion and clasificacion not in permitidas_adulto:
-                            messages.error(
-                                request,
-                                f"Para un paciente adulto debes seleccionar una especialidad de "
-                                f"Adultos o General. La especialidad ‘{especialidad.tipo_especialidad}’ "
-                                f"está clasificada como ‘{clasificacion}’."
-                            )
-                            raise ValueError("especialidad no válida para adulto")
-                        motivo = motivo_raw
-
-                    servicio_obj = None
-                    if servicio_id:
-                        servicio_obj = ServicioEspecialidad.objects.filter(
-                            id_servicios_especialidad=servicio_id
-                        ).first()
-
-                    pago = PagoCita.objects.create(
-                        id_paciente=paciente,
-                        id_sede=sede,
-                        fecha_consulta=fecha_hora,
-                        status=False,
-                        estado_pago=PagoCita.ESTADO_PENDIENTE,
-                    )
-
-                    Cita.objects.create(
-                        id_paciente=paciente,
-                        id_doctor=doctor,
-                        id_sede=sede,
-                        id_especialidades=especialidad,
-                        id_servicio_especialidad=servicio_obj,
-                        id_pago_cita=pago,
-                        fecha_consulta=fecha_hora,
-                        fecha_emision=timezone.now(),
-                        motivo=motivo,
-                        status=True,
-                        estado=Cita.ESTADO_SOLICITADA,
-                    )
-
-                    nombre_destino = nombre_menor if menor_obj else "ti"
-                    messages.success(
-                        request,
-                        f"✅ Cita solicitada para {nombre_destino} el {fecha} a las {hora}. "
-                        f"Espera confirmación."
-                    )
-                    return redirect('dashboard_paciente')
-
-            except ValueError:
-                pass  # los mensajes de error ya fueron añadidos arriba
+                cita, mensaje = CitaService.crear_cita(
+                    user,
+                    sede_id=sede_id,
+                    especialidad_id=especialidad_id,
+                    doctor_id=doctor_id,
+                    servicio_id=servicio_id,
+                    fecha=fecha,
+                    hora=hora,
+                    motivo_raw=motivo_raw,
+                    paciente_objetivo=paciente_objetivo,
+                )
+                messages.success(request, mensaje)
+                return redirect('dashboard_paciente')
+            except PermissionError as e:
+                messages.error(request, str(e))
+            except ValueError as e:
+                messages.error(request, str(e))
             except Exception as e:
                 messages.error(request, f"Error al registrar la cita: {e}")
 
     sedes = Sede.objects.filter(status__in=[True, None]).order_by('nombre_sede')
     return render(request, 'citas/solicitar_cita.html', {
-        'sedes':   sedes,
-        'hoy':     date.today().isoformat(),
+        'sedes': sedes,
+        'hoy': date.today().isoformat(),
         'paciente': paciente,
-        'menores': menores,   # lista de PacienteEspecial del tutor
+        'menores': menores,
     })
 
 
@@ -169,27 +92,11 @@ def citas_pendientes_medico(request):
     Se eliminó el filtro de fecha porque excluía citas pasadas y usaba
     datetime.now() sin zona horaria (bug de TZ con USE_TZ=True).
     """
-    from usuarios.authentication import CustomAuthBackend
-    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
-
-    citas_pendientes = Cita.objects.none()
-    citas_asignadas  = Cita.objects.none()
-    if datos_medico:
-        base_qs = Cita.objects.filter(
-            id_doctor=datos_medico,
-            status=True,
-        ).select_related(
-            'id_paciente', 'id_especialidades', 'id_sede', 'id_pago_cita'
-        ).order_by('fecha_consulta')
-
-        # Confirmadas: pago aprobado por recepcionista, listas para consulta
-        citas_pendientes = base_qs.filter(
-            Q(estado=Cita.ESTADO_CONFIRMADA) |
-            Q(estado__isnull=True, id_pago_cita__status=True)
-        ).exclude(estado=Cita.ESTADO_EN_CONSULTA)
-
-        # En consulta: médico ya inició la consulta
-        citas_asignadas = base_qs.filter(estado=Cita.ESTADO_EN_CONSULTA)
+    try:
+        citas_pendientes, citas_asignadas, datos_medico = CitaService.listar_citas_medico(request.user)
+    except PermissionError as e:
+        messages.error(request, str(e))
+        return redirect('home')
 
     return render(request, 'citas/citas_pendientes_medico.html', {
         'citas_pendientes': citas_pendientes,
@@ -270,8 +177,10 @@ def confirmar_pago(request, cita_id):
             Cita.objects.select_related('id_pago_cita'), id_citas=cita_id
         )
         try:
-            CitaService.confirmar_pago(cita)
+            CitaService.confirmar_pago(request.user, cita)
             messages.success(request, f"✅ Pago de cita #{cita_id} confirmado. Cita lista para consulta.")
+        except PermissionError as e:
+            messages.error(request, str(e))
         except ValueError as e:
             messages.error(request, str(e))
         except Exception as e:
@@ -326,8 +235,10 @@ def aprobar_cita(request, cita_id):
     if request.method == 'POST':
         cita = get_object_or_404(Cita, id_citas=cita_id)
         try:
-            CitaService.aprobar_cita(cita)
+            CitaService.aprobar_cita(request.user, cita)
             messages.success(request, f"✅ Cita #{cita_id} aprobada correctamente.")
+        except PermissionError as e:
+            messages.error(request, str(e))
         except ValueError as e:
             messages.error(request, str(e))
     return redirect('gestionar_citas')
@@ -357,6 +268,7 @@ def registrar_adelanto(request, cita_id):
         if form.is_valid():
             try:
                 CitaService.registrar_adelanto(
+                    request.user,
                     cita,
                     monto=form.cleaned_data['monto'],
                     metodo_pago=form.cleaned_data['metodo_pago'],
@@ -364,6 +276,8 @@ def registrar_adelanto(request, cita_id):
                 )
                 messages.success(request, f"✅ Adelanto registrado. Cita #{cita_id} marcada como pagada con adelanto.")
                 return redirect('gestionar_citas')
+            except PermissionError as e:
+                messages.error(request, str(e))
             except ValueError as e:
                 messages.error(request, str(e))
     else:
@@ -412,65 +326,15 @@ def ajax_especialidades(request):
 
 @require_GET
 def ajax_doctores(request):
-    """Doctores por especialidad y sede.
-
-    Etapa 1: busca mediante ServicioEspecialidad (relación directa).
-    Etapa 2 (fallback): si no hay servicios, busca doctores directamente
-    por id_sede y vínculo vía EspecialidadDoctor.
-    """
+    """Doctores por especialidad y sede (AJAX)."""
     especialidad_id = request.GET.get('especialidad_id')
-    sede_id         = request.GET.get('sede_id')
+    sede_id = request.GET.get('sede_id')
     if not especialidad_id or not sede_id:
         return JsonResponse([], safe=False)
 
-    def _serializar(qs):
-        return [
-            {
-                'id': d.id_doctor,
-                'nombre': f"Dr/a. {(d.nombre_1 or '')} {(d.apellido_1 or '')}".strip(),
-            }
-            for d in qs
-        ]
-
     try:
-        # ─ Etapa 1: vía ServicioEspecialidad ───────────────────────────────
-        doctor_ids = list(
-            ServicioEspecialidad.objects.filter(
-                id_especialidad_id=especialidad_id,
-                id_sede_id=sede_id,
-                status__in=[True, None],
-            ).values_list('id_doctor_id', flat=True).distinct()
-        )
-
-        if doctor_ids:
-            doctores = Doctor.objects.filter(
-                id_doctor__in=doctor_ids,
-                status__in=[True, None],
-            )
-            return JsonResponse(_serializar(doctores), safe=False)
-
-        # ─ Etapa 2: fallback directo por sede + EspecialidadDoctor ─────────
-        espec_doctor_ids = list(
-            EspecialidadDoctor.objects.filter(
-                id_especialidad_id=especialidad_id
-            ).values_list('id_especialidad_doctor', flat=True)
-        )
-
-        if espec_doctor_ids:
-            doctores = Doctor.objects.filter(
-                id_sede_id=sede_id,
-                id_especialidad_doctor__in=espec_doctor_ids,
-                status__in=[True, None],
-            )
-        else:
-            # Último recurso: todos los doctores de la sede
-            doctores = Doctor.objects.filter(
-                id_sede_id=sede_id,
-                status__in=[True, None],
-            )
-
-        return JsonResponse(_serializar(doctores), safe=False)
-
+        doctores = CitaService.obtener_doctores_disponibles(especialidad_id, sede_id)
+        return JsonResponse(doctores, safe=False)
     except Exception as exc:
         return JsonResponse({'error': str(exc)}, safe=False, status=500)
 
@@ -479,31 +343,14 @@ def ajax_doctores(request):
 def ajax_horas_disponibles(request):
     """Slots de 30 min disponibles para un doctor en una fecha."""
     doctor_id = request.GET.get('medico_id') or request.GET.get('doctor_id')
-    fecha     = request.GET.get('fecha')
+    fecha = request.GET.get('fecha')
     if not doctor_id or not fecha:
         return JsonResponse({'horas': []})
     try:
-        doctor = Doctor.objects.get(id_doctor=doctor_id)
-        if not doctor.id_horario:
-            return JsonResponse({'horas': [], 'mensaje': 'Doctor sin horario asignado'})
-        horario   = Horario.objects.get(id_horario=doctor.id_horario)
-        inicio    = horario.hora_inicio or time(8, 0)
-        fin       = horario.hora_fin    or time(20, 0)
-        ocupadas  = set()
-        for c in Cita.objects.filter(id_doctor_id=doctor_id, fecha_consulta__date=fecha, status=True):
-            if c.fecha_consulta:
-                ocupadas.add(c.fecha_consulta.strftime('%H:%M'))
-        horas  = []
-        actual = datetime.combine(date.today(), inicio)
-        limite = datetime.combine(date.today(), fin)
-        while actual < limite:
-            slot = actual.strftime('%H:%M')
-            if slot not in ocupadas:
-                horas.append(slot)
-            actual += timedelta(minutes=30)
+        horas, mensaje = CitaService.obtener_horas_disponibles(doctor_id, fecha)
+        if mensaje:
+            return JsonResponse({'horas': horas, 'mensaje': mensaje})
         return JsonResponse({'horas': horas})
-    except (Doctor.DoesNotExist, Horario.DoesNotExist):
-        return JsonResponse({'horas': [], 'mensaje': 'Doctor o horario no encontrado'})
     except Exception as exc:
         return JsonResponse({'horas': [], 'error': str(exc)})
 
@@ -790,7 +637,10 @@ def iniciar_consulta(request, cita_id):
     """Médico inicia o continúa una consulta médica."""
     cita = get_object_or_404(Cita, pk=cita_id)
     try:
-        consulta, _ = CitaService.iniciar_consulta(cita)
+        consulta, _ = CitaService.iniciar_consulta(request.user, cita)
+    except PermissionError as e:
+        messages.error(request, str(e))
+        return redirect('citas_pendientes_medico')
     except ValueError as e:
         messages.error(request, str(e))
         return redirect('citas_pendientes_medico')
@@ -824,9 +674,11 @@ def cerrar_consulta(request, cita_id):
 
     if request.method == 'POST':
         try:
-            CitaService.cerrar_consulta(cita)
+            CitaService.cerrar_consulta(request.user, cita)
             messages.success(request, '✅ Consulta cerrada. Cita marcada como atendida.')
             return redirect('citas_pendientes_medico')
+        except PermissionError as e:
+            messages.error(request, str(e))
         except ValueError as e:
             messages.error(request, str(e))
 
@@ -956,4 +808,180 @@ def gestionar_facturas(request):
         'fecha_desde':    fecha_desde,
         'fecha_hasta':    fecha_hasta,
         'busqueda':       busqueda,
+    })
+
+
+# ─── Reportes (gerente / admin) ───────────────────────────────────────────────
+
+@login_required(login_url='/login/gerente/')
+@rol_requerido('gerente', 'admin')
+def reporte_atencion_diaria(request):
+    """Reporte diario de personas atendidas."""
+    from datetime import datetime
+    
+    # Obtener parámetros de filtro
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    id_sede = request.GET.get('id_sede')
+    
+    # Valores por defecto: hoy
+    hoy = timezone.now().date()
+    if not fecha_inicio:
+        fecha_inicio = hoy
+    else:
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+    
+    if not fecha_fin:
+        fecha_fin = hoy
+    else:
+        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+    
+    # Convertir id_sede a int si está presente
+    if id_sede:
+        id_sede = int(id_sede)
+    
+    # Generar reporte
+    datos = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, id_sede)
+    
+    # Obtener sedes para el filtro
+    sedes = ReportesService.obtener_sedes()
+    
+    return render(request, 'citas/reporte_atencion_diaria.html', {
+        'datos': datos,
+        'sedes': sedes,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'id_sede': id_sede,
+    })
+
+
+@login_required(login_url='/login/gerente/')
+@rol_requerido('gerente', 'admin')
+def reporte_caja(request):
+    """Reporte de caja (ingresos por pagos del día o período)."""
+    from datetime import datetime
+    
+    # Obtener parámetros de filtro
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    id_sede = request.GET.get('id_sede')
+    
+    # Valores por defecto: hoy
+    hoy = timezone.now().date()
+    if not fecha_inicio:
+        fecha_inicio = hoy
+    else:
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+    
+    if not fecha_fin:
+        fecha_fin = hoy
+    else:
+        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+    
+    # Convertir id_sede a int si está presente
+    if id_sede:
+        id_sede = int(id_sede)
+    
+    # Generar reporte
+    datos = ReportesService.reporte_caja(fecha_inicio, fecha_fin, id_sede)
+    
+    # Obtener sedes para el filtro
+    sedes = ReportesService.obtener_sedes()
+    
+    return render(request, 'citas/reporte_caja.html', {
+        'datos': datos,
+        'sedes': sedes,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'id_sede': id_sede,
+    })
+
+
+@login_required(login_url='/login/gerente/')
+@rol_requerido('gerente', 'admin')
+def reporte_balance(request):
+    """Reporte de balance (sumatoria de costos generados)."""
+    from datetime import datetime
+    
+    # Obtener parámetros de filtro
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    id_sede = request.GET.get('id_sede')
+    
+    # Valores por defecto: mes actual
+    hoy = timezone.now().date()
+    if not fecha_inicio:
+        fecha_inicio = hoy.replace(day=1)
+    else:
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+    
+    if not fecha_fin:
+        fecha_fin = hoy
+    else:
+        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+    
+    # Convertir id_sede a int si está presente
+    if id_sede:
+        id_sede = int(id_sede)
+    
+    # Generar reporte
+    datos = ReportesService.reporte_balance(fecha_inicio, fecha_fin, id_sede)
+    
+    # Obtener sedes para el filtro
+    sedes = ReportesService.obtener_sedes()
+    
+    return render(request, 'citas/reporte_balance.html', {
+        'datos': datos,
+        'sedes': sedes,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'id_sede': id_sede,
+    })
+
+
+@login_required(login_url='/login/gerente/')
+@rol_requerido('gerente', 'admin')
+def reporte_pagos_medicos(request):
+    """Reporte de pagos a médicos por consultas atendidas."""
+    from datetime import datetime
+    
+    # Obtener parámetros de filtro
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    id_sede = request.GET.get('id_sede')
+    id_doctor = request.GET.get('id_doctor')
+    
+    # Valores por defecto: mes actual
+    hoy = timezone.now().date()
+    if not fecha_inicio:
+        fecha_inicio = hoy.replace(day=1)
+    else:
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+    
+    if not fecha_fin:
+        fecha_fin = hoy
+    else:
+        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+    
+    # Convertir ids a int si están presentes
+    if id_sede:
+        id_sede = int(id_sede)
+    if id_doctor:
+        id_doctor = int(id_doctor)
+    
+    # Generar reporte
+    datos = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, id_sede, id_doctor)
+    
+    # Obtener sedes y médicos para los filtros
+    sedes = ReportesService.obtener_sedes()
+    medicos = ReportesService.obtener_medicos(id_sede)
+    
+    return render(request, 'citas/reporte_pagos_medicos.html', {
+        'datos': datos,
+        'sedes': sedes,
+        'medicos': medicos,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'id_sede': id_sede,
+        'id_doctor': id_doctor,
     })

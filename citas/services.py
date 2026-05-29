@@ -7,6 +7,237 @@ from django.utils import timezone
 class CitaService:
 
     @staticmethod
+    def verificar_rol(user, *roles_permitidos):
+        """Verifica que el usuario tenga uno de los roles permitidos. Lanza PermissionError si no."""
+        from usuarios.authentication import CustomAuthBackend
+        auth_backend = CustomAuthBackend()
+        user_rol = auth_backend.get_rol(user)
+        rol_mapping = {
+            'paciente': 'paciente',
+            'medico': 'medico',
+            'recepcionista': 'recepcionista',
+            'gerente': 'gerente',
+            'administrador': 'gerente',
+        }
+        mapped_roles = [rol_mapping.get(r, r) for r in roles_permitidos]
+        if user_rol not in mapped_roles:
+            raise PermissionError(
+                f"Se requiere uno de estos roles: {', '.join(roles_permitidos)}. "
+                f"Rol actual: {user_rol or 'sin rol'}."
+            )
+        return user_rol
+
+    @staticmethod
+    @transaction.atomic
+    def crear_cita(user, *, sede_id, especialidad_id, doctor_id, servicio_id,
+                    fecha, hora, motivo_raw, paciente_objetivo='self'):
+        """
+        Crea una cita con su pago asociado. Valida roles, especialidades por tipo de paciente,
+        y genera el motivo con prefijo si es para un menor.
+        """
+        from citas.models import Cita as CitaModel, PagoCita, ServicioEspecialidad, Especialidad
+        from usuarios.models import PacienteDatosPersonales, PacienteEspecial, Sede, Doctor
+        from datetime import datetime
+
+        CitaService.verificar_rol(user, 'paciente')
+
+        paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+        if not paciente:
+            raise ValueError("No se encontró el perfil de paciente para el usuario.")
+
+        _CLASIFICACIONES_POR_TIPO = {
+            'adulto': ['Adultos', 'General'],
+            'menor':  ['Pediatría', 'General'],
+        }
+
+        fecha_hora = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
+        if fecha_hora < datetime.now():
+            raise ValueError("No puedes solicitar una cita en una fecha/hora que ya ha pasado.")
+
+        sede = Sede.objects.get(id_sede=sede_id)
+        especialidad = Especialidad.objects.get(id_especialidad=especialidad_id)
+        doctor = Doctor.objects.get(id_doctor=doctor_id)
+
+        menor_obj = None
+        if paciente_objetivo.startswith('especial_'):
+            menor_id = int(paciente_objetivo.split('_', 1)[1])
+            menor_obj = PacienteEspecial.objects.get(
+                id_paciente_especial=menor_id,
+                id_paciente_tutor=paciente,
+                status=True,
+            )
+            clasificacion = especialidad.clasificacion_especialidad or ''
+            permitidas_menor = _CLASIFICACIONES_POR_TIPO['menor']
+            if clasificacion not in permitidas_menor:
+                raise ValueError(
+                    f"Para un menor de edad debes seleccionar una especialidad de "
+                    f"Pediatría o General. La especialidad '{especialidad.tipo_especialidad}' "
+                    f"está clasificada como '{clasificacion or 'Sin clasificar'}'."
+                )
+            nombre_menor = f"{menor_obj.nombre_1} {menor_obj.apellido_1}"
+            motivo = f"[Cita para {nombre_menor}] {motivo_raw}"
+        else:
+            clasificacion = especialidad.clasificacion_especialidad or ''
+            permitidas_adulto = _CLASIFICACIONES_POR_TIPO['adulto']
+            if clasificacion and clasificacion not in permitidas_adulto:
+                raise ValueError(
+                    f"Para un paciente adulto debes seleccionar una especialidad de "
+                    f"Adultos o General. La especialidad '{especialidad.tipo_especialidad}' "
+                    f"está clasificada como '{clasificacion}'."
+                )
+            motivo = motivo_raw
+
+        servicio_obj = None
+        if servicio_id:
+            servicio_obj = ServicioEspecialidad.objects.filter(
+                id_servicios_especialidad=servicio_id
+            ).first()
+
+        pago = PagoCita.objects.create(
+            id_paciente=paciente,
+            id_sede=sede,
+            fecha_consulta=fecha_hora,
+            status=False,
+            estado_pago=PagoCita.ESTADO_PENDIENTE,
+        )
+
+        cita = CitaModel.objects.create(
+            id_paciente=paciente,
+            id_doctor=doctor,
+            id_sede=sede,
+            id_especialidades=especialidad,
+            id_servicio_especialidad=servicio_obj,
+            id_pago_cita=pago,
+            fecha_consulta=fecha_hora,
+            fecha_emision=timezone.now(),
+            motivo=motivo,
+            status=True,
+            estado=CitaModel.ESTADO_SOLICITADA,
+        )
+
+        nombre_destino = nombre_menor if menor_obj else "ti"
+        return cita, f"✅ Cita solicitada para {nombre_destino} el {fecha} a las {hora}. Espera confirmación."
+
+    @staticmethod
+    def listar_citas_medico(user):
+        """
+        Retorna (citas_pendientes, citas_asignadas) para el médico autenticado.
+        Pendientes → confirmadas, listas para consulta.
+        Asignadas → en consulta actualmente.
+        """
+        from citas.models import Cita as CitaModel
+        from usuarios.authentication import CustomAuthBackend
+        from django.db.models import Q
+
+        CitaService.verificar_rol(user, 'medico')
+        datos_medico = CustomAuthBackend().get_datos_personales(user)
+
+        citas_pendientes = CitaModel.objects.none()
+        citas_asignadas = CitaModel.objects.none()
+
+        if datos_medico:
+            base_qs = CitaModel.objects.filter(
+                id_doctor=datos_medico,
+                status=True,
+            ).select_related(
+                'id_paciente', 'id_especialidades', 'id_sede', 'id_pago_cita'
+            ).order_by('fecha_consulta')
+
+            citas_pendientes = base_qs.filter(
+                Q(estado=CitaModel.ESTADO_CONFIRMADA) |
+                Q(estado__isnull=True, id_pago_cita__status=True)
+            ).exclude(estado=CitaModel.ESTADO_EN_CONSULTA)
+
+            citas_asignadas = base_qs.filter(estado=CitaModel.ESTADO_EN_CONSULTA)
+
+        return citas_pendientes, citas_asignadas, datos_medico
+
+    @staticmethod
+    def obtener_doctores_disponibles(especialidad_id, sede_id):
+        """
+        Retorna lista de doctores disponibles para una especialidad y sede.
+        Usa ServicioEspecialidad como fuente principal, con fallback a EspecialidadDoctor.
+        """
+        from citas.models import Doctor, ServicioEspecialidad, EspecialidadDoctor
+
+        def _serializar(qs):
+            return [
+                {
+                    'id': d.id_doctor,
+                    'nombre': f"Dr/a. {(d.nombre_1 or '')} {(d.apellido_1 or '')}".strip(),
+                }
+                for d in qs
+            ]
+
+        doctor_ids = list(
+            ServicioEspecialidad.objects.filter(
+                id_especialidad_id=especialidad_id,
+                id_sede_id=sede_id,
+                status__in=[True, None],
+            ).values_list('id_doctor_id', flat=True).distinct()
+        )
+
+        if doctor_ids:
+            doctores = Doctor.objects.filter(
+                id_doctor__in=doctor_ids,
+                status__in=[True, None],
+            )
+            return _serializar(doctores)
+
+        espec_doctor_ids = list(
+            EspecialidadDoctor.objects.filter(
+                id_especialidad_id=especialidad_id
+            ).values_list('id_especialidad_doctor', flat=True)
+        )
+
+        if espec_doctor_ids:
+            doctores = Doctor.objects.filter(
+                id_sede_id=sede_id,
+                id_especialidad_doctor__in=espec_doctor_ids,
+                status__in=[True, None],
+            )
+        else:
+            doctores = Doctor.objects.filter(
+                id_sede_id=sede_id,
+                status__in=[True, None],
+            )
+
+        return _serializar(doctores)
+
+    @staticmethod
+    def obtener_horas_disponibles(doctor_id, fecha):
+        """
+        Retorna slots de 30 min disponibles para un doctor en una fecha.
+        Calcula ocupadas desde citas existentes y devuelve horarios libres.
+        """
+        from citas.models import Cita as CitaModel, Doctor, Horario
+        from datetime import datetime, date, time, timedelta
+
+        doctor = Doctor.objects.get(id_doctor=doctor_id)
+        if not doctor.id_horario:
+            return [], 'Doctor sin horario asignado'
+
+        horario = Horario.objects.get(id_horario=doctor.id_horario)
+        inicio = horario.hora_inicio or time(8, 0)
+        fin = horario.hora_fin or time(20, 0)
+
+        ocupadas = set()
+        for c in CitaModel.objects.filter(id_doctor_id=doctor_id, fecha_consulta__date=fecha, status=True):
+            if c.fecha_consulta:
+                ocupadas.add(c.fecha_consulta.strftime('%H:%M'))
+
+        horas = []
+        actual = datetime.combine(date.today(), inicio)
+        limite = datetime.combine(date.today(), fin)
+        while actual < limite:
+            hora_str = actual.strftime('%H:%M')
+            if hora_str not in ocupadas:
+                horas.append(hora_str)
+            actual += timedelta(minutes=30)
+
+        return horas, None
+
+    @staticmethod
     def transicionar(cita, nuevo_estado, *, campos_extra=None):
         """
         Valida y aplica una transición de estado.
@@ -53,8 +284,9 @@ class CitaService:
 
     @staticmethod
     @transaction.atomic
-    def aprobar_cita(cita):
+    def aprobar_cita(user, cita):
         """Recepcionista aprueba la solicitud (sin pago aún)."""
+        CitaService.verificar_rol(user, 'recepcionista', 'gerente')
         from citas.models import Cita as CitaModel
         CitaService.transicionar(cita, CitaModel.ESTADO_APROBADA)
         cita.status = True
@@ -63,8 +295,9 @@ class CitaService:
 
     @staticmethod
     @transaction.atomic
-    def confirmar_pago(cita):
+    def confirmar_pago(user, cita):
         """Recepcionista verifica el pago → cita queda confirmada."""
+        CitaService.verificar_rol(user, 'recepcionista', 'gerente')
         from citas.models import Cita as CitaModel, PagoCita
         pago = getattr(cita, 'id_pago_cita', None)
         if not pago:
@@ -79,14 +312,15 @@ class CitaService:
 
     @staticmethod
     @transaction.atomic
-    def aprobar_pago(cita):
+    def aprobar_pago(user, cita):
         """Alias de confirmar_pago para compatibilidad con código existente."""
-        return CitaService.confirmar_pago(cita)
+        return CitaService.confirmar_pago(user, cita)
 
     @staticmethod
     @transaction.atomic
-    def iniciar_consulta(cita):
+    def iniciar_consulta(user, cita):
         """Médico abre la consulta: cita pasa a en_consulta."""
+        CitaService.verificar_rol(user, 'medico')
         from citas.models import Cita as CitaModel, ConsultaMedica
         estados_validos = {CitaModel.ESTADO_CONFIRMADA, CitaModel.ESTADO_EN_CONSULTA}
         if cita.estado not in estados_validos:
@@ -104,8 +338,9 @@ class CitaService:
 
     @staticmethod
     @transaction.atomic
-    def registrar_adelanto(cita, *, monto, metodo_pago, referencia=None):
+    def registrar_adelanto(user, cita, *, monto, metodo_pago, referencia=None):
         """Recepcionista registra un adelanto de pago sin generar factura inmediata."""
+        CitaService.verificar_rol(user, 'recepcionista', 'gerente')
         from citas.models import Cita as CitaModel, PagoCita
         CitaService.transicionar(cita, CitaModel.ESTADO_PAGADA_ADELANTO)
         pago = PagoCita.objects.create(
@@ -126,8 +361,9 @@ class CitaService:
 
     @staticmethod
     @transaction.atomic
-    def cerrar_consulta(cita):
+    def cerrar_consulta(user, cita):
         """Médico cierra la consulta: cita pasa a atendida y genera factura si no existe."""
+        CitaService.verificar_rol(user, 'medico')
         from citas.models import Cita as CitaModel, ConsultaMedica, Factura
         if cita.estado != CitaModel.ESTADO_EN_CONSULTA:
             raise ValueError(
@@ -178,10 +414,10 @@ class FacturacionService:
 
         numero = f"FAC-{timezone.now().strftime('%Y%m%d')}-{cita.pk}"
 
-        estado_factura = Factura.ESTADO_PAGADA
-        if pago and pago.status and pago.monto_pagar >= total:
+        estado_factura = Factura.ESTADO_EMITIDA
+        if pago and pago.status and pago.monto_pagar is not None and pago.monto_pagar >= total:
             estado_factura = Factura.ESTADO_PAGADA
-        elif pago and pago.status and pago.monto_pagar < total:
+        elif pago and pago.status and pago.monto_pagar is not None and pago.monto_pagar < total:
             estado_factura = Factura.ESTADO_EMITIDA
         elif not pago or not pago.status:
             estado_factura = Factura.ESTADO_EMITIDA

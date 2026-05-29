@@ -35,4 +35,9 @@ urlpatterns = [
     path('factura/<int:cita_id>/', views.detalle_factura, name='detalle_factura'),
     path('factura/pdf/<int:factura_id>/', views.factura_pdf, name='factura_pdf'),
     path('facturas/', views.gestionar_facturas, name='gestionar_facturas'),
+    # Reportes (gerente/admin)
+    path('reportes/atencion-diaria/', views.reporte_atencion_diaria, name='reporte_atencion_diaria'),
+    path('reportes/caja/', views.reporte_caja, name='reporte_caja'),
+    path('reportes/balance/', views.reporte_balance, name='reporte_balance'),
+    path('reportes/pagos-medicos/', views.reporte_pagos_medicos, name='reporte_pagos_medicos'),
 ]

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reporte de Balance{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Reporte de Balance</h2>
+            
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                            <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                            <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="id_sede" class="form-label">Sede</label>
+                            <select class="form-select" name="id_sede" id="id_sede">
+                                <option value="">Todas las sedes</option>
+                                {% for sede in sedes %}
+                                <option value="{{ sede.id_sede }}" {% if id_sede == sede.id_sede %}selected{% endif %}>
+                                    {{ sede.nombre_sede }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100" style="background-color: #2E7D32; border-color: #2E7D32;">
+                                Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Resumen de facturación -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Facturación Total</h5>
+                            <h3 class="text-primary">${{ datos.facturacion.total|floatformat:2 }}</h3>
+                            <small class="text-muted">{{ datos.facturacion.cantidad }} facturas</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Facturas Pagadas</h5>
+                            <h3 class="text-success">${{ datos.facturas_pagadas.total|floatformat:2 }}</h3>
+                            <small class="text-muted">{{ datos.facturas_pagadas.cantidad }} facturas</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Facturas Pendientes</h5>
+                            <h3 class="text-warning">${{ datos.facturas_pendientes.total|floatformat:2 }}</h3>
+                            <small class="text-muted">{{ datos.facturas_pendientes.cantidad }} facturas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance neto -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Ingresos Netos</h5>
+                            <h3 class="text-success">${{ datos.ingresos_netos|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Egresos Netos</h5>
+                            <h3 class="text-danger">${{ datos.egresos_netos|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance final -->
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Balance Neto del Período</h5>
+                    <h1 class="{% if datos.balance_neto >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ datos.balance_neto|floatformat:2 }}
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Gráfico de facturación -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Composición de Facturación</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="graficoFacturacion" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('graficoFacturacion');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pagadas', 'Pendientes'],
+            datasets: [{
+                data: [
+                    {{ datos.facturas_pagadas.total|floatformat:2 }},
+                    {{ datos.facturas_pendientes.total|floatformat:2 }}
+                ],
+                backgroundColor: ['#2E7D32', '#FFC107'],
+                borderColor: ['#2E7D32', '#FFC107'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
