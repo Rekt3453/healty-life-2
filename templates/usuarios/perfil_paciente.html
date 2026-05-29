@@ -152,35 +152,72 @@
             <form id="form-datos" method="POST" class="hidden mt-4">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_perfil">
+                {% now "Y-m-d" as hoy %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label class="field-label">Primer Nombre *</label><input type="text" name="nombre_1" value="{{ paciente.nombre_1|default:'' }}" required></div>
-                    <div><label class="field-label">Segundo Nombre</label><input type="text" name="nombre_2" value="{{ paciente.nombre_2|default:'' }}"></div>
-                    <div><label class="field-label">Primer Apellido *</label><input type="text" name="apellido_1" value="{{ paciente.apellido_1|default:'' }}" required></div>
-                    <div><label class="field-label">Segundo Apellido</label><input type="text" name="apellido_2" value="{{ paciente.apellido_2|default:'' }}"></div>
-                    <div><label class="field-label">Tipo Cédula</label>
-                        <select name="tipo_cedula">
-                            <option value="">Seleccionar</option>
-                            <option value="V" {% if paciente.tipo_cedula == "V" %}selected{% endif %}>V - Venezolano</option>
-                            <option value="E" {% if paciente.tipo_cedula == "E" %}selected{% endif %}>E - Extranjero</option>
-                            <option value="J" {% if paciente.tipo_cedula == "J" %}selected{% endif %}>J - Jurídico</option>
-                            <option value="G" {% if paciente.tipo_cedula == "G" %}selected{% endif %}>G - Gubernamental</option>
-                            <option value="P" {% if paciente.tipo_cedula == "P" %}selected{% endif %}>P - Pasaporte</option>
-                        </select>
+                    <div>
+                        <label class="field-label">Primer Nombre *</label>
+                        <input type="text" name="nombre_1" value="{{ paciente.nombre_1|default:'' }}"
+                               required minlength="2" maxlength="30"
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+"
+                               title="Solo letras, espacios y tildes. Mínimo 2, máximo 30 caracteres.">
                     </div>
-                    <div><label class="field-label">Cédula *</label><input type="text" name="cedula" value="{{ paciente.cedula|default:'' }}" required></div>
-                    <div><label class="field-label">Sexo</label>
-                        <select name="sexo">
+                    <div>
+                        <label class="field-label">Segundo Nombre</label>
+                        <input type="text" name="nombre_2" value="{{ paciente.nombre_2|default:'' }}"
+                               minlength="2" maxlength="30"
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+"
+                               title="Solo letras, espacios y tildes. Máximo 30 caracteres.">
+                    </div>
+                    <div>
+                        <label class="field-label">Primer Apellido *</label>
+                        <input type="text" name="apellido_1" value="{{ paciente.apellido_1|default:'' }}"
+                               required minlength="2" maxlength="30"
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+"
+                               title="Solo letras, espacios y tildes. Mínimo 2, máximo 30 caracteres.">
+                    </div>
+                    <div>
+                        <label class="field-label">Segundo Apellido</label>
+                        <input type="text" name="apellido_2" value="{{ paciente.apellido_2|default:'' }}"
+                               minlength="2" maxlength="30"
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+"
+                               title="Solo letras, espacios y tildes. Máximo 30 caracteres.">
+                    </div>
+                    <div>
+                        <label class="field-label">Tipo Cédula</label>
+                        <input type="text"
+                               value="{% if paciente.tipo_cedula %}{{ paciente.tipo_cedula }} - {% if paciente.tipo_cedula == 'V' %}Venezolano{% elif paciente.tipo_cedula == 'E' %}Extranjero{% elif paciente.tipo_cedula == 'J' %}Jurídico{% elif paciente.tipo_cedula == 'G' %}Gubernamental{% elif paciente.tipo_cedula == 'P' %}Pasaporte{% else %}{{ paciente.tipo_cedula }}{% endif %}{% else %}—{% endif %}"
+                               readonly class="bg-gray-100 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="field-label">Cédula</label>
+                        <input type="text" value="{{ paciente.cedula|default:'—' }}" readonly class="bg-gray-100 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="field-label">Sexo *</label>
+                        <select name="sexo" required>
                             <option value="">Seleccionar</option>
                             <option value="Masculino" {% if paciente.sexo == "Masculino" %}selected{% endif %}>Masculino</option>
                             <option value="Femenino"  {% if paciente.sexo == "Femenino"  %}selected{% endif %}>Femenino</option>
                             <option value="Otro"      {% if paciente.sexo == "Otro"      %}selected{% endif %}>Otro</option>
                         </select>
                     </div>
-                    <div><label class="field-label">Fecha de Nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" value="{{ paciente.fecha_nacimiento|date:'Y-m-d'|default:'' }}">
+                    <div>
+                        <label class="field-label">Fecha de Nacimiento *</label>
+                        <input type="date" name="fecha_nacimiento"
+                               value="{{ paciente.fecha_nacimiento|date:'Y-m-d'|default:'' }}"
+                               required max="{{ hoy }}">
                     </div>
-                    <div><label class="field-label">Teléfono</label><input type="tel" name="telefono" value="{{ paciente.telefono|default:'' }}"></div>
-                    <div><label class="field-label">Correo</label><input type="email" name="email" value="{{ user.email }}"></div>
+                    <div>
+                        <label class="field-label">Teléfono</label>
+                        <input type="tel" name="telefono" value="{{ paciente.telefono|default:'' }}"
+                               minlength="7" maxlength="20"
+                               pattern="[\\d\\s\\-\\+\\(\\)]+"
+                               title="Solo números, espacios, guiones, paréntesis y +. Mínimo 7 caracteres.">
+                    </div>
+                    <div>
+                        <label class="field-label">Correo *</label>
+                        <input type="email" name="email" value="{{ user.email }}" required>
+                    </div>
                 </div>
                 <div class="flex space-x-3 mt-5">
                     <button type="submit" class="btn-green">💾 Guardar Cambios</button>
@@ -411,11 +448,11 @@
                     </div>
                     <div class="sm:col-span-2">
                         <label class="field-label">Dirección *</label>
-                        <textarea name="direccion" rows="2" required>{{ direccion.direccion|default:"" }}</textarea>
+                        <textarea name="direccion" rows="2" required minlength="5" maxlength="255">{{ direccion.direccion|default:"" }}</textarea>
                     </div>
                     <div class="sm:col-span-2">
                         <label class="field-label">Referencia</label>
-                        <input type="text" name="referencia" value="{{ direccion.referencia|default:'' }}">
+                        <input type="text" name="referencia" value="{{ direccion.referencia|default:'' }}" maxlength="255">
                     </div>
                 </div>
                 <div class="flex space-x-3 mt-5">

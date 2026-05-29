@@ -9,6 +9,8 @@ from django.db.models import Sum
 
 # ── Perfil paciente ───────────────────────────────────────────────────────────
 
+import re
+
 def update_perfil_paciente(user, paciente, post_data):
     """
     Actualiza los datos personales del paciente.
@@ -18,28 +20,103 @@ def update_perfil_paciente(user, paciente, post_data):
     """
     from usuarios.models import PacienteDatosPersonales
 
+    _RE_NOMBRE = re.compile(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$')
+    _RE_TELEFONO = re.compile(r'^[\\d\\s\\-\\+\\(\\)]+$')
+    _SEXOS = {'Masculino', 'Femenino', 'Otro'}
+
+    # ── Validaciones de campos obligatorios ──
+    nombre_1 = post_data.get('nombre_1', '').strip()
+    if not nombre_1:
+        return False, 'El primer nombre es obligatorio.'
+    if len(nombre_1) < 2:
+        return False, 'El primer nombre debe tener al menos 2 caracteres.'
+    if len(nombre_1) > 30:
+        return False, 'El primer nombre no puede exceder 30 caracteres.'
+    if not _RE_NOMBRE.match(nombre_1):
+        return False, 'El primer nombre solo puede contener letras, espacios y tildes.'
+
+    apellido_1 = post_data.get('apellido_1', '').strip()
+    if not apellido_1:
+        return False, 'El primer apellido es obligatorio.'
+    if len(apellido_1) < 2:
+        return False, 'El primer apellido debe tener al menos 2 caracteres.'
+    if len(apellido_1) > 30:
+        return False, 'El primer apellido no puede exceder 30 caracteres.'
+    if not _RE_NOMBRE.match(apellido_1):
+        return False, 'El primer apellido solo puede contener letras, espacios y tildes.'
+
+    # cedula y tipo_cedula no son editables desde el perfil; se conservan los valores actuales
+    cedula = paciente.cedula if paciente else None
+
+    # ── Validaciones de campos opcionales ──
+    nombre_2 = post_data.get('nombre_2', '').strip() or None
+    if nombre_2:
+        if len(nombre_2) < 2:
+            return False, 'El segundo nombre debe tener al menos 2 caracteres.'
+        if len(nombre_2) > 30:
+            return False, 'El segundo nombre no puede exceder 30 caracteres.'
+        if not _RE_NOMBRE.match(nombre_2):
+            return False, 'El segundo nombre solo puede contener letras, espacios y tildes.'
+
+    apellido_2 = post_data.get('apellido_2', '').strip() or None
+    if apellido_2:
+        if len(apellido_2) < 2:
+            return False, 'El segundo apellido debe tener al menos 2 caracteres.'
+        if len(apellido_2) > 30:
+            return False, 'El segundo apellido no puede exceder 30 caracteres.'
+        if not _RE_NOMBRE.match(apellido_2):
+            return False, 'El segundo apellido solo puede contener letras, espacios y tildes.'
+
+    telefono = post_data.get('telefono', '').strip() or None
+    if telefono:
+        if len(telefono) < 7:
+            return False, 'El teléfono debe tener al menos 7 caracteres.'
+        if len(telefono) > 20:
+            return False, 'El teléfono no puede exceder 20 caracteres.'
+        if not _RE_TELEFONO.match(telefono):
+            return False, 'El teléfono solo puede contener números, espacios, guiones, paréntesis y +.'
+
+    # tipo_cedula y cedula no son editables desde el perfil
+    tipo_cedula = paciente.tipo_cedula if paciente else None
+
+    sexo = post_data.get('sexo', '').strip() or None
+    if sexo and sexo not in _SEXOS:
+        return False, 'Sexo no válido.'
+
+    # ── Fecha de nacimiento ──
     fn_raw = post_data.get('fecha_nacimiento', '').strip()
     fecha_nac = None
     if fn_raw:
         try:
             fecha_nac = datetime.strptime(fn_raw, '%Y-%m-%d')
         except ValueError:
-            pass
+            return False, 'La fecha de nacimiento no es válida.'
+        from datetime import date as _date
+        if fecha_nac.date() > _date.today():
+            return False, 'La fecha de nacimiento no puede ser futura.'
+        # Verificar que sea mayor de edad (>= 18)
+        hoy = _date.today()
+        edad = hoy.year - fecha_nac.year - ((hoy.month, hoy.day) < (fecha_nac.month, fecha_nac.day))
+        if edad < 18:
+            return False, 'Debes ser mayor de edad (18+ años) para registrar tu perfil.'
 
+    # ── Email ──
     nuevo_email = post_data.get('email', '').strip()
     if nuevo_email and nuevo_email != user.email:
+        if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', nuevo_email):
+            return False, 'El correo electrónico no es válido.'
         user.email = nuevo_email
         user.save()
 
     datos = {
-        'nombre_1':          post_data.get('nombre_1', '').strip(),
-        'nombre_2':          post_data.get('nombre_2', '').strip() or None,
-        'apellido_1':        post_data.get('apellido_1', '').strip(),
-        'apellido_2':        post_data.get('apellido_2', '').strip() or None,
-        'telefono':          post_data.get('telefono', '').strip() or None,
-        'sexo':              post_data.get('sexo', '').strip() or None,
-        'cedula':            post_data.get('cedula', '').strip(),
-        'tipo_cedula':       post_data.get('tipo_cedula', '').strip() or None,
+        'nombre_1':          nombre_1.upper(),
+        'nombre_2':          nombre_2.upper() if nombre_2 else None,
+        'apellido_1':        apellido_1.upper(),
+        'apellido_2':        apellido_2.upper() if apellido_2 else None,
+        'telefono':          telefono,
+        'sexo':              sexo,
+        'cedula':            cedula,
+        'tipo_cedula':       tipo_cedula,
         'fecha_nacimiento':  fecha_nac,
         'id_sede':           user.id_sede,
         'id_user_paciente':  user,
@@ -53,10 +130,8 @@ def update_perfil_paciente(user, paciente, post_data):
             paciente.save()
             return True, 'Perfil actualizado correctamente.'
         else:
-            if datos['nombre_1'] and datos['apellido_1'] and datos['cedula']:
-                PacienteDatosPersonales.objects.create(**datos)
-                return True, 'Perfil creado correctamente.'
-            return False, 'Nombre, apellido y cédula son obligatorios.'
+            PacienteDatosPersonales.objects.create(**datos)
+            return True, 'Perfil creado correctamente.'
     except Exception as e:
         return False, f'Error al actualizar perfil: {e}'
 
@@ -91,13 +166,34 @@ def update_direccion_paciente(paciente, post_data):
     """
     from usuarios.models import DireccionPaciente
 
+    id_estado = post_data.get('id_estado') or None
+    id_municipio = post_data.get('id_municipio') or None
+    id_parroquia = post_data.get('id_parroquia') or None
+    direccion = post_data.get('direccion', '').strip()
+    referencia = post_data.get('referencia', '').strip() or None
+
+    if not id_estado:
+        return False, 'Debe seleccionar un estado.'
+    if not id_municipio:
+        return False, 'Debe seleccionar un municipio.'
+    if not id_parroquia:
+        return False, 'Debe seleccionar una parroquia.'
+    if not direccion:
+        return False, 'La dirección es obligatoria.'
+    if len(direccion) < 5:
+        return False, 'La dirección debe tener al menos 5 caracteres.'
+    if len(direccion) > 255:
+        return False, 'La dirección no puede exceder 255 caracteres.'
+    if referencia and len(referencia) > 255:
+        return False, 'La referencia no puede exceder 255 caracteres.'
+
     dir_data = {
-        'id_estado_id':    post_data.get('id_estado') or None,
-        'id_municipio_id': post_data.get('id_municipio') or None,
-        'id_parroquia_id': post_data.get('id_parroquia') or None,
+        'id_estado_id':    id_estado,
+        'id_municipio_id': id_municipio,
+        'id_parroquia_id': id_parroquia,
         'id_ciudad_id':    post_data.get('id_ciudad') or None,
-        'direccion':       post_data.get('direccion', '').strip(),
-        'referencia':      post_data.get('referencia', '').strip() or None,
+        'direccion':       direccion,
+        'referencia':      referencia,
     }
     try:
         if paciente and paciente.id_direccion_paciente_id:

@@ -714,3 +714,30 @@ class HonorarioMedico(models.Model):
     
     def __str__(self):
         return f"Honorario {self.id_honorario} - Dr. {self.id_doctor.nombre_1} {self.id_doctor.apellido_1}: {self.monto_honorario}"
+
+
+class DisponibilidadDoctor(models.Model):
+    """Disponibilidad de un doctor para una fecha específica por turnos."""
+
+    id = models.BigAutoField(primary_key=True)
+    doctor = models.ForeignKey(
+        Doctor, on_delete=models.CASCADE, db_column='id_doctor'
+    )
+    fecha = models.DateField()
+    turno_mañana = models.BooleanField(default=False)
+    turno_tarde = models.BooleanField(default=False)
+
+    class Meta:
+        managed = False
+        db_table = 'disponibilidad_doctor'
+        unique_together = ('doctor', 'fecha')
+        verbose_name = 'Disponibilidad del Doctor'
+        verbose_name_plural = 'Disponibilidades del Doctor'
+
+    def __str__(self):
+        turnos = []
+        if self.turno_mañana:
+            turnos.append('Mañana')
+        if self.turno_tarde:
+            turnos.append('Tarde')
+        return f"{self.fecha}: {', '.join(turnos) if turnos else 'No trabaja'}"

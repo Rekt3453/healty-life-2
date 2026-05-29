@@ -72,10 +72,12 @@ def solicitar_cita(request):
             except Exception as e:
                 messages.error(request, f"Error al registrar la cita: {e}")
 
+    from datetime import timedelta
     sedes = Sede.objects.filter(status__in=[True, None]).order_by('nombre_sede')
     return render(request, 'citas/solicitar_cita.html', {
         'sedes': sedes,
         'hoy': date.today().isoformat(),
+        'manana': (date.today() + timedelta(days=1)).isoformat(),
         'paciente': paciente,
         'menores': menores,
     })
@@ -126,21 +128,121 @@ def confirmar_cita(request, cita_id):
 @login_required(login_url='/login/medico/')
 @rol_requerido('medico')
 def gestionar_horarios(request):
-    """Vista de gestión de horarios del médico (solo lectura por ahora)."""
+    """Dashboard del médico para configurar disponibilidad por fecha específica."""
     from usuarios.authentication import CustomAuthBackend
     from usuarios.models import Doctor
-    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+    from citas.models import DisponibilidadDoctor
+    from calendar import Calendar
+    from datetime import date, datetime
 
-    horario = None
-    if datos_medico and datos_medico.id_horario:
+    doctor = CustomAuthBackend().get_datos_personales(request.user)
+    if not doctor:
+        messages.error(request, "No se encontró tu perfil de médico.")
+        return redirect('dashboard_medico')
+
+    if request.method == 'POST':
+        fecha_str = request.POST.get('fecha', '').strip()
+        action = request.POST.get('action', 'save')
         try:
-            horario = Horario.objects.get(id_horario=datos_medico.id_horario)
-        except Horario.DoesNotExist:
-            pass
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "Fecha no válida.")
+            return redirect('gestionar_horarios')
+
+        if action == 'delete':
+            DisponibilidadDoctor.objects.filter(doctor=doctor, fecha=fecha).delete()
+            messages.success(request, f"Disponibilidad eliminada para {fecha.strftime('%d/%m/%Y')}.")
+        else:
+            mañana = bool(request.POST.get('turno_mañana'))
+            tarde = bool(request.POST.get('turno_tarde'))
+            if mañana or tarde:
+                DisponibilidadDoctor.objects.update_or_create(
+                    doctor=doctor,
+                    fecha=fecha,
+                    defaults={'turno_mañana': mañana, 'turno_tarde': tarde}
+                )
+                messages.success(request, f"Disponibilidad guardada para {fecha.strftime('%d/%m/%Y')}.")
+            else:
+                DisponibilidadDoctor.objects.filter(doctor=doctor, fecha=fecha).delete()
+                messages.info(request, f"Sin turnos seleccionados — disponibilidad eliminada para {fecha.strftime('%d/%m/%Y')}.")
+
+        # Preserve current month view
+        return redirect(f'{request.path}?año={fecha.year}&mes={fecha.month}')
+
+    # Calendario mensual
+    hoy = date.today()
+    try:
+        año = int(request.GET.get('año', hoy.year))
+        mes = int(request.GET.get('mes', hoy.month))
+    except ValueError:
+        año, mes = hoy.year, hoy.month
+
+    if mes < 1:
+        mes, año = 12, año - 1
+    elif mes > 12:
+        mes, año = 1, año + 1
+
+    cal = Calendar(firstweekday=0)
+    semanas = cal.monthdayscalendar(año, mes)
+
+    mes_nombres = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ]
+    dia_nombres = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+
+    # Cargar disponibilidad del mes mostrado
+    fecha_inicio = date(año, mes, 1)
+    if mes == 12:
+        fecha_fin = date(año + 1, 1, 1)
+    else:
+        fecha_fin = date(año, mes + 1, 1)
+
+    disponibilidad = {
+        d.fecha.isoformat(): d
+        for d in DisponibilidadDoctor.objects.filter(
+            doctor=doctor, fecha__gte=fecha_inicio, fecha__lt=fecha_fin
+        )
+    }
+
+    calendario_semanas = []
+    for semana in semanas:
+        fila = []
+        for dia_num in semana:
+            if dia_num == 0:
+                fila.append(None)
+            else:
+                dia_fecha = date(año, mes, dia_num)
+                key = dia_fecha.isoformat()
+                disp = disponibilidad.get(key)
+                fila.append({
+                    'dia': dia_num,
+                    'fecha': dia_fecha,
+                    'fecha_iso': key,
+                    'mañana': disp.turno_mañana if disp else False,
+                    'tarde': disp.turno_tarde if disp else False,
+                    'trabaja': (disp.turno_mañana or disp.turno_tarde) if disp else False,
+                    'es_hoy': dia_fecha == hoy,
+                })
+        calendario_semanas.append(fila)
+
+    mes_anterior = mes - 1 if mes > 1 else 12
+    año_anterior = año if mes > 1 else año - 1
+    mes_siguiente = mes + 1 if mes < 12 else 1
+    año_siguiente = año if mes < 12 else año + 1
 
     return render(request, 'citas/gestionar_horarios.html', {
-        'datos_medico': datos_medico,
-        'horario':      horario,
+        'datos_medico': doctor,
+        'calendario':   calendario_semanas,
+        'dia_nombres':  dia_nombres,
+        'mes_nombre':   mes_nombres[mes - 1],
+        'año':          año,
+        'mes':          mes,
+        'hoy':          hoy,
+        'mes_anterior': mes_anterior,
+        'año_anterior': año_anterior,
+        'mes_siguiente': mes_siguiente,
+        'año_siguiente': año_siguiente,
     })
 
 
@@ -340,8 +442,41 @@ def ajax_doctores(request):
 
 
 @require_GET
+def ajax_fechas_disponibles(request):
+    """Fechas con disponibilidad para un doctor en un mes."""
+    from datetime import date
+    from citas.models import DisponibilidadDoctor
+
+    doctor_id = request.GET.get('doctor_id')
+    if not doctor_id:
+        return JsonResponse({'fechas': []})
+    try:
+        año = int(request.GET.get('año', date.today().year))
+        mes = int(request.GET.get('mes', date.today().month))
+
+        inicio = date(año, mes, 1)
+        if mes == 12:
+            fin = date(año + 1, 1, 1)
+        else:
+            fin = date(año, mes + 1, 1)
+
+        fechas = list(
+            DisponibilidadDoctor.objects.filter(
+                doctor_id=doctor_id,
+                fecha__gte=inicio,
+                fecha__lt=fin,
+            ).exclude(
+                turno_mañana=False, turno_tarde=False
+            ).values_list('fecha', flat=True)
+        )
+        return JsonResponse({'fechas': [f.isoformat() for f in fechas]})
+    except Exception as exc:
+        return JsonResponse({'fechas': [], 'error': str(exc)})
+
+
+@require_GET
 def ajax_horas_disponibles(request):
-    """Slots de 30 min disponibles para un doctor en una fecha."""
+    """Slots de 1 hora disponibles para un doctor en una fecha."""
     doctor_id = request.GET.get('medico_id') or request.GET.get('doctor_id')
     fecha = request.GET.get('fecha')
     if not doctor_id or not fecha:
@@ -406,24 +541,36 @@ def mis_citas(request):
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
 def mis_facturas(request):
-    """Lista paginada de pagos/facturas del paciente autenticado."""
+    """Lista de citas del paciente con estado de pago y factura."""
     user = request.user
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
 
-    pagos_qs = PagoCita.objects.none()
+    citas_qs = Cita.objects.none()
     if paciente:
-        pagos_qs = PagoCita.objects.filter(id_paciente=paciente).order_by('-fecha_consulta')
+        citas_qs = Cita.objects.filter(id_paciente=paciente).select_related(
+            'id_pago_cita', 'id_sede', 'id_especialidades', 'id_doctor'
+        ).order_by('-fecha_consulta')
 
     estado_filtro = request.GET.get('estado', '')
     if estado_filtro == 'pagado':
-        pagos_qs = pagos_qs.filter(status=True)
+        citas_qs = citas_qs.filter(
+            estado__in=[Cita.ESTADO_CONFIRMADA, Cita.ESTADO_EN_CONSULTA, Cita.ESTADO_ATENDIDA]
+        )
     elif estado_filtro == 'pendiente':
-        pagos_qs = pagos_qs.filter(status=False)
+        citas_qs = citas_qs.filter(estado=Cita.ESTADO_APROBADA)
+    elif estado_filtro == 'solicitada':
+        citas_qs = citas_qs.filter(
+            estado__in=[Cita.ESTADO_SOLICITADA, Cita.ESTADO_PAGO_PENDIENTE]
+        )
 
-    paginator = Paginator(pagos_qs, 10)
+    paginator = Paginator(citas_qs, 10)
     page_obj  = paginator.get_page(request.GET.get('page', 1))
 
-    estados_choices = [('pagado', 'Pagado'), ('pendiente', 'Pendiente')]
+    estados_choices = [
+        ('pagado', 'Pagadas'),
+        ('pendiente', 'Por pagar'),
+        ('solicitada', 'En proceso'),
+    ]
     return render(request, 'citas/mis_facturas.html', {
         'page_obj':       page_obj,
         'estados_choices': estados_choices,

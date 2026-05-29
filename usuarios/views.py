@@ -385,6 +385,8 @@ def registrar_paciente_especial(request):
                 sexo=form.cleaned_data['sexo'],
                 fecha_nacimiento=form.cleaned_data['fecha_nacimiento'],
                 telefono=form.cleaned_data.get('telefono') or '',
+                tipo_cedula=form.cleaned_data.get('tipo_cedula') or '',
+                cedula=form.cleaned_data.get('cedula') or '',
                 fecha_registro=tz.now(),
                 status=True,
             )
@@ -470,6 +472,8 @@ def editar_paciente_especial(request, id_paciente_especial):
         'sexo':            menor.sexo or '',
         'fecha_nacimiento': fecha_inicial,
         'telefono':        menor.telefono or '',
+        'tipo_cedula':     menor.tipo_cedula or '',
+        'cedula':          menor.cedula or '',
     }
 
     if request.method == 'POST':
@@ -484,6 +488,8 @@ def editar_paciente_especial(request, id_paciente_especial):
             menor.sexo             = cd['sexo']
             menor.fecha_nacimiento = cd['fecha_nacimiento']
             menor.telefono         = cd.get('telefono') or ''
+            menor.tipo_cedula      = cd.get('tipo_cedula') or ''
+            menor.cedula           = cd.get('cedula') or ''
             menor.save()
 
             nombre_menor = f"{menor.nombre_1} {menor.apellido_1}"
@@ -674,11 +680,14 @@ def historial_medico_menor(request, id_paciente_especial):
             }
         form = HistorialMedicoForm(initial=initial)
 
+    solo_lectura = request.GET.get('modo') == 'ver'
+
     return render(request, 'usuarios/historial_medico_menor.html', {
-        'form':      form,
-        'historial': historial,
-        'menor':     menor,
-        'nombre':    paciente_tutor.nombre_completo,
+        'form':         form,
+        'historial':    historial,
+        'menor':        menor,
+        'nombre':       paciente_tutor.nombre_completo,
+        'solo_lectura': solo_lectura,
     })
 
 

@@ -158,6 +158,8 @@ class PacienteEspecial(models.Model):
     fecha_nacimiento = models.DateTimeField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     telefono = models.CharField(max_length=50, blank=True, null=True)
+    tipo_cedula = models.CharField(max_length=20, blank=True, null=True)
+    cedula = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
         managed = False

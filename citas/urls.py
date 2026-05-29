@@ -26,6 +26,7 @@ urlpatterns = [
     # Endpoints AJAX para formulario encadenado
     path('ajax/especialidades/', views.ajax_especialidades, name='ajax_especialidades'),
     path('ajax/doctores/', views.ajax_doctores, name='ajax_doctores'),
+    path('ajax/fechas/', views.ajax_fechas_disponibles, name='ajax_fechas'),
     path('ajax/horas/', views.ajax_horas_disponibles, name='ajax_horas'),
     path('ajax/servicios/', views.ajax_servicios, name='ajax_servicios'),
     # Consulta médica

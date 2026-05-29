@@ -210,23 +210,48 @@
                             <div id="spinner-med" class="hidden mt-1 text-xs text-gray-500">Cargando...</div>
                         </div>
 
-                        <!-- Paso 4: Fecha -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha</label>
-                            <input type="date" name="fecha" id="sel-fecha"
-                                   class="form-input w-full px-4 py-3 rounded-lg text-gray-900"
-                                   min="{% now 'Y-m-d' %}" required disabled>
+                        <!-- Paso 4: Calendario de fechas disponibles -->
+                        <div id="calendario-cita" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Selecciona una fecha</label>
+
+                            <!-- Navegación de mes -->
+                            <div class="flex items-center justify-between mb-3">
+                                <button type="button" id="cal-prev"
+                                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm">
+                                    ◀ Anterior
+                                </button>
+                                <span id="cal-mes-año" class="font-semibold text-gray-800"></span>
+                                <button type="button" id="cal-next"
+                                        class="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm">
+                                    Siguiente ▶
+                                </button>
+                            </div>
+
+                            <!-- Grid calendario -->
+                            <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500 mb-1">
+                                <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+                            </div>
+                            <div id="cal-grid" class="grid grid-cols-7 gap-1 mb-4"></div>
+
+                            <!-- Fecha seleccionada -->
+                            <div id="fecha-seleccionada" class="hidden mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                                <p class="text-sm text-green-800 font-medium">
+                                    Fecha seleccionada: <span id="fecha-label"></span>
+                                </p>
+                            </div>
                         </div>
 
-                        <!-- Paso 5: Hora disponible (poblado por AJAX) -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Hora disponible</label>
-                            <select name="hora" id="sel-hora"
-                                    class="form-input w-full px-4 py-3 rounded-lg text-gray-900" required disabled>
-                                <option value="">Selecciona médico y fecha primero</option>
-                            </select>
-                            <div id="spinner-hora" class="hidden mt-1 text-xs text-gray-500">Cargando horarios...</div>
+                        <!-- Paso 5: Horas disponibles -->
+                        <div id="horas-cita" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Selecciona una hora</label>
+                            <div id="spinner-hora" class="hidden mb-2 text-xs text-gray-500">Cargando horarios...</div>
+                            <div id="horas-grid" class="flex flex-wrap gap-2"></div>
+                            <p id="horas-mensaje" class="text-sm text-gray-500 mt-2 hidden"></p>
                         </div>
+
+                        <!-- Hidden inputs for form submission -->
+                        <input type="hidden" name="fecha" id="input-fecha" required>
+                        <input type="hidden" name="hora" id="input-hora" required>
 
                         <!-- Paso 6: Servicio (poblado por AJAX) -->
                         <div>
@@ -282,8 +307,6 @@
         const selSede     = document.getElementById('sel-sede');
         const selEsp      = document.getElementById('sel-especialidad');
         const selMed      = document.getElementById('sel-medico');
-        const selFecha    = document.getElementById('sel-fecha');
-        const selHora     = document.getElementById('sel-hora');
         const selSrv      = document.getElementById('sel-servicio');
 
         function spinnerOn(id)  { document.getElementById(id).classList.remove('hidden'); }
@@ -325,10 +348,15 @@
          */
         function recargarEspecialidades() {
             const sedeId = selSede.value;
-            [selEsp, selMed, selFecha, selHora, selSrv].forEach(s => {
+            [selEsp, selMed, selSrv].forEach(s => {
                 s.disabled = true;
                 s.innerHTML = '<option value="">Selecciona el paso anterior primero</option>';
             });
+            document.getElementById('calendario-cita').classList.add('hidden');
+            document.getElementById('horas-cita').classList.add('hidden');
+            document.getElementById('fecha-seleccionada').classList.add('hidden');
+            document.getElementById('input-fecha').value = '';
+            document.getElementById('input-hora').value = '';
             if (!sedeId) return;
 
             spinnerOn('spinner-esp');
@@ -352,10 +380,13 @@
         // Especialidad cambia → cargar médicos
         selEsp.addEventListener('change', function() {
             const espId = this.value;
-            [selMed, selFecha, selHora].forEach(s => {
-                s.disabled = true;
-                s.innerHTML = '<option value="">Selecciona el paso anterior primero</option>';
-            });
+            selMed.disabled = true;
+            selMed.innerHTML = '<option value="">Selecciona el paso anterior primero</option>';
+            document.getElementById('calendario-cita').classList.add('hidden');
+            document.getElementById('horas-cita').classList.add('hidden');
+            document.getElementById('fecha-seleccionada').classList.add('hidden');
+            document.getElementById('input-fecha').value = '';
+            document.getElementById('input-hora').value = '';
             if (!espId) return;
 
             const sedeId = selSede.value;
@@ -378,15 +409,158 @@
                 .catch(err => { console.error('ajax_doctores fetch error:', err); spinnerOff('spinner-med'); });
         });
 
-        // Médico cambia → habilitar fecha y cargar servicios
+        // --- Calendar & hours UI ---
+        let calAño, calMes, calDoctorId, fechasDisponibles = new Set();
+
+        function iniciarCalendario() {
+            const hoy = new Date();
+            calAño = hoy.getFullYear();
+            calMes = hoy.getMonth() + 1;
+        }
+
+        function renderizarCalendario() {
+            const grid = document.getElementById('cal-grid');
+            const label = document.getElementById('cal-mes-año');
+            grid.innerHTML = '';
+
+            const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            label.textContent = `${meses[calMes - 1]} ${calAño}`;
+
+            const primerDia = new Date(calAño, calMes - 1, 1);
+            const ultimoDia = new Date(calAño, calMes, 0);
+            const inicioSemana = primerDia.getDay();
+            const offset = inicioSemana === 0 ? 6 : inicioSemana - 1;
+
+            for (let i = 0; i < offset; i++) {
+                const div = document.createElement('div');
+                div.className = 'p-2';
+                grid.appendChild(div);
+            }
+
+            for (let d = 1; d <= ultimoDia.getDate(); d++) {
+                const fechaObj = new Date(calAño, calMes - 1, d);
+                const fechaStr = fechaObj.toISOString().split('T')[0];
+                const div = document.createElement('div');
+                const disponible = fechasDisponibles.has(fechaStr);
+
+                div.className = `p-2 rounded-lg border text-sm font-medium transition-all text-center
+                    ${disponible
+                        ? 'bg-green-50 border-green-300 text-green-700 cursor-pointer hover:bg-green-100 hover:shadow'
+                        : 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'}`;
+                div.textContent = d;
+
+                if (disponible) {
+                    div.onclick = () => seleccionarFecha(fechaStr);
+                }
+                grid.appendChild(div);
+            }
+        }
+
+        function cargarFechasDisponibles() {
+            if (!calDoctorId) return;
+            fetch(`{% url 'ajax_fechas' %}?doctor_id=${calDoctorId}&año=${calAño}&mes=${calMes}`)
+                .then(r => r.json())
+                .then(data => {
+                    fechasDisponibles = new Set(data.fechas || []);
+                    renderizarCalendario();
+                })
+                .catch(() => {
+                    fechasDisponibles = new Set();
+                    renderizarCalendario();
+                });
+        }
+
+        function seleccionarFecha(fechaStr) {
+            document.getElementById('input-fecha').value = fechaStr;
+            document.getElementById('fecha-label').textContent = fechaStr;
+            document.getElementById('fecha-seleccionada').classList.remove('hidden');
+
+            document.getElementById('input-hora').value = '';
+            document.getElementById('horas-cita').classList.remove('hidden');
+            document.getElementById('horas-grid').innerHTML = '';
+            document.getElementById('horas-mensaje').classList.add('hidden');
+
+            spinnerOn('spinner-hora');
+            fetch(`{% url 'ajax_horas' %}?doctor_id=${calDoctorId}&fecha=${fechaStr}`)
+                .then(r => {
+                    if (!r.ok) throw new Error('Error del servidor: ' + r.status);
+                    return r.json();
+                })
+                .then(data => {
+                    spinnerOff('spinner-hora');
+                    const grid = document.getElementById('horas-grid');
+                    grid.innerHTML = '';
+
+                    if (data.error) {
+                        const msg = document.getElementById('horas-mensaje');
+                        msg.textContent = 'Error: ' + data.error;
+                        msg.classList.remove('hidden');
+                        return;
+                    }
+
+                    const horas = data.horas || [];
+                    if (horas.length === 0) {
+                        const msg = document.getElementById('horas-mensaje');
+                        msg.textContent = data.mensaje || 'No hay horas disponibles para esta fecha.';
+                        msg.classList.remove('hidden');
+                        return;
+                    }
+
+                    horas.forEach(h => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'px-4 py-2 rounded-lg border-2 border-green-300 bg-green-50 text-green-700 font-medium hover:bg-green-500 hover:text-white hover:border-green-500 transition-all';
+                        btn.textContent = h;
+                        btn.onclick = () => seleccionarHora(h, btn);
+                        grid.appendChild(btn);
+                    });
+                })
+                .catch(err => {
+                    spinnerOff('spinner-hora');
+                    const msg = document.getElementById('horas-mensaje');
+                    msg.textContent = 'Error al cargar horarios: ' + (err.message || 'Intente de nuevo.');
+                    msg.classList.remove('hidden');
+                });
+        }
+
+        function seleccionarHora(hora, btn) {
+            document.getElementById('input-hora').value = hora;
+            const grid = document.getElementById('horas-grid');
+            Array.from(grid.children).forEach(b => {
+                b.className = 'px-4 py-2 rounded-lg border-2 border-green-300 bg-green-50 text-green-700 font-medium hover:bg-green-500 hover:text-white hover:border-green-500 transition-all';
+            });
+            btn.className = 'px-4 py-2 rounded-lg border-2 border-green-600 bg-green-600 text-white font-medium shadow-md';
+        }
+
+        document.getElementById('cal-prev').addEventListener('click', () => {
+            calMes--;
+            if (calMes < 1) { calMes = 12; calAño--; }
+            cargarFechasDisponibles();
+        });
+        document.getElementById('cal-next').addEventListener('click', () => {
+            calMes++;
+            if (calMes > 12) { calMes = 1; calAño++; }
+            cargarFechasDisponibles();
+        });
+
+        // Médico cambia → mostrar calendario y cargar servicios
         selMed.addEventListener('change', function() {
             const medicoId = this.value;
-            selFecha.disabled = !medicoId;
-            selHora.disabled = true;
-            selHora.innerHTML = '<option value="">Selecciona médico y fecha primero</option>';
+            calDoctorId = medicoId;
+
+            document.getElementById('calendario-cita').classList.add('hidden');
+            document.getElementById('horas-cita').classList.add('hidden');
+            document.getElementById('fecha-seleccionada').classList.add('hidden');
+            document.getElementById('input-fecha').value = '';
+            document.getElementById('input-hora').value = '';
+
             selSrv.disabled = true;
             selSrv.innerHTML = '<option value="">Cargando servicios...</option>';
             if (!medicoId) return;
+
+            iniciarCalendario();
+            document.getElementById('calendario-cita').classList.remove('hidden');
+            cargarFechasDisponibles();
 
             spinnerOn('spinner-srv');
             fetch(`{% url 'ajax_servicios' %}?doctor_id=${medicoId}`)
@@ -397,29 +571,6 @@
                     selSrv.disabled = false;
                 })
                 .catch(() => spinnerOff('spinner-srv'));
-        });
-
-        // Fecha cambia → cargar horas disponibles
-        selFecha.addEventListener('change', function() {
-            const medicoId = selMed.value;
-            const fecha = this.value;
-            selHora.disabled = true;
-            selHora.innerHTML = '<option value="">Cargando horas...</option>';
-            if (!medicoId || !fecha) return;
-
-            spinnerOn('spinner-hora');
-            fetch(`{% url 'ajax_horas' %}?medico_id=${medicoId}&fecha=${fecha}`)
-                .then(r => r.json())
-                .then(data => {
-                    spinnerOff('spinner-hora');
-                    const horas = data.horas || [];
-                    selHora.innerHTML = horas.length
-                        ? '<option value="">Selecciona hora</option>' +
-                          horas.map(h => `<option value="${h}">${h}</option>`).join('')
-                        : `<option value="">${data.mensaje || 'Sin disponibilidad'}</option>`;
-                    selHora.disabled = horas.length === 0;
-                })
-                .catch(() => spinnerOff('spinner-hora'));
         });
     </script>
 </body>

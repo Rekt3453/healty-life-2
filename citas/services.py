@@ -37,7 +37,8 @@ class CitaService:
         """
         from citas.models import Cita as CitaModel, PagoCita, ServicioEspecialidad, Especialidad
         from usuarios.models import PacienteDatosPersonales, PacienteEspecial, Sede, Doctor
-        from datetime import datetime
+        from datetime import datetime, date, timedelta
+        from django.utils.timezone import make_aware, localtime
 
         CitaService.verificar_rol(user, 'paciente')
 
@@ -50,9 +51,40 @@ class CitaService:
             'menor':  ['Pediatría', 'General'],
         }
 
-        fecha_hora = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
-        if fecha_hora < datetime.now():
-            raise ValueError("No puedes solicitar una cita en una fecha/hora que ya ha pasado.")
+        fecha_hora_naive = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
+        fecha_hora = make_aware(fecha_hora_naive)
+
+        # Debe ser al menos mañana
+        manana = make_aware(datetime.combine(date.today(), datetime.min.time())) + timedelta(days=1)
+        if fecha_hora < manana:
+            raise ValueError("Las citas deben solicitarse con al menos un día de anticipación.")
+
+        # Validar disponibilidad del doctor para esa fecha/hora
+        from citas.models import DisponibilidadDoctor as DispDoctor
+        doctor = Doctor.objects.get(id_doctor=doctor_id)
+        try:
+            disp = DispDoctor.objects.get(doctor=doctor, fecha=fecha)
+        except DispDoctor.DoesNotExist:
+            raise ValueError("El médico no tiene disponibilidad configurada para esta fecha.")
+        if not disp.turno_mañana and not disp.turno_tarde:
+            raise ValueError("El médico no tiene disponibilidad configurada para esta fecha.")
+
+        hora_int = fecha_hora_naive.hour
+        if disp.turno_mañana and 8 <= hora_int < 13:
+            pass
+        elif disp.turno_tarde and 13 <= hora_int < 18:
+            pass
+        else:
+            raise ValueError("La hora seleccionada no está dentro de los turnos disponibles del médico.")
+
+        # Verificar conflicto de horario con el mismo doctor (bloques de 1 hora)
+        if CitaModel.objects.filter(
+            id_doctor_id=doctor_id,
+            fecha_consulta__gte=fecha_hora,
+            fecha_consulta__lt=fecha_hora + timedelta(hours=1),
+            status=True,
+        ).exists():
+            raise ValueError("El médico ya tiene una cita agendada en ese bloque horario. Por favor selecciona otro horario.")
 
         sede = Sede.objects.get(id_sede=sede_id)
         especialidad = Especialidad.objects.get(id_especialidad=especialidad_id)
@@ -207,34 +239,52 @@ class CitaService:
     @staticmethod
     def obtener_horas_disponibles(doctor_id, fecha):
         """
-        Retorna slots de 30 min disponibles para un doctor en una fecha.
-        Calcula ocupadas desde citas existentes y devuelve horarios libres.
+        Retorna slots de 1 hora disponibles para un doctor en una fecha específica,
+        respetando su disponibilidad configurada para esa fecha.
         """
-        from citas.models import Cita as CitaModel, Doctor, Horario
+        from citas.models import Cita as CitaModel, Doctor, DisponibilidadDoctor
         from datetime import datetime, date, time, timedelta
 
         doctor = Doctor.objects.get(id_doctor=doctor_id)
-        if not doctor.id_horario:
-            return [], 'Doctor sin horario asignado'
 
-        horario = Horario.objects.get(id_horario=doctor.id_horario)
-        inicio = horario.hora_inicio or time(8, 0)
-        fin = horario.hora_fin or time(20, 0)
+        if isinstance(fecha, str):
+            fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
 
+        try:
+            disp = DisponibilidadDoctor.objects.get(doctor=doctor, fecha=fecha)
+        except DisponibilidadDoctor.DoesNotExist:
+            return [], 'Doctor no disponible este día'
+
+        if not disp.turno_mañana and not disp.turno_tarde:
+            return [], 'Doctor no disponible este día'
+
+        slots = []
+        if disp.turno_mañana:
+            h = time(8, 0)
+            while h < time(13, 0):
+                slots.append(h.strftime('%H:%M'))
+                h = (datetime.combine(date.today(), h) + timedelta(hours=1)).time()
+        if disp.turno_tarde:
+            h = time(13, 0)
+            while h < time(18, 0):
+                slots.append(h.strftime('%H:%M'))
+                h = (datetime.combine(date.today(), h) + timedelta(hours=1)).time()
+
+        from django.utils.timezone import is_naive, localtime
+        from datetime import timezone as dt_tz
         ocupadas = set()
         for c in CitaModel.objects.filter(id_doctor_id=doctor_id, fecha_consulta__date=fecha, status=True):
             if c.fecha_consulta:
-                ocupadas.add(c.fecha_consulta.strftime('%H:%M'))
+                if is_naive(c.fecha_consulta):
+                    # PostgreSQL timestamp without time zone stores UTC
+                    aware_utc = c.fecha_consulta.replace(tzinfo=dt_tz.utc)
+                    hora_local = localtime(aware_utc)
+                    ocupadas.add(f"{hora_local.hour:02d}:00")
+                else:
+                    hora_local = localtime(c.fecha_consulta)
+                    ocupadas.add(f"{hora_local.hour:02d}:00")
 
-        horas = []
-        actual = datetime.combine(date.today(), inicio)
-        limite = datetime.combine(date.today(), fin)
-        while actual < limite:
-            hora_str = actual.strftime('%H:%M')
-            if hora_str not in ocupadas:
-                horas.append(hora_str)
-            actual += timedelta(minutes=30)
-
+        horas = [s for s in slots if s not in ocupadas]
         return horas, None
 
     @staticmethod

@@ -3,134 +3,172 @@
 {% block title %}Mis Facturas - Healthy Life{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Mis Facturas</h1>
-        <p class="text-gray-600 mt-2">Consulta y gestiona el pago de tus facturas médicas</p>
+<div class="container">
+    <div class="mb-4">
+        <h1 class="fw-bold">Mis Facturas</h1>
+        <p class="text-muted">Revisa el estado de pago de tus citas médicas</p>
     </div>
 
     <!-- Filtros -->
-    <div class="bg-white rounded-lg shadow mb-6 p-4">
-        <form method="get" class="flex flex-wrap gap-4 items-end">
-            <div>
-                <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                <select name="estado" id="estado" class="form-select rounded-md border-gray-300">
-                    <option value="">Todos</option>
-                    {% for estado_valor, estado_label in estados_choices %}
-                        <option value="{{ estado_valor }}" {% if estado_actual == estado_valor %}selected{% endif %}>
-                            {{ estado_label }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Filtrar
-            </button>
-            <a href="{% url 'mis_facturas' %}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-                Limpiar
-            </a>
-        </form>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-auto">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select name="estado" id="estado" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        {% for estado_valor, estado_label in estados_choices %}
+                            <option value="{{ estado_valor }}" {% if estado_actual == estado_valor %}selected{% endif %}>
+                                {{ estado_label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                    <a href="{% url 'mis_facturas' %}" class="btn btn-secondary btn-sm">Limpiar</a>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Lista de facturas/pagos -->
+    <!-- Lista de citas con factura/pago -->
     {% if page_obj %}
-        <div class="grid gap-6">
-            {% for factura in page_obj %}
-                <div class="bg-white rounded-lg shadow p-6 border-l-4 {% if factura.status %}border-green-500{% else %}border-yellow-500{% endif %}">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <div class="flex items-center mb-2">
-                                <h3 class="text-lg font-semibold text-gray-900">Pago #{{ factura.id_pagos_cita }}</h3>
-                                <span class="ml-3 px-2 py-1 text-xs rounded-full {% if factura.status %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-                                    {% if factura.status %}Pagado{% else %}Pendiente{% endif %}
+        <div class="vstack gap-4">
+            {% for cita in page_obj %}
+                {% with pago=cita.id_pago_cita %}
+                <div class="card
+                    {% if cita.estado == 'atendida' or cita.estado == 'confirmada' or cita.estado == 'en_consulta' %}border-success border-2
+                    {% elif cita.estado == 'aprobada' %}border-primary border-2
+                    {% elif cita.estado == 'pago_pendiente' %}border-warning border-2
+                    {% elif cita.estado == 'solicitada' %}border-info border-2
+                    {% else %}border-secondary{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                            <h5 class="card-title mb-0">Cita #{{ cita.id_citas }}</h5>
+                            <!-- Estado de la cita -->
+                            {% if cita.estado == 'solicitada' %}
+                                <span class="badge bg-warning text-dark">Solicitada</span>
+                            {% elif cita.estado == 'aprobada' %}
+                                <span class="badge bg-primary">Aprobada</span>
+                            {% elif cita.estado == 'pago_pendiente' %}
+                                <span class="badge bg-warning">Pago en revisión</span>
+                            {% elif cita.estado == 'confirmada' %}
+                                <span class="badge bg-success">Confirmada</span>
+                            {% elif cita.estado == 'en_consulta' %}
+                                <span class="badge bg-info text-dark">En consulta</span>
+                            {% elif cita.estado == 'atendida' %}
+                                <span class="badge bg-secondary">Atendida</span>
+                            {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' %}
+                                <span class="badge bg-danger">{{ cita.get_estado_display }}</span>
+                            {% endif %}
+                            <!-- Estado del pago -->
+                            {% if pago %}
+                                {% if pago.estado_pago == 'aprobado' %}
+                                    <span class="badge bg-success">Pagado</span>
+                                {% elif pago.estado_pago == 'pendiente' %}
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border">{{ pago.get_estado_pago_display }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <div class="row g-2 text-muted small">
+                            <div class="col-md-6">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ cita.fecha_consulta|date:"d/m/Y H:i"|default:"—" }}
+                            </div>
+                            <div class="col-md-6">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                {{ cita.id_sede.nombre_sede|default:"—" }}
+                            </div>
+                            <div class="col-md-6">
+                                <i class="bi bi-person me-1"></i>
+                                {{ cita.id_doctor|default:"Sin asignar" }}
+                            </div>
+                            <div class="col-md-6">
+                                <i class="bi bi-heart-pulse me-1"></i>
+                                {{ cita.id_especialidades.tipo_especialidad|default:"—" }}
+                            </div>
+                            {% if pago and pago.metodo_pago %}
+                            <div class="col-md-6">
+                                <i class="bi bi-credit-card me-1"></i>
+                                Método: {{ pago.metodo_pago }}
+                            </div>
+                            {% endif %}
+                            {% if pago and pago.referencia_pago %}
+                            <div class="col-md-6">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Ref: {{ pago.referencia_pago }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-3 p-2 bg-light rounded d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="small">
+                                <span class="text-muted">Monto:</span>
+                                <span class="fw-bold">
+                                    {% if pago and pago.monto_pagar %}
+                                        ${{ pago.monto_pagar }}
+                                    {% else %}
+                                        Por definir
+                                    {% endif %}
                                 </span>
                             </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                                <div class="flex items-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    Consulta: {{ factura.fecha_consulta|date:"d/m/Y H:i"|default:"—" }}
-                                </div>
-
-                                <div class="flex items-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    </svg>
-                                    {% if factura.id_sede %}{{ factura.id_sede.nombre_sede }}{% else %}—{% endif %}
-                                </div>
-
-                                {% if factura.metodo_pago %}
-                                <div class="flex items-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                                    </svg>
-                                    Método: {{ factura.metodo_pago }}
-                                </div>
+                            <!-- Acciones -->
+                            <div>
+                                {% if cita.estado == 'aprobada' %}
+                                    <a href="{% url 'pagar_cita' cita.id_citas %}" class="btn btn-success btn-sm">Pagar</a>
+                                {% elif cita.estado == 'confirmada' or cita.estado == 'en_consulta' or cita.estado == 'atendida' %}
+                                    <a href="{% url 'detalle_factura' cita.id_citas %}" class="btn btn-outline-secondary btn-sm">Ver factura</a>
                                 {% endif %}
-
-                                {% if factura.referencia_pago %}
-                                <div class="flex items-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Ref: {{ factura.referencia_pago }}
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="mt-4 p-3 bg-gray-50 rounded-lg">
-                                <div class="text-sm">
-                                    <span class="text-gray-600">Monto a pagar:</span>
-                                    <span class="font-semibold text-gray-900 ml-2">
-                                        {% if factura.monto_pagar %}{{ factura.monto_pagar }}{% else %}Por definir{% endif %}
-                                    </span>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% endwith %}
             {% endfor %}
         </div>
 
         <!-- Paginación -->
         {% if page_obj.has_other_pages %}
-            <div class="mt-8 flex justify-center">
-                <nav class="flex space-x-2">
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}"
-                           class="px-3 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Anterior</a>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Anterior</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
                     {% endif %}
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
-                            <span class="px-3 py-2 bg-blue-600 text-white rounded-md">{{ num }}</span>
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                         {% else %}
-                            <a href="?page={{ num }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}"
-                               class="px-3 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50">{{ num }}</a>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">{{ num }}</a>
+                            </li>
                         {% endif %}
                     {% endfor %}
                     {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}"
-                           class="px-3 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Siguiente</a>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Siguiente</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
                     {% endif %}
-                </nav>
-            </div>
+                </ul>
+            </nav>
         {% endif %}
     {% else %}
-        <div class="bg-white rounded-lg shadow p-12 text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No tienes facturas</h3>
-            <p class="mt-1 text-sm text-gray-500">Las facturas aparecerán aquí cuando agendes citas.</p>
-            <div class="mt-6">
-                <a href="{% url 'agendar_cita' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Agendar Cita
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-receipt display-4 text-muted"></i>
+                <h5 class="mt-3 text-muted">No tienes facturas</h5>
+                <p class="text-muted small">Las facturas aparecerán aquí cuando agendes citas.</p>
+                <a href="{% url 'agendar_cita' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>Agendar Cita
                 </a>
             </div>
         </div>

@@ -568,8 +568,6 @@ class RegistroStaffForm(forms.Form):
             ('V', 'V - Venezolano'),
             ('E', 'E - Extranjero'),
             ('J', 'J - Jurídico'),
-            ('C', 'C - Consejo Comunal'),
-            ('G', 'G - Gobierno'),
             ('P', 'P - Pasaporte'),
         ],
         required=True,
@@ -1545,51 +1543,188 @@ class RegistrarPacienteEspecialForm(forms.Form):
         ('F', 'Femenino'),
         ('O', 'Otro'),
     ]
+    TIPO_CEDULA_CHOICES_REGISTRO = [
+        ('',  'Seleccionar... (opcional)'),
+        ('V', 'V - Venezolano'),
+        ('E', 'E - Extranjero'),
+        ('J', 'J - Jurídico'),
+        ('C', 'C - Consejo Comunal'),
+        ('G', 'G - Gobierno'),
+        ('P', 'P - Pasaporte'),
+    ]
+
+    _RE_NOMBRE = r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$"
+    _RE_TELEFONO = r"^[\d\s\-\+\(\)]+$"
+    _MSG_NOMBRE = "Solo se permiten letras, espacios y tildes."
+    _MSG_TELEFONO = "Solo se permiten números, espacios, guiones, paréntesis y '+'"
 
     nombre_1 = forms.CharField(
-        max_length=200, required=True, label="Primer nombre",
-        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Primer nombre'})
+        max_length=30, required=True, label="Primer nombre",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Primer nombre',
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Mínimo 2, máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     nombre_2 = forms.CharField(
-        max_length=200, required=False, label="Segundo nombre",
-        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Segundo nombre (opcional)'})
+        max_length=30, required=False, label="Segundo nombre",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Segundo nombre (opcional)',
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     apellido_1 = forms.CharField(
-        max_length=200, required=True, label="Primer apellido",
-        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Primer apellido'})
+        max_length=30, required=True, label="Primer apellido",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Primer apellido',
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Mínimo 2, máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     apellido_2 = forms.CharField(
-        max_length=200, required=False, label="Segundo apellido",
-        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Segundo apellido (opcional)'})
+        max_length=30, required=False, label="Segundo apellido",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Segundo apellido (opcional)',
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     sexo = forms.ChoiceField(
         choices=SEXO_CHOICES, required=True, label="Sexo",
-        widget=forms.Select(attrs={'class': _CSS})
+        widget=forms.Select(attrs={'class': _CSS, 'required': 'required'})
     )
     fecha_nacimiento = forms.DateField(
         required=True, label="Fecha de nacimiento",
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': _CSS,
-            'max': date.today().isoformat(),
-        })
+        widget=forms.DateInput(
+            format='%Y-%m-%d',
+            attrs={
+                'type': 'date',
+                'class': _CSS,
+                'max': date.today().isoformat(),
+                'required': 'required',
+            }
+        )
     )
     telefono = forms.CharField(
-        max_length=50, required=False, label="Teléfono de contacto",
-        widget=forms.TextInput(attrs={'class': _CSS, 'placeholder': 'Teléfono (opcional)'})
+        max_length=20, required=False, label="Teléfono de contacto",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Teléfono (opcional)',
+            'minlength': '7',
+            'maxlength': '20',
+            'pattern': r'[\d\s\-\+\(\)]+',
+            'title': 'Solo números, espacios, guiones, paréntesis y +. Mínimo 7 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_TELEFONO, _MSG_TELEFONO),
+            MinLengthValidator(7, "Debe tener al menos 7 caracteres."),
+        ]
+    )
+    tipo_cedula = forms.ChoiceField(
+        choices=TIPO_CEDULA_CHOICES_REGISTRO, required=False, label="Tipo de cédula",
+        widget=forms.Select(attrs={'class': _CSS})
+    )
+    cedula = forms.CharField(
+        max_length=20, required=False, label="Número de cédula",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Número de cédula (opcional)',
+            'minlength': '5',
+            'maxlength': '20',
+            'pattern': r'[\d\-]+',
+            'title': 'Solo números y guiones. Mínimo 5, máximo 20 caracteres.',
+        }),
     )
 
     def clean_nombre_1(self):
-        return self.cleaned_data['nombre_1'].strip().upper()
+        val = self.cleaned_data['nombre_1'].strip()
+        if not val:
+            raise forms.ValidationError("El primer nombre es obligatorio.")
+        if len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
 
     def clean_nombre_2(self):
-        return (self.cleaned_data.get('nombre_2') or '').strip().upper()
+        val = (self.cleaned_data.get('nombre_2') or '').strip()
+        if val and len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if val and len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
 
     def clean_apellido_1(self):
-        return self.cleaned_data['apellido_1'].strip().upper()
+        val = self.cleaned_data['apellido_1'].strip()
+        if not val:
+            raise forms.ValidationError("El primer apellido es obligatorio.")
+        if len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
 
     def clean_apellido_2(self):
-        return (self.cleaned_data.get('apellido_2') or '').strip().upper()
+        val = (self.cleaned_data.get('apellido_2') or '').strip()
+        if val and len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if val and len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
+
+    def clean_telefono(self):
+        val = (self.cleaned_data.get('telefono') or '').strip()
+        if val:
+            if len(val) < 7:
+                raise forms.ValidationError("El teléfono debe tener al menos 7 caracteres.")
+            if len(val) > 20:
+                raise forms.ValidationError("El teléfono no puede exceder 20 caracteres.")
+        return val
+
+    def clean_cedula(self):
+        val = (self.cleaned_data.get('cedula') or '').strip()
+        if val and len(val) > 20:
+            raise forms.ValidationError("La cédula no puede exceder 20 caracteres.")
+        return val
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_cedula = cleaned_data.get('tipo_cedula')
+        cedula = cleaned_data.get('cedula')
+        if tipo_cedula and not cedula:
+            self.add_error('cedula', "Debe indicar el número de cédula si seleccionó un tipo.")
+        if cedula and not tipo_cedula:
+            self.add_error('tipo_cedula', "Debe seleccionar un tipo de cédula si indicó un número.")
+        return cleaned_data
 
     def clean_fecha_nacimiento(self):
         """Bloquea si la fecha es futura o si la edad es >= 18 años."""
@@ -1616,51 +1751,183 @@ class EditarPacienteEspecialForm(forms.Form):
         ('F', 'Femenino'),
         ('O', 'Otro'),
     ]
+    TIPO_CEDULA_CHOICES_REGISTRO = [
+        ('',  'Seleccionar... (opcional)'),
+        ('V', 'V - Venezolano'),
+        ('E', 'E - Extranjero'),
+        ('J', 'J - Jurídico'),
+        ('C', 'C - Consejo Comunal'),
+        ('G', 'G - Gobierno'),
+        ('P', 'P - Pasaporte'),
+    ]
+
+    _RE_NOMBRE = r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$"
+    _RE_TELEFONO = r"^[\d\s\-\+\(\)]+$"
+    _MSG_NOMBRE = "Solo se permiten letras, espacios y tildes."
+    _MSG_TELEFONO = "Solo se permiten números, espacios, guiones, paréntesis y '+'"
 
     nombre_1 = forms.CharField(
-        max_length=200, required=True, label="Primer nombre",
-        widget=forms.TextInput(attrs={'class': _CSS})
+        max_length=30, required=True, label="Primer nombre",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Mínimo 2, máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     nombre_2 = forms.CharField(
-        max_length=200, required=False, label="Segundo nombre",
-        widget=forms.TextInput(attrs={'class': _CSS})
+        max_length=30, required=False, label="Segundo nombre",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     apellido_1 = forms.CharField(
-        max_length=200, required=True, label="Primer apellido",
-        widget=forms.TextInput(attrs={'class': _CSS})
+        max_length=30, required=True, label="Primer apellido",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Mínimo 2, máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     apellido_2 = forms.CharField(
-        max_length=200, required=False, label="Segundo apellido",
-        widget=forms.TextInput(attrs={'class': _CSS})
+        max_length=30, required=False, label="Segundo apellido",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'minlength': '2',
+            'maxlength': '30',
+            'pattern': r'[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+',
+            'title': 'Solo letras, espacios y tildes. Máximo 30 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_NOMBRE, _MSG_NOMBRE),
+            MinLengthValidator(2, "Debe tener al menos 2 caracteres."),
+        ]
     )
     sexo = forms.ChoiceField(
         choices=SEXO_CHOICES, required=True, label="Sexo",
-        widget=forms.Select(attrs={'class': _CSS})
+        widget=forms.Select(attrs={'class': _CSS, 'required': 'required'})
     )
     fecha_nacimiento = forms.DateField(
         required=True, label="Fecha de nacimiento",
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': _CSS,
-            'max': date.today().isoformat(),
-        })
+        widget=forms.DateInput(
+            format='%Y-%m-%d',
+            attrs={
+                'type': 'date',
+                'class': _CSS,
+                'max': date.today().isoformat(),
+                'required': 'required',
+            }
+        )
     )
     telefono = forms.CharField(
         max_length=50, required=False, label="Teléfono de contacto",
-        widget=forms.TextInput(attrs={'class': _CSS})
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'minlength': '7',
+            'maxlength': '20',
+            'pattern': r'[\d\s\-\+\(\)]+',
+            'title': 'Solo números, espacios, guiones, paréntesis y +. Mínimo 7 caracteres.',
+        }),
+        validators=[
+            RegexValidator(_RE_TELEFONO, _MSG_TELEFONO),
+            MinLengthValidator(7, "Debe tener al menos 7 caracteres."),
+        ]
+    )
+    tipo_cedula = forms.ChoiceField(
+        choices=TIPO_CEDULA_CHOICES_REGISTRO, required=False, label="Tipo de cédula",
+        widget=forms.Select(attrs={'class': _CSS})
+    )
+    cedula = forms.CharField(
+        max_length=20, required=False, label="Número de cédula",
+        widget=forms.TextInput(attrs={
+            'class': _CSS,
+            'placeholder': 'Número de cédula (opcional)',
+            'minlength': '5',
+            'maxlength': '20',
+            'pattern': r'[\d\-]+',
+            'title': 'Solo números y guiones. Mínimo 5, máximo 20 caracteres.',
+        }),
     )
 
     def clean_nombre_1(self):
-        return self.cleaned_data['nombre_1'].strip().upper()
+        val = self.cleaned_data['nombre_1'].strip()
+        if not val:
+            raise forms.ValidationError("El primer nombre es obligatorio.")
+        if len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
 
     def clean_nombre_2(self):
-        return (self.cleaned_data.get('nombre_2') or '').strip().upper()
+        val = (self.cleaned_data.get('nombre_2') or '').strip()
+        if val and len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if val and len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
 
     def clean_apellido_1(self):
-        return self.cleaned_data['apellido_1'].strip().upper()
+        val = self.cleaned_data['apellido_1'].strip()
+        if not val:
+            raise forms.ValidationError("El primer apellido es obligatorio.")
+        if len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
 
     def clean_apellido_2(self):
-        return (self.cleaned_data.get('apellido_2') or '').strip().upper()
+        val = (self.cleaned_data.get('apellido_2') or '').strip()
+        if val and len(val) < 2:
+            raise forms.ValidationError("Debe tener al menos 2 caracteres.")
+        if val and len(val) > 30:
+            raise forms.ValidationError("No puede exceder 30 caracteres.")
+        return val.upper()
+
+    def clean_telefono(self):
+        val = (self.cleaned_data.get('telefono') or '').strip()
+        if val:
+            if len(val) < 7:
+                raise forms.ValidationError("El teléfono debe tener al menos 7 caracteres.")
+            if len(val) > 20:
+                raise forms.ValidationError("El teléfono no puede exceder 20 caracteres.")
+        return val
+
+    def clean_cedula(self):
+        val = (self.cleaned_data.get('cedula') or '').strip()
+        if val and len(val) > 20:
+            raise forms.ValidationError("La cédula no puede exceder 20 caracteres.")
+        return val
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_cedula = cleaned_data.get('tipo_cedula')
+        cedula = cleaned_data.get('cedula')
+        if tipo_cedula and not cedula:
+            self.add_error('cedula', "Debe indicar el número de cédula si seleccionó un tipo.")
+        if cedula and not tipo_cedula:
+            self.add_error('tipo_cedula', "Debe seleccionar un tipo de cédula si indicó un número.")
+        return cleaned_data
 
     def clean_fecha_nacimiento(self):
         """Bloquea si la fecha es futura o si la edad es >= 18 años."""
