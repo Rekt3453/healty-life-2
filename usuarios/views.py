@@ -35,7 +35,12 @@ from .services.user_service import (
 from .services.email_service import send_welcome_email
 
 def home(request):
-    return render(request, 'home.html')
+    sedes = Sede.objects.filter(status=True).select_related(
+        'id_direccion__id_estado',
+        'id_direccion__id_ciudad',
+        'id_cm'
+    ).order_by('id_sede')
+    return render(request, 'home.html', {'sedes': sedes})
 
 def login_rol(request, rol_esperado, template_name, dashboard_name):
     if request.user.is_authenticated:
@@ -101,6 +106,14 @@ def registro_paciente(request):
         except:
             logout(request)
     
+    sede_id = request.GET.get('sede')
+    initial = {}
+    if sede_id:
+        try:
+            initial['sede'] = int(sede_id)
+        except (ValueError, TypeError):
+            pass
+
     if request.method == 'POST':
         form = RegistroPacienteForm(request.POST)
         
@@ -119,7 +132,7 @@ def registro_paciente(request):
                 # Enviar correo de bienvenida
                 datos_paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
                 password_plana = form.cleaned_data.get('password1', '')
-                send_welcome_email(user, datos_paciente, password_plana)
+                send_welcome_email(user, datos_paciente)
 
                 # Usar el backend personalizado para login
                 auth_backend = CustomAuthBackend()
@@ -151,17 +164,17 @@ def registro_paciente(request):
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
     else:
-        form = RegistroPacienteForm()
-    
+        form = RegistroPacienteForm(initial=initial)
+
     # Pasar sedes disponibles al template
     from .models import Sede
     sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
-    
+
     context = {
         'form': form,
         'sedes': sedes,
     }
-    
+
     return render(request, 'usuarios/registro_paciente.html', context)
 # ==================== PERFIL PACIENTE ====================
 
