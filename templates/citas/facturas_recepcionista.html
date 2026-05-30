@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Facturas - Recepción{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Facturas y Citas Pagadas</h2>
+            
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="fecha_desde" class="form-label">Fecha Desde</label>
+                            <input type="date" class="form-control" name="fecha_desde" id="fecha_desde" value="{{ fecha_desde }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
+                            <input type="date" class="form-control" name="fecha_hasta" id="fecha_hasta" value="{{ fecha_hasta }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="q" class="form-label">Buscar paciente o médico</label>
+                            <input type="text" class="form-control" name="q" id="q" value="{{ busqueda }}" placeholder="Nombre del paciente o médico...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100" style="background-color: #2E7D32; border-color: #2E7D32;">
+                                Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabla de facturas -->
+            <div class="card">
+                <div class="card-header text-white" style="background-color: #2E7D32;">
+                    <h5 class="mb-0">Listado de Citas Pagadas</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="text-white" style="background-color: #2E7D32;">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Paciente</th>
+                                    <th>Médico</th>
+                                    <th>Fecha Consulta</th>
+                                    <th>Estado Cita</th>
+                                    <th>Monto Pagado</th>
+                                    <th>N° Factura</th>
+                                    <th>Estado Factura</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cita in page_obj %}
+                                <tr>
+                                    <td>{{ cita.id_citas }}</td>
+                                    <td>
+                                        {% if cita.id_paciente %}
+                                            {{ cita.id_paciente.nombre_1 }} {{ cita.id_paciente.apellido_1 }}
+                                        {% else %}
+                                            <span class="text-muted">Sin paciente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if cita.id_doctor %}
+                                            Dr. {{ cita.id_doctor.nombre_1 }} {{ cita.id_doctor.apellido_1 }}
+                                        {% else %}
+                                            <span class="text-muted">Sin médico</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if cita.fecha_consulta %}
+                                            {{ cita.fecha_consulta|date:"d/m/Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if cita.estado == 'atendida' %}bg-success
+                                            {% elif cita.estado == 'pagada_adelanto' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ cita.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if cita.id_pago_cita and cita.id_pago_cita.monto_pagar %}
+                                            ${{ cita.id_pago_cita.monto_pagar|floatformat:2 }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if cita.id_pago_cita and cita.id_pago_cita.id_factura %}
+                                            <a href="{% url 'factura_pdf' cita.id_pago_cita.id_factura.id_factura %}" class="text-decoration-none">
+                                                {{ cita.id_pago_cita.id_factura.numero }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Sin factura</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if cita.id_pago_cita and cita.id_pago_cita.id_factura %}
+                                            <span class="badge 
+                                                {% if cita.id_pago_cita.id_factura.estado == 'pagada' %}bg-success
+                                                {% elif cita.id_pago_cita.id_factura.estado == 'emitida' %}bg-primary
+                                                {% elif cita.id_pago_cita.id_factura.estado == 'borrador' %}bg-warning text-dark
+                                                {% elif cita.id_pago_cita.id_factura.estado == 'anulada' %}bg-danger
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ cita.id_pago_cita.id_factura.get_estado_display }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        No se encontraron citas pagadas en el período seleccionado.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Paginación" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if fecha_desde %}fecha_desde={{ fecha_desde }}&{% endif %}{% if fecha_hasta %}fecha_hasta={{ fecha_hasta }}&{% endif %}{% if busqueda %}q={{ busqueda }}&{% endif %}page={{ page_obj.previous_page_number }}" style="color: #2E7D32;">Anterior</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link" style="background-color: #2E7D32; border-color: #2E7D32;">
+                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if fecha_desde %}fecha_desde={{ fecha_desde }}&{% endif %}{% if fecha_hasta %}fecha_hasta={{ fecha_hasta }}&{% endif %}{% if busqueda %}q={{ busqueda }}&{% endif %}page={{ page_obj.next_page_number }}" style="color: #2E7D32;">Siguiente</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Siguiente</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

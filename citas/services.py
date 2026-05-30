@@ -160,12 +160,14 @@ class CitaService:
     @transaction.atomic
     def crear_cita_con_reserva(user, *, sede_id, especialidad_id, doctor_id, servicio_id,
                                  fecha, hora, motivo_raw, paciente_objetivo='self',
-                                 cedula=None, telefono=None, banco_emisor=None, referencia=None):
+                                 cedula=None, telefono=None, banco_emisor=None, referencia=None,
+                                 servicios_seleccionados=None):
         """
-        Crea la cita vía crear_cita y luego registra los datos de transferencia bancaria
-        en ReservaTransferencia para que la recepcionista pueda verificarlos.
+        Crea la cita vía crear_cita, registra los datos de transferencia bancaria
+        en ReservaTransferencia, y guarda los servicios médicos pre-seleccionados
+        por el paciente en CitaServicioSolicitado.
         """
-        from citas.models import ReservaTransferencia
+        from citas.models import ReservaTransferencia, ServicioMedico, CitaServicioSolicitado
 
         cita, mensaje = CitaService.crear_cita(
             user,
@@ -186,6 +188,21 @@ class CitaService:
             banco_emisor=banco_emisor,
             referencia=referencia,
         )
+
+        # Guardar servicios pre-seleccionados por el paciente
+        if servicios_seleccionados:
+            for sid in servicios_seleccionados:
+                try:
+                    servicio = ServicioMedico.objects.get(pk=int(sid), activo=True)
+                    CitaServicioSolicitado.objects.create(
+                        id_cita=cita,
+                        id_servicio_medico=servicio,
+                        nombre_servicio=servicio.nombre,
+                        precio_estimado=servicio.precio,
+                        cantidad=1,
+                    )
+                except (ServicioMedico.DoesNotExist, ValueError):
+                    continue
 
         return cita, mensaje
 
@@ -497,13 +514,32 @@ class FacturacionService:
     def generar_factura_cita(cita, precio_fijo=None):
         """
         Genera factura para una cita atendida.
+        - Si la consulta tiene servicios registrados (ConsultaServicio), usa su total.
         - Si existe pago previo, lo asocia y calcula estado según saldo.
         - Si no existe pago, usa precio_fijo (o monto del servicio) y deja factura pendiente.
         """
-        from citas.models import Factura
+        from citas.models import Factura, ConsultaServicio, ConsultaMedica
+
+        # Buscar servicios registrados en la consulta médica
+        total_servicios = Decimal("0.00")
+        descripcion = "Consulta médica"
+        try:
+            consulta = cita.consulta_medica
+            servicios_qs = ConsultaServicio.objects.filter(id_consulta=consulta)
+            if servicios_qs.exists():
+                for cs in servicios_qs:
+                    total_servicios += Decimal(str(cs.precio_cobrado or 0)) * cs.cantidad
+                nombres = [cs.nombre_servicio or str(cs.id_servicio_medico) for cs in servicios_qs]
+                descripcion = ", ".join(nombres)
+        except (ConsultaMedica.DoesNotExist, AttributeError):
+            pass
 
         pago = getattr(cita, 'id_pago_cita', None)
-        if pago and pago.status:
+
+        if total_servicios > 0:
+            # Usar total calculado de servicios
+            subtotal = total_servicios
+        elif pago and pago.status:
             subtotal = Decimal(str(pago.monto_pagar or 0))
         else:
             subtotal = Decimal(str(precio_fijo or 0))
@@ -531,10 +567,7 @@ class FacturacionService:
             defaults={
                 "numero": numero,
                 "id_pago_cita": pago,
-                "descripcion": (
-                    str(cita.id_servicio_especialidad)
-                    if cita.id_servicio_especialidad else "Consulta médica"
-                ),
+                "descripcion": descripcion,
                 "subtotal": subtotal,
                 "impuesto": impuesto,
                 "total": total,
@@ -542,10 +575,15 @@ class FacturacionService:
             }
         )
 
-        if not created and pago and not factura.id_pago_cita:
-            factura.id_pago_cita = pago
+        if not created:
+            # Actualizar factura existente con datos de servicios
+            factura.descripcion = descripcion
+            factura.subtotal = subtotal
+            factura.total = total
             factura.estado = estado_factura
-            factura.save(update_fields=['id_pago_cita', 'estado'])
+            if pago and not factura.id_pago_cita:
+                factura.id_pago_cita = pago
+            factura.save(update_fields=['descripcion', 'subtotal', 'total', 'estado', 'id_pago_cita'])
 
         if pago and not pago.id_factura:
             pago.id_factura = factura

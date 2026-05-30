@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mis Servicios Médicos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><span class="text-success">&#x1F9EA;</span> Mis Servicios Médicos</h2>
+        <a href="{% url 'servicio_crear' %}" class="btn text-white" style="background-color: #2E7D32; border-color: #2E7D32;">
+            <i class="bi bi-plus-lg"></i> Nuevo Servicio
+        </a>
+    </div>
+
+    {% if servicios %}
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="text-white" style="background-color: #2E7D32;">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in servicios %}
+                        <tr>
+                            <td class="fw-medium">{{ s.nombre }}</td>
+                            <td class="text-muted">{{ s.descripcion|default:"—" }}</td>
+                            <td class="text-end">${{ s.precio|floatformat:2 }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'servicio_editar' s.id_servicio_medico %}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                <a href="{% url 'servicio_toggle' s.id_servicio_medico %}" class="btn btn-sm btn-outline-danger ms-1"
+                                   onclick="return confirm('¿Estás seguro de desactivar este servicio?');">
+                                    <i class="bi bi-eye-slash"></i> Desactivar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <h5 class="alert-heading">Sin servicios registrados</h5>
+        <p class="mb-0">Aún no tienes servicios en tu catálogo. Haz clic en "Nuevo Servicio" para agregar uno.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -253,9 +253,27 @@
                         <input type="hidden" name="fecha" id="input-fecha" required>
                         <input type="hidden" name="hora" id="input-hora" required>
 
-                        <!-- Paso 6: Servicio (poblado por AJAX) -->
+                        <!-- Paso 6: Servicios médicos del doctor (checkboxes dinámicos) -->
+                        <div id="servicios-medico" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Servicios médicos disponibles
+                                <span class="text-xs font-normal text-gray-500 block">Selecciona los servicios que necesitas</span>
+                            </label>
+                            <div id="spinner-srv-medico" class="hidden mb-2 text-xs text-gray-500">Cargando servicios...</div>
+                            <div id="lista-servicios-medico" class="space-y-2 max-h-64 overflow-y-auto">
+                                <!-- Poblado por AJAX -->
+                            </div>
+                            <div id="total-estimado" class="mt-3 p-3 bg-green-50 rounded-lg border border-green-200 hidden">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-green-800 font-medium">Total estimado:</span>
+                                    <span id="monto-total" class="text-lg font-bold text-green-700">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Paso 7: Servicio de especialidad (poblado por AJAX, opcional/legado) -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Servicio</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Servicio de Especialidad</label>
                             <select name="servicio" id="sel-servicio"
                                     class="form-input w-full px-4 py-3 rounded-lg text-gray-900" disabled>
                                 <option value="">Selecciona sede y especialidad primero</option>
@@ -543,7 +561,7 @@
             cargarFechasDisponibles();
         });
 
-        // Médico cambia → mostrar calendario y cargar servicios
+        // Médico cambia → mostrar calendario, cargar servicios médicos y especialidad
         selMed.addEventListener('change', function() {
             const medicoId = this.value;
             calDoctorId = medicoId;
@@ -554,6 +572,14 @@
             document.getElementById('input-fecha').value = '';
             document.getElementById('input-hora').value = '';
 
+            // Resetear servicios médicos
+            const contenedorServicios = document.getElementById('servicios-medico');
+            const listaServicios = document.getElementById('lista-servicios-medico');
+            const totalEstimado = document.getElementById('total-estimado');
+            contenedorServicios.classList.add('hidden');
+            listaServicios.innerHTML = '';
+            totalEstimado.classList.add('hidden');
+
             selSrv.disabled = true;
             selSrv.innerHTML = '<option value="">Cargando servicios...</option>';
             if (!medicoId) return;
@@ -562,6 +588,38 @@
             document.getElementById('calendario-cita').classList.remove('hidden');
             cargarFechasDisponibles();
 
+            // Cargar servicios médicos del doctor (checkboxes)
+            spinnerOn('spinner-srv-medico');
+            fetch(`{% url 'ajax_servicios_medico' %}?doctor_id=${medicoId}`)
+                .then(r => r.json())
+                .then(data => {
+                    spinnerOff('spinner-srv-medico');
+                    if (data.length > 0) {
+                        contenedorServicios.classList.remove('hidden');
+                        data.forEach(s => {
+                            const label = document.createElement('label');
+                            label.className = 'flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-green-50 transition-colors border border-gray-200';
+                            label.innerHTML = `
+                                <input type="checkbox" name="servicios_medico" value="${s.id}"
+                                       class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                                       data-precio="${s.precio}">
+                                <div class="ml-3 flex-1">
+                                    <span class="text-sm font-medium text-gray-900">${s.nombre}</span>
+                                    ${s.descripcion ? `<span class="text-xs text-gray-500 block">${s.descripcion}</span>` : ''}
+                                </div>
+                                <span class="text-sm font-semibold text-green-700">$${parseFloat(s.precio).toFixed(2)}</span>
+                            `;
+                            listaServicios.appendChild(label);
+                        });
+                        // Agregar listeners para calcular total
+                        listaServicios.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                            cb.addEventListener('change', calcularTotalEstimado);
+                        });
+                    }
+                })
+                .catch(() => spinnerOff('spinner-srv-medico'));
+
+            // Cargar servicios de especialidad (dropdown legado)
             spinnerOn('spinner-srv');
             fetch(`{% url 'ajax_servicios' %}?doctor_id=${medicoId}`)
                 .then(r => r.json())
@@ -572,6 +630,24 @@
                 })
                 .catch(() => spinnerOff('spinner-srv'));
         });
+
+        function calcularTotalEstimado() {
+            const checkboxes = document.querySelectorAll('#lista-servicios-medico input[type="checkbox"]');
+            let total = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    total += parseFloat(cb.dataset.precio) || 0;
+                }
+            });
+            const totalEl = document.getElementById('total-estimado');
+            const montoEl = document.getElementById('monto-total');
+            if (total > 0) {
+                totalEl.classList.remove('hidden');
+                montoEl.textContent = '$' + total.toFixed(2);
+            } else {
+                totalEl.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 </html>

@@ -763,3 +763,98 @@ class ReservaTransferencia(models.Model):
         db_table = 'reserva_transferencia'
         verbose_name = 'Reserva Transferencia'
         verbose_name_plural = 'Reservas Transferencia'
+
+
+# ── Modelos de Servicios Médicos (Fase 6) ───────────────────────────────────────
+
+class ServicioMedico(models.Model):
+    """Catálogo de servicios médicos gestionado por cada doctor."""
+    id_servicio_medico = models.BigAutoField(primary_key=True)
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True, null=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    id_doctor = models.ForeignKey(
+        Doctor, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='id_doctor',
+        help_text='Doctor dueño del servicio. NULL = sin dueño específico.'
+    )
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'servicios_medicos'
+        verbose_name = 'Servicio Médico'
+        verbose_name_plural = 'Servicios Médicos'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return f"{self.nombre} — ${self.precio}"
+
+
+class ConsultaServicio(models.Model):
+    """Servicios realizados dentro de una consulta médica (precio snapshot)."""
+    id_consulta_servicio = models.BigAutoField(primary_key=True)
+    id_consulta = models.ForeignKey(
+        'ConsultaMedica', on_delete=models.CASCADE,
+        db_column='id_consulta',
+        related_name='servicios_realizados',
+    )
+    id_servicio_medico = models.ForeignKey(
+        ServicioMedico, on_delete=models.SET_NULL,
+        null=True, blank=True, db_column='id_servicio_medico',
+    )
+    nombre_servicio = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text='Snapshot del nombre al momento de la atención.'
+    )
+    precio_cobrado = models.DecimalField(max_digits=10, decimal_places=2)
+    cantidad = models.PositiveIntegerField(default=1)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'consulta_servicios'
+        verbose_name = 'Consulta-Servicio'
+        verbose_name_plural = 'Consultas-Servicios'
+        ordering = ['-fecha_registro']
+
+    def __str__(self):
+        return f"{self.nombre_servicio or self.id_servicio_medico} x{self.cantidad} @ ${self.precio_cobrado}"
+
+    def subtotal(self):
+        return self.precio_cobrado * self.cantidad
+
+
+class CitaServicioSolicitado(models.Model):
+    """Servicios pre-seleccionados por el paciente al solicitar una cita."""
+    id_cita_servicio = models.BigAutoField(primary_key=True)
+    id_cita = models.ForeignKey(
+        'Cita', on_delete=models.CASCADE,
+        db_column='id_cita',
+        related_name='servicios_solicitados',
+    )
+    id_servicio_medico = models.ForeignKey(
+        ServicioMedico, on_delete=models.SET_NULL,
+        null=True, blank=True, db_column='id_servicio_medico',
+    )
+    nombre_servicio = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text='Snapshot del nombre al momento de la solicitud.'
+    )
+    precio_estimado = models.DecimalField(max_digits=10, decimal_places=2)
+    cantidad = models.PositiveIntegerField(default=1)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'cita_servicios_solicitados'
+        verbose_name = 'Servicio Solicitado en Cita'
+        verbose_name_plural = 'Servicios Solicitados en Citas'
+        ordering = ['-fecha_registro']
+
+    def __str__(self):
+        return f"{self.nombre_servicio or self.id_servicio_medico} x{self.cantidad} @ ${self.precio_estimado}"
+
+    def subtotal(self):
+        return self.precio_estimado * self.cantidad

@@ -32,6 +32,7 @@ urlpatterns = [
     path('ajax/fechas/', views.ajax_fechas_disponibles, name='ajax_fechas'),
     path('ajax/horas/', views.ajax_horas_disponibles, name='ajax_horas'),
     path('ajax/servicios/', views.ajax_servicios, name='ajax_servicios'),
+    path('ajax/servicios-medico/', views.ajax_servicios_medico, name='ajax_servicios_medico'),
     # Consulta médica
     path('consulta/<int:cita_id>/', views.iniciar_consulta, name='iniciar_consulta'),
     path('consulta/<int:cita_id>/cerrar/', views.cerrar_consulta, name='cerrar_consulta'),
@@ -39,6 +40,13 @@ urlpatterns = [
     path('factura/<int:cita_id>/', views.detalle_factura, name='detalle_factura'),
     path('factura/pdf/<int:factura_id>/', views.factura_pdf, name='factura_pdf'),
     path('facturas/', views.gestionar_facturas, name='gestionar_facturas'),
+    path('facturas-recepcionista/', views.facturas_recepcionista, name='facturas_recepcionista'),
+    path('pagar-saldo/<int:cita_id>/', views.pagar_saldo, name='pagar_saldo'),
+    # Catálogo de servicios médicos (médico)
+    path('servicios/', views.servicios_doctor, name='servicios_doctor'),
+    path('servicios/crear/', views.servicio_crear, name='servicio_crear'),
+    path('servicios/editar/<int:servicio_id>/', views.servicio_editar, name='servicio_editar'),
+    path('servicios/toggle/<int:servicio_id>/', views.servicio_toggle, name='servicio_toggle'),
     # Reportes (gerente/admin)
     path('reportes/atencion-diaria/', views.reporte_atencion_diaria, name='reporte_atencion_diaria'),
     path('reportes/caja/', views.reporte_caja, name='reporte_caja'),

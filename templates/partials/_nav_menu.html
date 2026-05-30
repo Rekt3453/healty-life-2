@@ -40,6 +40,9 @@
         <a href="{% url 'historias_clinicas' %}" class="nav-link {% if request.resolver_match.url_name == 'historias_clinicas' %}nav-link-active{% endif %}">
             📁 Historias Clínicas
         </a>
+        <a href="{% url 'servicios_doctor' %}" class="nav-link {% if request.resolver_match.url_name == 'servicios_doctor' %}nav-link-active{% endif %}">
+            🔬 Mis Servicios
+        </a>
         <a href="{% url 'perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'perfil' %}nav-link-active{% endif %}">
             👤 Mi Perfil
         </a>
@@ -57,6 +60,9 @@
         </a>
         <a href="{% url 'verificar_pagos' %}" class="nav-link {% if request.resolver_match.url_name == 'verificar_pagos' %}nav-link-active{% endif %}">
             💰 Verificar Pagos
+        </a>
+        <a href="{% url 'facturas_recepcionista' %}" class="nav-link {% if request.resolver_match.url_name == 'facturas_recepcionista' %}nav-link-active{% endif %}">
+            📄 Facturas
         </a>
         <a href="{% url 'perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'perfil' %}nav-link-active{% endif %}">
             👤 Mi Perfil

@@ -7,12 +7,13 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
 from datetime import date, datetime, time, timedelta
+from decimal import Decimal
 from usuarios.decorators import rol_requerido
 from usuarios.models import PacienteDatosPersonales, Doctor, PacienteEspecial
 from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio, ConsultaMedica, Factura,
-    MovimientoCaja, HonorarioMedico,
+    MovimientoCaja, HonorarioMedico, ServicioMedico, ConsultaServicio, CitaServicioSolicitado,
 )
 from .services import CitaService, FacturacionService
 from .reportes import ReportesService
@@ -47,6 +48,7 @@ def solicitar_cita(request):
         hora = request.POST.get('hora') or request.POST.get('hora_solicitada')
         motivo_raw = request.POST.get('motivo', '').strip()
         paciente_objetivo = request.POST.get('paciente_objetivo', 'self')
+        servicios_seleccionados = request.POST.getlist('servicios_medico')
 
         if not all([sede_id, especialidad_id, doctor_id, fecha, hora, motivo_raw]):
             messages.error(request, "Todos los campos obligatorios deben completarse.")
@@ -61,6 +63,7 @@ def solicitar_cita(request):
                 'hora': hora,
                 'motivo_raw': motivo_raw,
                 'paciente_objetivo': paciente_objetivo,
+                'servicios_seleccionados': servicios_seleccionados,
             }
             return redirect('checkout_reserva')
 
@@ -134,6 +137,7 @@ def checkout_reserva(request):
                     telefono=telefono,
                     banco_emisor=banco_emisor,
                     referencia=referencia,
+                    servicios_seleccionados=reserva.get('servicios_seleccionados', []),
                 )
                 del request.session['reserva_cita']
                 request.session.modified = True
@@ -652,6 +656,32 @@ def ajax_servicios(request):
     return JsonResponse(data, safe=False)
 
 
+@require_GET
+def ajax_servicios_medico(request):
+    """Servicios médicos activos de un doctor (nombre + precio). Usado por paciente al solicitar cita."""
+    doctor_id = request.GET.get('doctor_id')
+    if not doctor_id:
+        return JsonResponse([], safe=False)
+    try:
+        servicios = ServicioMedico.objects.filter(
+            id_doctor_id=doctor_id, activo=True
+        ).order_by('nombre').values(
+            'id_servicio_medico', 'nombre', 'descripcion', 'precio'
+        )
+        data = [
+            {
+                'id': s['id_servicio_medico'],
+                'nombre': s['nombre'],
+                'descripcion': s['descripcion'] or '',
+                'precio': str(s['precio']),
+            }
+            for s in servicios
+        ]
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, safe=False, status=500)
+    return JsonResponse(data, safe=False)
+
+
 # ─── Vistas del paciente ───────────────────────────────────────────────────────
 
 @login_required(login_url='/login/paciente/')
@@ -959,6 +989,60 @@ def realizar_receta(request, cita_id):
     })
 
 
+def _generar_o_actualizar_factura_consulta(cita, consulta, total_servicios):
+    """Genera o actualiza la factura usando el total calculado de servicios."""
+    from django.utils import timezone
+
+    total = Decimal(str(total_servicios))
+    impuesto = Decimal('0.00')
+
+    # Buscar factura existente
+    try:
+        factura = cita.factura
+    except Factura.DoesNotExist:
+        factura = None
+
+    pago = getattr(cita, 'id_pago_cita', None)
+
+    if factura:
+        # Actualizar factura existente
+        factura.subtotal = total
+        factura.impuesto = impuesto
+        factura.total = total
+        factura.descripcion = _descripcion_servicios(consulta)
+        # Estado: pagada si el adelanto cubre o excede el total
+        if pago and pago.monto_pagar and Decimal(str(pago.monto_pagar)) >= total:
+            factura.estado = Factura.ESTADO_PAGADA
+        else:
+            factura.estado = Factura.ESTADO_EMITIDA
+        factura.save(update_fields=['subtotal', 'impuesto', 'total', 'descripcion', 'estado'])
+    else:
+        # Crear nueva factura
+        numero = f"FAC-{timezone.now().strftime('%Y%m%d')}-{cita.pk}"
+        estado = Factura.ESTADO_EMITIDA
+        if pago and pago.monto_pagar and Decimal(str(pago.monto_pagar)) >= total:
+            estado = Factura.ESTADO_PAGADA
+        Factura.objects.create(
+            id_cita=cita,
+            id_pago_cita=pago,
+            numero=numero,
+            descripcion=_descripcion_servicios(consulta),
+            subtotal=total,
+            impuesto=impuesto,
+            total=total,
+            estado=estado,
+        )
+
+
+def _descripcion_servicios(consulta):
+    """Genera descripción de la factura basada en los servicios realizados."""
+    servicios = ConsultaServicio.objects.filter(id_consulta=consulta)
+    if servicios.exists():
+        nombres = [s.nombre_servicio or str(s.id_servicio_medico) for s in servicios]
+        return ", ".join(nombres)
+    return "Consulta médica"
+
+
 # ─── Consulta médica ──────────────────────────────────────────────────────────
 
 @login_required(login_url='/login/medico/')
@@ -983,10 +1067,62 @@ def iniciar_consulta(request, cita_id):
         messages.error(request, str(e))
         return redirect('citas_pendientes_medico')
 
+    # Servicios del médico para selección en consulta
+    servicios_doctor = ServicioMedico.objects.filter(
+        id_doctor=datos_medico, activo=True
+    ).order_by('nombre')
+
+    # Servicios ya seleccionados en esta consulta (si existen)
+    servicios_seleccionados = set()
+    if consulta.pk:
+        servicios_seleccionados = set(
+            ConsultaServicio.objects.filter(id_consulta=consulta)
+            .values_list('id_servicio_medico_id', flat=True)
+        )
+
+    # Si es primera vez que abre la consulta, pre-seleccionar servicios solicitados por el paciente
+    preseleccion_paciente = []
+    if consulta.estado == ConsultaMedica.ESTADO_ABIERTA and not servicios_seleccionados:
+        preseleccion = CitaServicioSolicitado.objects.filter(
+            id_cita=cita,
+            id_servicio_medico__isnull=False,
+        )
+        if preseleccion.exists():
+            servicios_seleccionados = set(
+                preseleccion.values_list('id_servicio_medico_id', flat=True)
+            )
+            preseleccion_paciente = list(preseleccion)
+
     if request.method == 'POST':
         form = ConsultaMedicaForm(request.POST, instance=consulta)
         if form.is_valid():
             form.save()
+
+            # Procesar servicios seleccionados
+            servicios_ids = request.POST.getlist('servicios')
+            if servicios_ids:
+                # Limpiar servicios previos de esta consulta
+                ConsultaServicio.objects.filter(id_consulta=consulta).delete()
+                total_servicios = Decimal('0.00')
+
+                for sid in servicios_ids:
+                    try:
+                        servicio = ServicioMedico.objects.get(pk=int(sid), id_doctor=datos_medico, activo=True)
+                        ConsultaServicio.objects.create(
+                            id_consulta=consulta,
+                            id_servicio_medico=servicio,
+                            nombre_servicio=servicio.nombre,
+                            precio_cobrado=servicio.precio,
+                            cantidad=1,
+                        )
+                        total_servicios += Decimal(str(servicio.precio or 0))
+                    except (ServicioMedico.DoesNotExist, ValueError):
+                        continue
+
+                # Generar/actualizar factura con total de servicios
+                if total_servicios > 0:
+                    _generar_o_actualizar_factura_consulta(cita, consulta, total_servicios)
+
             try:
                 CitaService.cerrar_consulta(request.user, cita)
                 messages.success(
@@ -1001,9 +1137,12 @@ def iniciar_consulta(request, cita_id):
         form = ConsultaMedicaForm(instance=consulta)
 
     return render(request, 'citas/consulta_medica.html', {
-        'form':     form,
-        'cita':     cita,
+        'form': form,
+        'cita': cita,
         'consulta': consulta,
+        'servicios_doctor': servicios_doctor,
+        'servicios_seleccionados': servicios_seleccionados,
+        'preseleccion_paciente': preseleccion_paciente,
     })
 
 
@@ -1154,6 +1293,55 @@ def gestionar_facturas(request):
         'fecha_desde':    fecha_desde,
         'fecha_hasta':    fecha_hasta,
         'busqueda':       busqueda,
+    })
+
+
+@login_required(login_url='/login/recepcionista/')
+@rol_requerido('recepcionista', 'gerente')
+def facturas_recepcionista(request):
+    """Lista de citas pagadas con datos de facturación para recepcionista."""
+    # Estados que indican que la cita fue pagada
+    estados_pagados = [
+        Cita.ESTADO_PAGADA_ADELANTO,
+        Cita.ESTADO_ATENDIDA,
+    ]
+
+    qs = Cita.objects.filter(
+        estado__in=estados_pagados,
+        id_pago_cita__isnull=False,
+    ).select_related(
+        'id_paciente',
+        'id_doctor',
+        'id_pago_cita',
+        'id_pago_cita__id_factura',
+        'id_sede',
+    ).order_by('-fecha_consulta')
+
+    # Filtros
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+    busqueda    = request.GET.get('q', '').strip()
+
+    if fecha_desde:
+        qs = qs.filter(fecha_consulta__date__gte=fecha_desde)
+    if fecha_hasta:
+        qs = qs.filter(fecha_consulta__date__lte=fecha_hasta)
+    if busqueda:
+        qs = qs.filter(
+            Q(id_paciente__nombre_1__icontains=busqueda) |
+            Q(id_paciente__apellido_1__icontains=busqueda) |
+            Q(id_doctor__nombre_1__icontains=busqueda) |
+            Q(id_doctor__apellido_1__icontains=busqueda)
+        )
+
+    paginator = Paginator(qs, 20)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'citas/facturas_recepcionista.html', {
+        'page_obj':    page_obj,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'busqueda':    busqueda,
     })
 
 
@@ -1331,3 +1519,200 @@ def reporte_pagos_medicos(request):
         'id_sede': id_sede,
         'id_doctor': id_doctor,
     })
+
+
+@login_required(login_url='/login/paciente/')
+@rol_requerido('paciente')
+def pagar_saldo(request, cita_id):
+    """Paciente paga el saldo pendiente de una cita atendida."""
+    cita = get_object_or_404(Cita, pk=cita_id)
+
+    # Verificar que el paciente sea dueño de la cita
+    paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=request.user).first()
+    if not paciente or cita.id_paciente_id != paciente.id_datos_paciente:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('dashboard_paciente')
+
+    # Verificar que la cita esté atendida
+    if cita.estado != Cita.ESTADO_ATENDIDA:
+        messages.error(request, "Solo se puede pagar el saldo de citas ya atendidas.")
+        return redirect('dashboard_paciente')
+
+    # Verificar que exista factura con saldo pendiente
+    try:
+        factura = cita.factura
+    except Factura.DoesNotExist:
+        messages.error(request, "No existe factura asociada a esta cita.")
+        return redirect('dashboard_paciente')
+
+    if factura.estado == Factura.ESTADO_PAGADA:
+        messages.info(request, "Esta factura ya está completamente pagada.")
+        return redirect('dashboard_paciente')
+
+    pago = getattr(cita, 'id_pago_cita', None)
+    if not pago:
+        messages.error(request, "No existe pago asociado a esta cita.")
+        return redirect('dashboard_paciente')
+
+    # Calcular saldo pendiente
+    monto_pagado = Decimal(str(pago.monto_pagar or 0))
+    monto_total = Decimal(str(factura.total or 0))
+    saldo = monto_total - monto_pagado
+
+    if saldo <= 0:
+        messages.info(request, "No hay saldo pendiente por pagar.")
+        return redirect('dashboard_paciente')
+
+    if request.method == 'POST':
+        # Confirmar pago del saldo
+        try:
+            with transaction.atomic():
+                # Actualizar monto pagado
+                pago.monto_pagar = monto_total
+                pago.estado_pago = PagoCita.ESTADO_APROBADO
+                pago.save(update_fields=['monto_pagar', 'estado_pago'])
+
+                # Actualizar factura a pagada
+                factura.estado = Factura.ESTADO_PAGADA
+                factura.save(update_fields=['estado'])
+
+            messages.success(
+                request,
+                f"✅ Saldo de ${saldo:.2f} pagado exitosamente. Tu factura #{factura.numero} está saldada."
+            )
+            return redirect('dashboard_paciente')
+        except Exception as e:
+            messages.error(request, f"Error al procesar el pago: {e}")
+            return redirect('dashboard_paciente')
+
+    return render(request, 'citas/pagar_saldo.html', {
+        'cita': cita,
+        'factura': factura,
+        'pago': pago,
+        'monto_pagado': monto_pagado,
+        'monto_total': monto_total,
+        'saldo': saldo,
+    })
+
+
+# ─── Catálogo de Servicios Médicos (Fase 6) ──────────────────────────────────
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def servicios_doctor(request):
+    """Listado de servicios médicos del doctor autenticado."""
+    from usuarios.authentication import CustomAuthBackend
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+    if not datos_medico:
+        messages.error(request, "No se encontró tu perfil de médico.")
+        return redirect('dashboard_medico')
+
+    servicios = ServicioMedico.objects.filter(
+        id_doctor=datos_medico,
+        activo=True,
+    ).order_by('nombre')
+
+    return render(request, 'citas/servicios_doctor.html', {
+        'servicios': servicios,
+    })
+
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def servicio_crear(request):
+    """Crear un nuevo servicio médico para el doctor."""
+    from usuarios.authentication import CustomAuthBackend
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+    if not datos_medico:
+        messages.error(request, "No se encontró tu perfil de médico.")
+        return redirect('dashboard_medico')
+
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        descripcion = request.POST.get('descripcion', '').strip()
+        precio_str = request.POST.get('precio', '').strip()
+
+        if not nombre:
+            messages.error(request, "El nombre del servicio es obligatorio.")
+        else:
+            try:
+                precio = Decimal(precio_str) if precio_str else Decimal('0.00')
+                ServicioMedico.objects.create(
+                    nombre=nombre,
+                    descripcion=descripcion or None,
+                    precio=precio,
+                    id_doctor=datos_medico,
+                    activo=True,
+                )
+                messages.success(request, f"Servicio '{nombre}' creado exitosamente.")
+                return redirect('servicios_doctor')
+            except Exception as e:
+                messages.error(request, f"Error al crear el servicio: {e}")
+
+    return render(request, 'citas/servicio_form.html', {
+        'titulo': 'Nuevo Servicio',
+        'accion': 'Crear',
+    })
+
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def servicio_editar(request, servicio_id):
+    """Editar un servicio médico existente (solo si pertenece al doctor)."""
+    from usuarios.authentication import CustomAuthBackend
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+    if not datos_medico:
+        messages.error(request, "No se encontró tu perfil de médico.")
+        return redirect('dashboard_medico')
+
+    servicio = get_object_or_404(
+        ServicioMedico,
+        pk=servicio_id,
+        id_doctor=datos_medico,
+    )
+
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        descripcion = request.POST.get('descripcion', '').strip()
+        precio_str = request.POST.get('precio', '').strip()
+
+        if not nombre:
+            messages.error(request, "El nombre del servicio es obligatorio.")
+        else:
+            try:
+                servicio.nombre = nombre
+                servicio.descripcion = descripcion or None
+                servicio.precio = Decimal(precio_str) if precio_str else Decimal('0.00')
+                servicio.save(update_fields=['nombre', 'descripcion', 'precio'])
+                messages.success(request, f"Servicio '{nombre}' actualizado.")
+                return redirect('servicios_doctor')
+            except Exception as e:
+                messages.error(request, f"Error al actualizar: {e}")
+
+    return render(request, 'citas/servicio_form.html', {
+        'titulo': 'Editar Servicio',
+        'accion': 'Guardar',
+        'servicio': servicio,
+    })
+
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def servicio_toggle(request, servicio_id):
+    """Activar o desactivar un servicio médico."""
+    from usuarios.authentication import CustomAuthBackend
+    datos_medico = CustomAuthBackend().get_datos_personales(request.user)
+    if not datos_medico:
+        messages.error(request, "No se encontró tu perfil de médico.")
+        return redirect('dashboard_medico')
+
+    servicio = get_object_or_404(
+        ServicioMedico,
+        pk=servicio_id,
+        id_doctor=datos_medico,
+    )
+    servicio.activo = not servicio.activo
+    servicio.save(update_fields=['activo'])
+    estado = "activado" if servicio.activo else "desactivado"
+    messages.success(request, f"Servicio '{servicio.nombre}' {estado}.")
+    return redirect('servicios_doctor')

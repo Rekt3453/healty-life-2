@@ -362,6 +362,15 @@
                                        class="inline-flex items-center px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full hover:bg-green-700">
                                         Pagar
                                     </a>
+                                {% elif cita.estado == 'atendida' %}
+                                    {% if cita.factura and cita.factura.estado == 'emitida' %}
+                                        <a href="{% url 'pagar_saldo' cita.id_citas %}"
+                                           class="inline-flex items-center px-3 py-1 bg-orange-600 text-white text-xs font-medium rounded-full hover:bg-orange-700">
+                                            Pagar Saldo
+                                        </a>
+                                    {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Saldada</span>
+                                    {% endif %}
                                 {% elif cita.estado == 'solicitada' or cita.estado == 'pago_pendiente' or cita.estado == 'confirmada' %}
                                     <span class="text-xs text-gray-400">—</span>
                                 {% else %}
