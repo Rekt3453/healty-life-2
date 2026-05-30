@@ -280,7 +280,19 @@
 
                 </div>
 
-
+                <!-- Mensajes -->
+                {% if messages %}
+                    <div class="max-w-3xl mx-auto mb-6 space-y-3">
+                        {% for message in messages %}
+                            <div class="rounded-lg px-4 py-3 text-sm font-medium
+                                {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+                                {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+                                {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
                 <!-- Estadísticas -->
 

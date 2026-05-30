@@ -215,9 +215,10 @@
                             {% for semana in calendario %}
                                 {% for celda in semana %}
                                     {% if celda %}
-                                        <div onclick="abrirModal('{{ celda.fecha_iso }}', {{ celda.mañana|yesno:'true,false' }}, {{ celda.tarde|yesno:'true,false' }})"
-                                             class="cursor-pointer relative rounded-lg border p-3 min-h-[90px] transition-all hover:shadow-md
-                                                {% if celda.es_hoy %}bg-blue-50 border-blue-400 border-2{% elif celda.trabaja %}bg-green-50 border-green-200{% else %}bg-gray-50 border-gray-200{% endif %}">
+                                        <div {% if not celda.es_pasado_o_hoy %}onclick="abrirModal('{{ celda.fecha_iso }}', {{ celda.mañana|yesno:'true,false' }}, {{ celda.tarde|yesno:'true,false' }})"{% endif %}
+                                             class="relative rounded-lg border p-3 min-h-[90px] transition-all
+                                                {% if celda.es_pasado_o_hoy %}opacity-50 cursor-not-allowed bg-gray-200 border-gray-300{% else %}cursor-pointer hover:shadow-md{% endif %}
+                                                {% if not celda.es_pasado_o_hoy %}{% if celda.es_hoy %}bg-blue-50 border-blue-400 border-2{% elif celda.trabaja %}bg-green-50 border-green-200{% else %}bg-gray-50 border-gray-200{% endif %}{% endif %}">
                                             <div class="text-right">
                                                 <span class="inline-flex items-center justify-center w-7 h-7 text-sm font-medium rounded-full
                                                     {% if celda.es_hoy %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">
@@ -231,7 +232,7 @@
                                                 {% if celda.tarde %}
                                                     <span class="inline-block text-xs px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full">Tarde</span>
                                                 {% endif %}
-                                                {% if not celda.trabaja %}
+                                                {% if not celda.trabaja and not celda.es_pasado_o_hoy %}
                                                     <span class="text-xs text-gray-400">No disponible</span>
                                                 {% endif %}
                                             </div>

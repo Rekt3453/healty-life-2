@@ -52,11 +52,10 @@ class CitaService:
         }
 
         fecha_hora_naive = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
-        fecha_hora = make_aware(fecha_hora_naive)
 
         # Debe ser al menos mañana
-        manana = make_aware(datetime.combine(date.today(), datetime.min.time())) + timedelta(days=1)
-        if fecha_hora < manana:
+        manana = datetime.combine(date.today(), datetime.min.time()) + timedelta(days=1)
+        if fecha_hora_naive < manana:
             raise ValueError("Las citas deben solicitarse con al menos un día de anticipación.")
 
         # Validar disponibilidad del doctor para esa fecha/hora
@@ -78,12 +77,17 @@ class CitaService:
             raise ValueError("La hora seleccionada no está dentro de los turnos disponibles del médico.")
 
         # Verificar conflicto de horario con el mismo doctor (bloques de 1 hora)
+        fecha_hora = make_aware(fecha_hora_naive)
         if CitaModel.objects.filter(
             id_doctor_id=doctor_id,
             fecha_consulta__gte=fecha_hora,
             fecha_consulta__lt=fecha_hora + timedelta(hours=1),
             status=True,
-        ).exists():
+        ).exclude(estado__in=[
+            CitaModel.ESTADO_CANCELADA,
+            CitaModel.ESTADO_RECHAZADA,
+            CitaModel.ESTADO_NO_ASISTIO,
+        ]).exists():
             raise ValueError("El médico ya tiene una cita agendada en ese bloque horario. Por favor selecciona otro horario.")
 
         sede = Sede.objects.get(id_sede=sede_id)
@@ -125,6 +129,8 @@ class CitaService:
                 id_servicios_especialidad=servicio_id
             ).first()
 
+        fecha_hora = make_aware(fecha_hora_naive)
+
         pago = PagoCita.objects.create(
             id_paciente=paciente,
             id_sede=sede,
@@ -149,6 +155,39 @@ class CitaService:
 
         nombre_destino = nombre_menor if menor_obj else "ti"
         return cita, f"✅ Cita solicitada para {nombre_destino} el {fecha} a las {hora}. Espera confirmación."
+
+    @staticmethod
+    @transaction.atomic
+    def crear_cita_con_reserva(user, *, sede_id, especialidad_id, doctor_id, servicio_id,
+                                 fecha, hora, motivo_raw, paciente_objetivo='self',
+                                 cedula=None, telefono=None, banco_emisor=None, referencia=None):
+        """
+        Crea la cita vía crear_cita y luego registra los datos de transferencia bancaria
+        en ReservaTransferencia para que la recepcionista pueda verificarlos.
+        """
+        from citas.models import ReservaTransferencia
+
+        cita, mensaje = CitaService.crear_cita(
+            user,
+            sede_id=sede_id,
+            especialidad_id=especialidad_id,
+            doctor_id=doctor_id,
+            servicio_id=servicio_id,
+            fecha=fecha,
+            hora=hora,
+            motivo_raw=motivo_raw,
+            paciente_objetivo=paciente_objetivo,
+        )
+
+        ReservaTransferencia.objects.create(
+            cita=cita,
+            cedula=cedula,
+            telefono=telefono,
+            banco_emisor=banco_emisor,
+            referencia=referencia,
+        )
+
+        return cita, mensaje
 
     @staticmethod
     def listar_citas_medico(user):
@@ -176,7 +215,7 @@ class CitaService:
             ).order_by('fecha_consulta')
 
             citas_pendientes = base_qs.filter(
-                Q(estado=CitaModel.ESTADO_CONFIRMADA) |
+                Q(estado__in=[CitaModel.ESTADO_CONFIRMADA, CitaModel.ESTADO_PAGADA_ADELANTO]) |
                 Q(estado__isnull=True, id_pago_cita__status=True)
             ).exclude(estado=CitaModel.ESTADO_EN_CONSULTA)
 
@@ -270,19 +309,21 @@ class CitaService:
                 slots.append(h.strftime('%H:%M'))
                 h = (datetime.combine(date.today(), h) + timedelta(hours=1)).time()
 
-        from django.utils.timezone import is_naive, localtime
-        from datetime import timezone as dt_tz
+        from django.utils.timezone import localtime
         ocupadas = set()
-        for c in CitaModel.objects.filter(id_doctor_id=doctor_id, fecha_consulta__date=fecha, status=True):
+        citas_ocupadas = CitaModel.objects.filter(
+            id_doctor_id=doctor_id,
+            fecha_consulta__date=fecha,
+            status=True,
+        ).exclude(estado__in=[
+            CitaModel.ESTADO_CANCELADA,
+            CitaModel.ESTADO_RECHAZADA,
+            CitaModel.ESTADO_NO_ASISTIO,
+        ])
+        for c in citas_ocupadas:
             if c.fecha_consulta:
-                if is_naive(c.fecha_consulta):
-                    # PostgreSQL timestamp without time zone stores UTC
-                    aware_utc = c.fecha_consulta.replace(tzinfo=dt_tz.utc)
-                    hora_local = localtime(aware_utc)
-                    ocupadas.add(f"{hora_local.hour:02d}:00")
-                else:
-                    hora_local = localtime(c.fecha_consulta)
-                    ocupadas.add(f"{hora_local.hour:02d}:00")
+                hora_local = localtime(c.fecha_consulta)
+                ocupadas.add(f"{hora_local.hour:02d}:00")
 
         horas = [s for s in slots if s not in ocupadas]
         return horas, None
@@ -346,7 +387,10 @@ class CitaService:
     @staticmethod
     @transaction.atomic
     def confirmar_pago(user, cita):
-        """Recepcionista verifica el pago → cita queda confirmada."""
+        """Recepcionista verifica el pago de una reserva.
+        Desde 'solicitada' → 'pagada_adelanto'.
+        Desde 'pago_pendiente' (legacy) → 'confirmada'.
+        """
         CitaService.verificar_rol(user, 'recepcionista', 'gerente')
         from citas.models import Cita as CitaModel, PagoCita
         pago = getattr(cita, 'id_pago_cita', None)
@@ -355,7 +399,11 @@ class CitaService:
         pago.status = True
         pago.estado_pago = PagoCita.ESTADO_APROBADO
         pago.save(update_fields=['status', 'estado_pago'])
-        CitaService.transicionar(cita, CitaModel.ESTADO_CONFIRMADA)
+
+        if cita.estado == CitaModel.ESTADO_SOLICITADA:
+            CitaService.transicionar(cita, CitaModel.ESTADO_PAGADA_ADELANTO)
+        else:
+            CitaService.transicionar(cita, CitaModel.ESTADO_CONFIRMADA)
         cita.status = True
         cita.save(update_fields=['status'])
         return cita
@@ -372,11 +420,17 @@ class CitaService:
         """Médico abre la consulta: cita pasa a en_consulta."""
         CitaService.verificar_rol(user, 'medico')
         from citas.models import Cita as CitaModel, ConsultaMedica
-        estados_validos = {CitaModel.ESTADO_CONFIRMADA, CitaModel.ESTADO_EN_CONSULTA}
+        estados_validos = {
+            CitaModel.ESTADO_CONFIRMADA,
+            CitaModel.ESTADO_APROBADA,
+            CitaModel.ESTADO_PAGADA_ADELANTO,
+            CitaModel.ESTADO_EN_CONSULTA,
+            None,
+        }
         if cita.estado not in estados_validos:
             raise ValueError(
-                f"Solo se puede iniciar consulta en citas confirmadas. "
-                f"Estado actual: '{cita.get_estado_display()}'."
+                f"Solo se puede iniciar consulta en citas confirmadas, aprobadas o pagadas. "
+                f"Estado actual: '{cita.get_estado_display() or 'sin estado'}'."
             )
         consulta, created = ConsultaMedica.objects.get_or_create(
             id_cita=cita,

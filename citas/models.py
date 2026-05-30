@@ -209,9 +209,9 @@ class Cita(models.Model):
 
     TRANSICIONES_VALIDAS = {
         ESTADO_SOLICITADA:      {ESTADO_APROBADA, ESTADO_PAGO_PENDIENTE, ESTADO_PAGADA_ADELANTO, ESTADO_CANCELADA, ESTADO_RECHAZADA},
-        ESTADO_APROBADA:        {ESTADO_PAGO_PENDIENTE, ESTADO_PAGADA_ADELANTO, ESTADO_CONFIRMADA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
+        ESTADO_APROBADA:        {ESTADO_PAGO_PENDIENTE, ESTADO_PAGADA_ADELANTO, ESTADO_CONFIRMADA, ESTADO_EN_CONSULTA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
         ESTADO_PAGO_PENDIENTE:  {ESTADO_CONFIRMADA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
-        ESTADO_PAGADA_ADELANTO: {ESTADO_CONFIRMADA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
+        ESTADO_PAGADA_ADELANTO: {ESTADO_CONFIRMADA, ESTADO_EN_CONSULTA, ESTADO_CANCELADA, ESTADO_RECHAZADA},
         ESTADO_CONFIRMADA:      {ESTADO_EN_CONSULTA, ESTADO_NO_ASISTIO, ESTADO_CANCELADA},
         ESTADO_EN_CONSULTA:     {ESTADO_ATENDIDA, ESTADO_CANCELADA},
         ESTADO_ATENDIDA:        set(),
@@ -572,7 +572,10 @@ class ConsultaMedica(models.Model):
     antecedentes = models.TextField(blank=True, null=True)
     examen_fisico = models.TextField(blank=True, null=True)
     diagnostico = models.TextField(blank=True, null=True)
+    medicamentos = models.TextField(blank=True, null=True)
+    estudios = models.TextField(blank=True, null=True)
     plan_tratamiento = models.TextField(blank=True, null=True)
+    reposo = models.TextField(blank=True, null=True)
     observaciones = models.TextField(blank=True, null=True)
     fecha_inicio = models.DateTimeField(auto_now_add=True)
     fecha_cierre = models.DateTimeField(blank=True, null=True)
@@ -741,3 +744,22 @@ class DisponibilidadDoctor(models.Model):
         if self.turno_tarde:
             turnos.append('Tarde')
         return f"{self.fecha}: {', '.join(turnos) if turnos else 'No trabaja'}"
+
+
+class ReservaTransferencia(models.Model):
+    """Datos de la transferencia bancaria registrados por el paciente al reservar una cita."""
+
+    cita = models.OneToOneField(
+        'Cita', on_delete=models.CASCADE,
+        related_name='reserva_pago', db_column='id_cita'
+    )
+    cedula = models.CharField(max_length=20, blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    banco_emisor = models.CharField(max_length=100, blank=True, null=True)
+    referencia = models.CharField(max_length=100, blank=True, null=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'reserva_transferencia'
+        verbose_name = 'Reserva Transferencia'
+        verbose_name_plural = 'Reservas Transferencia'

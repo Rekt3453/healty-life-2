@@ -4,6 +4,14 @@ from django.contrib.auth.models import User
 register = template.Library()
 
 @register.filter
+def get_item(dictionary, key):
+    """Obtiene un valor de un diccionario usando una clave variable."""
+    try:
+        return dictionary.get(key)
+    except (AttributeError, TypeError):
+        return None
+
+@register.filter
 def has_role(user, role):
     """Verifica si un usuario tiene un rol específico"""
     try:

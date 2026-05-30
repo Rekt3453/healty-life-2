@@ -253,15 +253,20 @@ class ConsultaMedicaForm(forms.ModelForm):
     class Meta:
         model = ConsultaMedica
         fields = [
+            'diagnostico', 'medicamentos', 'estudios',
+            'plan_tratamiento', 'reposo', 'observaciones',
             'motivo_consulta', 'enfermedad_actual', 'antecedentes',
-            'examen_fisico', 'diagnostico', 'plan_tratamiento', 'observaciones',
+            'examen_fisico',
         ]
         widgets = {
-            'motivo_consulta':  forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'enfermedad_actual': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'antecedentes':     forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'examen_fisico':    forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
-            'diagnostico':      forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'plan_tratamiento': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'observaciones':    forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'diagnostico':      forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5', 'placeholder': 'Diagnóstico médico'}),
+            'medicamentos':     forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5', 'placeholder': 'Medicamentos recetados'}),
+            'estudios':         forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5', 'placeholder': 'Estudios / exámenes indicados'}),
+            'plan_tratamiento': forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5', 'placeholder': 'Plan de tratamiento'}),
+            'reposo':           forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5', 'placeholder': 'Indicaciones de reposo'}),
+            'observaciones':    forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5', 'placeholder': 'Observaciones adicionales'}),
+            'motivo_consulta':  forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5'}),
+            'enfermedad_actual': forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5'}),
+            'antecedentes':     forms.Textarea(attrs={'rows': 2, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5'}),
+            'examen_fisico':    forms.Textarea(attrs={'rows': 3, 'class': 'w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm p-2.5'}),
         }

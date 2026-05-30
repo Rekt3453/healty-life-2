@@ -2,141 +2,280 @@
 {% block title %}Consulta Médica — Cita #{{ cita.pk }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
+<div class="max-w-7xl mx-auto px-4 py-6">
 
-      <!-- Encabezado -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center"
-             style="background-color:#2E7D32; color:white;">
-          <h5 class="mb-0">
-            <i class="bi bi-clipboard2-pulse me-2"></i>Consulta Médica — Cita #{{ cita.pk }}
-          </h5>
-          <span class="badge {% if consulta.estado == 'cerrada' %}bg-secondary{% elif consulta.estado == 'anulada' %}bg-danger{% else %}bg-light text-dark{% endif %}">
-            {{ consulta.get_estado_display }}
+  <!-- Encabezado -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Consulta Médica</h1>
+        <p class="text-gray-500 text-sm mt-1">Cita #{{ cita.pk }} — {{ cita.fecha_consulta|date:"d/m/Y H:i" }}</p>
+      </div>
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+        {% if consulta.estado == 'cerrada' %}bg-gray-100 text-gray-800
+        {% elif consulta.estado == 'anulada' %}bg-red-100 text-red-800
+        {% else %}bg-green-100 text-green-800{% endif %}">
+        {{ consulta.get_estado_display }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="mb-4 rounded-lg p-4 {% if msg.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% elif msg.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+        {{ msg }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if consulta.estado != 'cerrada' %}
+  <!-- Formulario editable -->
+  <form method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {% csrf_token %}
+
+    <!-- Columna izquierda: Datos del paciente -->
+    <div class="lg:col-span-1 space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-5 py-4">
+          <h2 class="text-white font-semibold flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            Datos del Paciente
+          </h2>
+        </div>
+        <div class="p-5 space-y-4">
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Nombre completo</p>
+            <p class="text-gray-900 font-semibold">{{ cita.id_paciente.nombre_completo|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Cédula</p>
+            <p class="text-gray-900">{{ cita.id_paciente.cedula|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Sexo</p>
+            <p class="text-gray-900">{{ cita.id_paciente.sexo|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Fecha de nacimiento</p>
+            <p class="text-gray-900">{{ cita.id_paciente.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Teléfono</p>
+            <p class="text-gray-900">{{ cita.id_paciente.telefono|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Motivo de cita</p>
+            <p class="text-gray-900 text-sm">{{ cita.motivo|default:"—" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campos adicionales médicos (menos prioritarios) -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <h3 class="text-sm font-semibold text-gray-700 mb-4 flex items-center">
+          <svg class="w-4 h-4 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Anamnesis
+        </h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Motivo de consulta <span class="text-red-500">*</span></label>
+            {{ form.motivo_consulta }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Enfermedad actual</label>
+            {{ form.enfermedad_actual }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Antecedentes</label>
+            {{ form.antecedentes }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Examen físico</label>
+            {{ form.examen_fisico }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna derecha: Campos principales de consulta -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          Registro Médico
+        </h3>
+
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Diagnóstico <span class="text-red-500">*</span></label>
+            {{ form.diagnostico }}
+            {% if form.diagnostico.errors %}
+              <p class="text-red-600 text-sm mt-1">{{ form.diagnostico.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Medicamentos</label>
+            {{ form.medicamentos }}
+            {% if form.medicamentos.errors %}
+              <p class="text-red-600 text-sm mt-1">{{ form.medicamentos.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Estudios / Exámenes</label>
+            {{ form.estudios }}
+            {% if form.estudios.errors %}
+              <p class="text-red-600 text-sm mt-1">{{ form.estudios.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tratamiento</label>
+            {{ form.plan_tratamiento }}
+            {% if form.plan_tratamiento.errors %}
+              <p class="text-red-600 text-sm mt-1">{{ form.plan_tratamiento.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Reposo</label>
+            {{ form.reposo }}
+            {% if form.reposo.errors %}
+              <p class="text-red-600 text-sm mt-1">{{ form.reposo.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+            {{ form.observaciones }}
+            {% if form.observaciones.errors %}
+              <p class="text-red-600 text-sm mt-1">{{ form.observaciones.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex flex-wrap items-center gap-3 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <button type="submit"
+                class="inline-flex items-center px-5 py-2.5 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                onclick="return confirm('¿Guardar y cerrar consulta? Esta acción marcará la cita como atendida y no se puede deshacer.')">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Guardar y cerrar consulta
+        </button>
+        <a href="{% url 'citas_pendientes_medico' %}" class="ml-auto inline-flex items-center px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Volver
+        </a>
+      </div>
+    </div>
+  </form>
+
+  {% else %}
+  <!-- Consulta cerrada: solo lectura -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Datos del paciente -->
+    <div class="lg:col-span-1 space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-5 py-4">
+          <h2 class="text-white font-semibold flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            Datos del Paciente
+          </h2>
+        </div>
+        <div class="p-5 space-y-4">
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Nombre completo</p>
+            <p class="text-gray-900 font-semibold">{{ cita.id_paciente.nombre_completo|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Cédula</p>
+            <p class="text-gray-900">{{ cita.id_paciente.cedula|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Sexo</p>
+            <p class="text-gray-900">{{ cita.id_paciente.sexo|default:"—" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Teléfono</p>
+            <p class="text-gray-900">{{ cita.id_paciente.telefono|default:"—" }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de consulta -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center mb-5">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 mr-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
           </span>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">Consulta cerrada</h3>
+            <p class="text-sm text-gray-500">Cerrada el {{ consulta.fecha_cierre|date:"d/m/Y H:i" }}</p>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4">
-              <small class="text-muted d-block">Paciente</small>
-              <strong>{{ cita.id_paciente }}</strong>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Diagnóstico</p>
+              <p class="text-gray-900 text-sm mt-1">{{ consulta.diagnostico|default:"—"|linebreaks }}</p>
             </div>
-            <div class="col-md-4">
-              <small class="text-muted d-block">Fecha de consulta</small>
-              <strong>{{ cita.fecha_consulta|date:"d/m/Y H:i" }}</strong>
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Medicamentos</p>
+              <p class="text-gray-900 text-sm mt-1">{{ consulta.medicamentos|default:"—"|linebreaks }}</p>
             </div>
-            <div class="col-md-4">
-              <small class="text-muted d-block">Especialidad</small>
-              <strong>{{ cita.id_especialidades }}</strong>
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Estudios / Exámenes</p>
+              <p class="text-gray-900 text-sm mt-1">{{ consulta.estudios|default:"—"|linebreaks }}</p>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Tratamiento</p>
+              <p class="text-gray-900 text-sm mt-1">{{ consulta.plan_tratamiento|default:"—"|linebreaks }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Reposo</p>
+              <p class="text-gray-900 text-sm mt-1">{{ consulta.reposo|default:"—"|linebreaks }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Observaciones</p>
+              <p class="text-gray-900 text-sm mt-1">{{ consulta.observaciones|default:"—"|linebreaks }}</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Mensajes -->
-      {% if messages %}
-        {% for msg in messages %}
-          <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
-            {{ msg }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-
-      <!-- Formulario o vista de solo lectura -->
-      {% if consulta.estado != 'cerrada' %}
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-semibold">Motivo de consulta <span class="text-danger">*</span></label>
-                {{ form.motivo_consulta }}
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Enfermedad actual</label>
-                {{ form.enfermedad_actual }}
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Antecedentes</label>
-                {{ form.antecedentes }}
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-semibold">Examen físico</label>
-                {{ form.examen_fisico }}
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Diagnóstico</label>
-                {{ form.diagnostico }}
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Plan de tratamiento</label>
-                {{ form.plan_tratamiento }}
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-semibold">Observaciones</label>
-                {{ form.observaciones }}
-              </div>
-            </div>
-
-            <div class="d-flex gap-2 mt-4">
-              <button type="submit" class="btn btn-success">
-                <i class="bi bi-save me-1"></i>Guardar borrador
-              </button>
-              <a href="{% url 'cerrar_consulta' cita.pk %}"
-                 class="btn btn-dark"
-                 onclick="return confirm('¿Cerrar consulta? Esta acción no se puede deshacer.')">
-                <i class="bi bi-check-circle me-1"></i>Cerrar y marcar atendida
-              </a>
-              <a href="{% url 'citas_pendientes_medico' %}" class="btn btn-outline-secondary ms-auto">
-                <i class="bi bi-arrow-left me-1"></i>Volver
-              </a>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {% else %}
-      <!-- Consulta cerrada: solo lectura -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <div class="alert alert-secondary mb-3">
-            <i class="bi bi-lock me-1"></i>
-            <strong>Consulta cerrada</strong> el {{ consulta.fecha_cierre|date:"d/m/Y H:i" }}
-          </div>
-          <dl class="row">
-            <dt class="col-sm-3">Motivo de consulta</dt>
-            <dd class="col-sm-9">{{ consulta.motivo_consulta|default:"—" }}</dd>
-
-            <dt class="col-sm-3">Enfermedad actual</dt>
-            <dd class="col-sm-9">{{ consulta.enfermedad_actual|default:"—" }}</dd>
-
-            <dt class="col-sm-3">Antecedentes</dt>
-            <dd class="col-sm-9">{{ consulta.antecedentes|default:"—" }}</dd>
-
-            <dt class="col-sm-3">Examen físico</dt>
-            <dd class="col-sm-9">{{ consulta.examen_fisico|default:"—" }}</dd>
-
-            <dt class="col-sm-3">Diagnóstico</dt>
-            <dd class="col-sm-9">{{ consulta.diagnostico|default:"—" }}</dd>
-
-            <dt class="col-sm-3">Plan de tratamiento</dt>
-            <dd class="col-sm-9">{{ consulta.plan_tratamiento|default:"—" }}</dd>
-
-            <dt class="col-sm-3">Observaciones</dt>
-            <dd class="col-sm-9">{{ consulta.observaciones|default:"—" }}</dd>
-          </dl>
-          <a href="{% url 'citas_pendientes_medico' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>Volver
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <a href="{% url 'citas_pendientes_medico' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Volver
           </a>
         </div>
       </div>
-      {% endif %}
-
     </div>
   </div>
+  {% endif %}
+
 </div>
 {% endblock %}

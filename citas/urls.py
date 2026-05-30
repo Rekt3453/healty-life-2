@@ -5,9 +5,11 @@ urlpatterns = [
     # Solicitar / agendar cita (paciente)
     path('solicitar/', views.solicitar_cita, name='solicitar_cita'),
     path('agendar/', views.solicitar_cita, name='agendar_cita'),
+    path('checkout-reserva/', views.checkout_reserva, name='checkout_reserva'),
     # Citas del paciente
     path('mis-citas/', views.mis_citas, name='mis_citas'),
     path('mis-facturas/', views.mis_facturas, name='mis_facturas'),
+    path('historial-consultas/', views.historial_consultas, name='historial_consultas'),
     path('<int:cita_id>/detalle/', views.detalle_cita, name='detalle_cita'),
     path('<int:cita_id>/cancelar/', views.cancelar_cita_paciente, name='cancelar_cita'),
     path('<int:cita_id>/pagar/', views.pagar_cita, name='pagar_cita'),
@@ -23,6 +25,7 @@ urlpatterns = [
     path('rechazar/<int:cita_id>/', views.rechazar_cita, name='rechazar_cita'),
     path('<int:cita_id>/adelanto/', views.registrar_adelanto, name='registrar_adelanto'),
     path('<int:cita_id>/confirmar-pago/', views.confirmar_pago, name='confirmar_pago'),
+    path('<int:cita_id>/cancelar-secretaria/', views.cancelar_cita_secretaria, name='cancelar_cita_secretaria'),
     # Endpoints AJAX para formulario encadenado
     path('ajax/especialidades/', views.ajax_especialidades, name='ajax_especialidades'),
     path('ajax/doctores/', views.ajax_doctores, name='ajax_doctores'),
