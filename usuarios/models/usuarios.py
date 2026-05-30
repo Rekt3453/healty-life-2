@@ -217,7 +217,7 @@ class UserAdmin(models.Model):
 
 
 class UserSuperAdmin(models.Model):
-    id_superadmin = models.BigAutoField(primary_key=True)
+    id_superadmin = models.BigAutoField(primary_key=True, db_column='id_user_superadmin')
     username = models.TextField(blank=True, null=True)
     correo = models.CharField(max_length=255, blank=True, null=True)
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')

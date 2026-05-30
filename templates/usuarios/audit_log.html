@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría del Sistema - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .btn-green { background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%); }
+        .btn-green:hover { opacity: 0.9; }
+        .table-header { background-color: #2E7D32; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-green-700">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/></svg>
+            </div>
+            <span class="text-xl font-bold text-gray-900">Healthy Life</span>
+            <span class="text-gray-300">|</span>
+            <span class="text-sm font-medium text-gray-600">Auditoría del Sistema</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm text-gray-600">👋 {{ user_sa.username }}</span>
+            <a href="{% url 'dashboard_superadmin' %}" class="text-sm text-green-600 hover:text-green-700 font-medium">Dashboard</a>
+            <a href="{% url 'logout_superadmin' %}" class="text-sm text-red-600 hover:text-red-700 font-medium">Cerrar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="border rounded-lg p-3 text-sm font-medium
+            {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
+            {% else %}bg-green-50 border-green-200 text-green-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">📋 Auditoría del Sistema</h1>
+        <p class="text-gray-500 mt-1">Registro de eventos y movimientos importantes del sistema.</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros</h2>
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ID Usuario</label>
+                <input type="number" name="user_id" value="{{ filtro_user_id }}"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                       placeholder="Ej: 42">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+                <select name="role" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white">
+                    <option value="">Todos</option>
+                    {% for r in roles %}
+                    <option value="{{ r }}" {% if filtro_role == r %}selected{% endif %}>{{ r|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Acción</label>
+                <select name="action" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white">
+                    <option value="">Todas</option>
+                    {% for a in acciones %}
+                    <option value="{{ a }}" {% if filtro_action == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Fin</label>
+                <input type="date" name="fecha_fin" value="{{ fecha_fin }}"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div class="sm:col-span-2 lg:col-span-5 flex gap-3">
+                <button type="submit" class="btn-green text-white px-6 py-2 rounded-lg font-medium text-sm shadow-md transition">
+                    🔍 Filtrar
+                </button>
+                <a href="{% url 'audit_log_list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium text-sm transition">
+                    🔄 Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen -->
+    <div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-6 flex items-center justify-between">
+        <span class="text-green-800 font-medium text-sm">
+            Total de registros encontrados: <span class="font-bold">{{ total_registros }}</span>
+        </span>
+        <span class="text-green-700 text-xs">Mostrando hasta 200 registros</span>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="table-header">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Fecha y Hora</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Usuario</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Rol</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Acción</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Modelo</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Detalles</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">IP</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for log in logs %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">
+                            {{ log.timestamp|date:"Y-m-d H:i:s" }}
+                        </td>
+                        <td class="px-5 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                            {% if log.id_user %}
+                                #{{ log.id_user }}
+                            {% else %}
+                                <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                {% if log.role == 'root' %}bg-purple-100 text-purple-700
+                                {% elif log.role == 'superadmin' %}bg-green-100 text-green-700
+                                {% elif log.role == 'gerente' %}bg-blue-100 text-blue-700
+                                {% elif log.role == 'medico' %}bg-teal-100 text-teal-700
+                                {% elif log.role == 'recepcionista' %}bg-yellow-100 text-yellow-700
+                                {% elif log.role == 'paciente' %}bg-gray-100 text-gray-700
+                                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                {{ log.role|title }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-sm text-gray-700 whitespace-nowrap">
+                            <span class="font-medium">{{ log.action }}</span>
+                        </td>
+                        <td class="px-5 py-3 text-sm text-gray-600 whitespace-nowrap">
+                            {{ log.model_affected|default:"—" }}
+                        </td>
+                        <td class="px-5 py-3 text-sm text-gray-600 max-w-xs truncate" title="{{ log.details }}">
+                            {% if log.details %}
+                                {{ log.details }}
+                            {% else %}
+                                <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3 text-sm text-gray-500 whitespace-nowrap font-mono">
+                            {{ log.ip_address|default:"—" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm">
+                            No se encontraron registros de auditoría.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -5,8 +5,9 @@ from django.utils import timezone
 from .models import (
     UserSuperAdmin, Superadmin, Sede, DireccionSede, CentroMedico,
     UserAdmin, Administrador, DireccionAdmin,
-    Estado, Municipio, Ciudad, Parroquia,
+    Estado, Municipio, Ciudad, Parroquia, AuditLog,
 )
+from .audit_services import registrar_evento
 
 # Obtener el CentroMedico del superadmin a través de su sede
 def _get_centro(sa):
@@ -56,6 +57,15 @@ def login_superadmin(request):
         if user:
             request.session['_superadmin_user_id'] = user.id_superadmin
             request.session['_superadmin_username'] = user.username
+            registrar_evento(
+                user=user,
+                role='superadmin',
+                action='LOGIN',
+                model_affected='UserSuperAdmin',
+                object_id=user.id_superadmin,
+                details={'username': user.username},
+                request=request,
+            )
             messages.success(request, f'Bienvenido, {user.username}')
             return redirect('dashboard_superadmin')
         else:
@@ -244,6 +254,85 @@ def registrar_gerente(request):
 # ── LOGOUT SUPER ADMIN ────────────────────────────────────────────────────────
 
 def logout_superadmin(request):
+    user_sa, _ = _get_superadmin_user(request)
+    if user_sa:
+        registrar_evento(
+            user=user_sa,
+            role='superadmin',
+            action='LOGOUT',
+            model_affected='UserSuperAdmin',
+            object_id=user_sa.id_superadmin,
+            details={'username': user_sa.username},
+            request=request,
+        )
     request.session.pop('_superadmin_user_id', None)
     request.session.pop('_superadmin_username', None)
     return redirect('login_superadmin')
+
+
+# ── AUDITORÍA (SUPER ADMIN) ───────────────────────────────────────────────────
+
+@_superadmin_required
+def audit_log_list(request):
+    user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
+
+    queryset = AuditLog.objects.all()
+
+    # Filtros GET
+    filtro_user_id = request.GET.get('user_id', '').strip()
+    filtro_role = request.GET.get('role', '').strip()
+    filtro_action = request.GET.get('action', '').strip()
+    fecha_inicio = request.GET.get('fecha_inicio', '').strip()
+    fecha_fin = request.GET.get('fecha_fin', '').strip()
+
+    if filtro_user_id:
+        try:
+            queryset = queryset.filter(id_user=int(filtro_user_id))
+        except ValueError:
+            pass
+
+    if filtro_role:
+        queryset = queryset.filter(role=filtro_role)
+
+    if filtro_action:
+        queryset = queryset.filter(action=filtro_action)
+
+    if fecha_inicio:
+        try:
+            from datetime import datetime
+            fi = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            queryset = queryset.filter(timestamp__date__gte=fi.date())
+        except ValueError:
+            pass
+
+    if fecha_fin:
+        try:
+            from datetime import datetime
+            ff = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            queryset = queryset.filter(timestamp__date__lte=ff.date())
+        except ValueError:
+            pass
+
+    # Paginación simple (últimos 100 registros por defecto, o todos si se filtra)
+    total_registros = queryset.count()
+    logs = queryset[:200]
+
+    # Valores únicos para selects
+    roles_unicos = AuditLog.objects.values_list('role', flat=True).distinct().order_by('role')
+    acciones_unicas = AuditLog.objects.values_list('action', flat=True).distinct().order_by('action')
+
+    context = {
+        'logs': logs,
+        'total_registros': total_registros,
+        'roles': roles_unicos,
+        'acciones': acciones_unicas,
+        'filtro_user_id': filtro_user_id,
+        'filtro_role': filtro_role,
+        'filtro_action': filtro_action,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'user_sa': user_sa,
+        'centro': centro,
+    }
+    return render(request, 'usuarios/audit_log.html', context)

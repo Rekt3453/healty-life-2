@@ -50,6 +50,7 @@ urlpatterns = [
     # Super Admin
     path('super-admin/registrar-sede/', views_superadmin.registrar_sede, name='registrar_sede'),
     path('super-admin/registrar-gerente/', views_superadmin.registrar_gerente, name='registrar_gerente'),
+    path('super-admin/auditoria/', views_superadmin.audit_log_list, name='audit_log_list'),
     
     # Registro de staff (gerente)
     path('dashboard/gerente/registrar-staff/', views.registro_staff, name='registro_staff'),

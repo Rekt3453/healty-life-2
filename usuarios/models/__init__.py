@@ -18,6 +18,7 @@ from .recuperacion import (
     RecuperacionContrasenaRecepcionista, RecuperacionContrasenaAdmin,
     RecuperacionContrasenaSuperadmin,
 )
+from .audit import AuditLog
 
 __all__ = [
     'Estado', 'Municipio', 'Ciudad', 'Parroquia',
@@ -32,4 +33,5 @@ __all__ = [
     'RecuperacionContrasenaPaciente', 'RecuperacionContrasenaDoctor',
     'RecuperacionContrasenaRecepcionista', 'RecuperacionContrasenaAdmin',
     'RecuperacionContrasenaSuperadmin',
+    'AuditLog',
 ]
