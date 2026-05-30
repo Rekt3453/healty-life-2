@@ -725,6 +725,9 @@ def mis_facturas(request):
     if paciente:
         citas_qs = Cita.objects.filter(id_paciente=paciente).select_related(
             'id_pago_cita', 'id_sede', 'id_especialidades', 'id_doctor'
+        ).prefetch_related(
+            'consulta_medica__servicios_realizados',
+            'factura',
         ).order_by('-fecha_consulta')
 
     estado_filtro = request.GET.get('estado', '')
@@ -1179,7 +1182,10 @@ def cerrar_consulta(request, cita_id):
 @login_required(login_url='/login/')
 def detalle_factura(request, cita_id):
     """Devuelve o genera la factura de una cita con pago aprobado."""
-    cita = get_object_or_404(Cita.objects.select_related('id_pago_cita'), pk=cita_id)
+    cita = get_object_or_404(
+        Cita.objects.select_related('id_pago_cita').prefetch_related('consulta_medica__servicios_realizados'),
+        pk=cita_id
+    )
     try:
         factura = cita.factura
     except Factura.DoesNotExist:
@@ -1188,7 +1194,27 @@ def detalle_factura(request, cita_id):
         except ValueError as e:
             messages.error(request, str(e))
             return redirect('mis_citas')
-    return render(request, 'citas/factura_detalle.html', {'factura': factura})
+
+    # Servicios realizados para el desglose
+    servicios = []
+    try:
+        consulta = cita.consulta_medica
+        servicios = list(consulta.servicios_realizados.all())
+    except (AttributeError, ConsultaMedica.DoesNotExist):
+        pass
+
+    # Pago asociado y saldo
+    pago = getattr(cita, 'id_pago_cita', None)
+    monto_pagado = Decimal(str(pago.monto_pagar or 0)) if pago else Decimal('0.00')
+    saldo_pendiente = max(Decimal('0.00'), Decimal(str(factura.total or 0)) - monto_pagado)
+
+    return render(request, 'citas/factura_detalle.html', {
+        'factura': factura,
+        'servicios': servicios,
+        'pago': pago,
+        'monto_pagado': monto_pagado,
+        'saldo_pendiente': saldo_pendiente,
+    })
 
 
 @login_required(login_url='/login/')
@@ -1315,6 +1341,8 @@ def facturas_recepcionista(request):
         'id_pago_cita',
         'id_pago_cita__id_factura',
         'id_sede',
+    ).prefetch_related(
+        'factura',
     ).order_by('-fecha_consulta')
 
     # Filtros
@@ -1585,6 +1613,14 @@ def pagar_saldo(request, cita_id):
             messages.error(request, f"Error al procesar el pago: {e}")
             return redirect('dashboard_paciente')
 
+    # Servicios realizados para desglose
+    servicios = []
+    try:
+        consulta = cita.consulta_medica
+        servicios = list(consulta.servicios_realizados.all())
+    except (AttributeError, ConsultaMedica.DoesNotExist):
+        pass
+
     return render(request, 'citas/pagar_saldo.html', {
         'cita': cita,
         'factura': factura,
@@ -1592,6 +1628,7 @@ def pagar_saldo(request, cita_id):
         'monto_pagado': monto_pagado,
         'monto_total': monto_total,
         'saldo': saldo,
+        'servicios': servicios,
     })
 
 

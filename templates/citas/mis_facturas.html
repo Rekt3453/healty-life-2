@@ -105,16 +105,51 @@
                             {% endif %}
                         </div>
 
+                        <!-- Desglose de servicios (si consulta atendida con servicios) -->
+                        {% with factura=cita.factura %}
+                        {% if cita.estado == 'atendida' %}
+                            {% with consulta=cita.consulta_medica %}
+                            {% if consulta and consulta.servicios_realizados.all %}
+                                <div class="mt-2">
+                                    <small class="text-muted fw-semibold">Servicios realizados:</small>
+                                    <ul class="list-unstyled mb-1 small">
+                                    {% for srv in consulta.servicios_realizados.all %}
+                                        <li class="d-flex justify-content-between">
+                                            <span>{{ srv.nombre_servicio|default:"Servicio" }}</span>
+                                            <span class="fw-bold">${{ srv.precio_cobrado }}</span>
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            {% endwith %}
+                        {% endif %}
+
                         <div class="mt-3 p-2 bg-light rounded d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div class="small">
-                                <span class="text-muted">Monto:</span>
-                                <span class="fw-bold">
-                                    {% if pago and pago.monto_pagar %}
-                                        ${{ pago.monto_pagar }}
-                                    {% else %}
-                                        Por definir
+                                {% if factura %}
+                                    <span class="text-muted">Total:</span>
+                                    <span class="fw-bold fs-5" style="color:#2E7D32;">${{ factura.total|floatformat:2 }}</span>
+                                    {% if factura.estado == 'pagada' %}
+                                        <span class="badge bg-success ms-1">Pagada</span>
+                                    {% elif factura.estado == 'emitida' %}
+                                        <span class="badge bg-primary ms-1">Emitida</span>
+                                    {% elif factura.estado == 'borrador' %}
+                                        <span class="badge bg-secondary ms-1">Borrador</span>
                                     {% endif %}
-                                </span>
+                                    {% if pago and pago.monto_pagar and factura.total > pago.monto_pagar %}
+                                        <br>
+                                        <span class="text-muted">Adelanto:</span>
+                                        <span class="text-success">${{ pago.monto_pagar|floatformat:2 }}</span>
+                                        <span class="badge bg-warning text-dark ms-1">Saldo pendiente</span>
+                                    {% endif %}
+                                {% elif pago and pago.monto_pagar %}
+                                    <span class="text-muted">Monto pagado:</span>
+                                    <span class="fw-bold">${{ pago.monto_pagar|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="text-muted">Monto:</span>
+                                    <span class="fw-bold">Por definir</span>
+                                {% endif %}
                             </div>
                             <!-- Acciones -->
                             <div>
@@ -122,9 +157,13 @@
                                     <a href="{% url 'pagar_cita' cita.id_citas %}" class="btn btn-success btn-sm">Pagar</a>
                                 {% elif cita.estado == 'confirmada' or cita.estado == 'en_consulta' or cita.estado == 'atendida' %}
                                     <a href="{% url 'detalle_factura' cita.id_citas %}" class="btn btn-outline-secondary btn-sm">Ver factura</a>
+                                    {% if factura and factura.estado != 'pagada' and pago and pago.monto_pagar and factura.total > pago.monto_pagar %}
+                                        <a href="{% url 'pagar_saldo' cita.id_citas %}" class="btn btn-outline-danger btn-sm ms-1">Pagar saldo</a>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </div>
+                        {% endwith %}
                     </div>
                 </div>
                 {% endwith %}

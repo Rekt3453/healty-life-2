@@ -88,7 +88,12 @@
                                         </span>
                                     </td>
                                     <td>
-                                        {% if cita.id_pago_cita and cita.id_pago_cita.monto_pagar %}
+                                        {% if cita.factura %}
+                                            <span class="fw-bold">${{ cita.factura.total|floatformat:2 }}</span>
+                                            {% if cita.id_pago_cita and cita.id_pago_cita.monto_pagar and cita.factura.total > cita.id_pago_cita.monto_pagar %}
+                                                <br><small class="text-muted">Adel. ${{ cita.id_pago_cita.monto_pagar|floatformat:2 }}</small>
+                                            {% endif %}
+                                        {% elif cita.id_pago_cita and cita.id_pago_cita.monto_pagar %}
                                             ${{ cita.id_pago_cita.monto_pagar|floatformat:2 }}
                                         {% else %}
                                             <span class="text-muted">—</span>

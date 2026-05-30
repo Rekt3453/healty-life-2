@@ -61,6 +61,33 @@
             </div>
           </div>
 
+          <!-- Desglose de servicios realizados -->
+          {% if servicios %}
+          <div class="mb-4">
+            <h6 class="fw-bold text-muted mb-2">Servicios realizados</h6>
+            <table class="table table-sm table-bordered mb-2">
+              <thead class="table-light">
+                <tr>
+                  <th>Servicio</th>
+                  <th class="text-end">Precio</th>
+                  <th class="text-end">Cant.</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for srv in servicios %}
+                <tr>
+                  <td>{{ srv.nombre_servicio|default:"Servicio" }}</td>
+                  <td class="text-end">${{ srv.precio_cobrado|floatformat:2 }}</td>
+                  <td class="text-end">{{ srv.cantidad }}</td>
+                  <td class="text-end">${{ srv.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+
           <!-- Tabla de montos -->
           <table class="table table-bordered mb-4">
             <thead class="table-light">
@@ -74,12 +101,33 @@
             <tbody>
               <tr>
                 <td>{{ factura.descripcion }}</td>
-                <td class="text-end">{{ factura.subtotal }}</td>
-                <td class="text-end">{{ factura.impuesto }}</td>
-                <td class="text-end fw-bold fs-5" style="color:#2E7D32;">{{ factura.total }}</td>
+                <td class="text-end">${{ factura.subtotal|floatformat:2 }}</td>
+                <td class="text-end">${{ factura.impuesto|floatformat:2 }}</td>
+                <td class="text-end fw-bold fs-5" style="color:#2E7D32;">${{ factura.total|floatformat:2 }}</td>
               </tr>
             </tbody>
           </table>
+
+          <!-- Resumen de pagos -->
+          {% if pago %}
+          <div class="mb-4">
+            <h6 class="fw-bold text-muted mb-2">Resumen de pagos</h6>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <div class="p-2 border rounded bg-light">
+                  <span class="text-muted small">Monto pagado (adelanto):</span>
+                  <span class="fw-bold text-success">${{ monto_pagado|floatformat:2 }}</span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-2 border rounded bg-light">
+                  <span class="text-muted small">Saldo pendiente:</span>
+                  <span class="fw-bold {% if saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">${{ saldo_pendiente|floatformat:2 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
 
           <!-- Anulación -->
           {% if factura.estado == 'anulada' %}

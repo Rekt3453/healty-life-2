@@ -126,10 +126,15 @@
                                     {% if cita.id_pago_cita.status %}Pagado{% else %}Pendiente{% endif %}
                                 </span>
                             </div>
-                            {% if cita.id_pago_cita.monto_pagar %}
+                            {% if cita.factura %}
                                 <div>
-                                    <span class="text-gray-600">Monto:</span>
-                                    <span class="font-medium ml-2">{{ cita.id_pago_cita.monto_pagar }}</span>
+                                    <span class="text-gray-600">Total factura:</span>
+                                    <span class="font-medium ml-2">${{ cita.factura.total|floatformat:2 }}</span>
+                                </div>
+                            {% elif cita.id_pago_cita.monto_pagar %}
+                                <div>
+                                    <span class="text-gray-600">Monto pagado:</span>
+                                    <span class="font-medium ml-2">${{ cita.id_pago_cita.monto_pagar|floatformat:2 }}</span>
                                 </div>
                             {% endif %}
                         </div>
