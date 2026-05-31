@@ -4,7 +4,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal
 from citas.models import Cita, PagoCita, Factura, MovimientoCaja, HonorarioMedico
-from usuarios.models import Doctor, Sede
+from usuarios.models import Doctor, Sede, PacienteDatosPersonales
 
 
 class ReportesService:
@@ -308,3 +308,49 @@ class ReportesService:
         if id_sede:
             queryset = queryset.filter(id_sede_id=id_sede)
         return queryset.values('id_doctor', 'nombre_1', 'apellido_1')
+
+    @staticmethod
+    def reporte_pacientes_nuevos(fecha_inicio, fecha_fin, id_sede=None):
+        """
+        Reporte de pacientes nuevos registrados en un período.
+
+        Args:
+            fecha_inicio: Fecha de inicio del período
+            fecha_fin: Fecha de fin del período
+            id_sede: ID de la sede (opcional)
+
+        Returns:
+            dict con total de pacientes nuevos
+        """
+        queryset = PacienteDatosPersonales.objects.filter(
+            fecha_registro__date__gte=fecha_inicio,
+            fecha_registro__date__lte=fecha_fin,
+            status=True
+        )
+        if id_sede:
+            queryset = queryset.filter(id_sede_id=id_sede)
+        total = queryset.count()
+        return {
+            'fecha_inicio': fecha_inicio,
+            'fecha_fin': fecha_fin,
+            'total': total,
+        }
+
+    @staticmethod
+    def reporte_doctores(id_sede=None):
+        """
+        Reporte de médicos activos.
+
+        Args:
+            id_sede: ID de la sede (opcional)
+
+        Returns:
+            dict con total de médicos activos
+        """
+        queryset = Doctor.objects.filter(status=True)
+        if id_sede:
+            queryset = queryset.filter(id_sede_id=id_sede)
+        total = queryset.count()
+        return {
+            'total': total,
+        }

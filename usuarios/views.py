@@ -33,6 +33,7 @@ from .services.user_service import (
     calcular_edad,
 )
 from .services.email_service import send_welcome_email
+from .audit_services import registrar_evento
 
 def home(request):
     sedes = Sede.objects.filter(status=True).select_related(
@@ -63,6 +64,15 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
             if user_rol == rol_esperado:
                 login(request, user, backend='usuarios.authentication.CustomAuthBackend')
                 request.session['_hl_user_model'] = type(user).__name__
+                registrar_evento(
+                    user=user,
+                    role=rol_esperado,
+                    action='LOGIN',
+                    model_affected=type(user).__name__,
+                    object_id=user.pk,
+                    details={'username': user.username},
+                    request=request,
+                )
                 messages.success(request, f"Bienvenido {user.username}")
                 return redirect(dashboard_name)
             else:
@@ -89,6 +99,25 @@ def login_gerente(request):
     return login_rol(request, 'gerente', 'usuarios/login_gerente.html', 'dashboard_gerente')
 
 def logout_view(request):
+    user_model_name = request.session.get('_hl_user_model')
+    rol_map = {
+        'UserPaciente': 'paciente',
+        'UserDoctor': 'medico',
+        'UserRecepcionista': 'recepcionista',
+        'UserAdmin': 'gerente',
+        'UserSuperAdmin': 'superadmin',
+    }
+    role = rol_map.get(user_model_name)
+    if role and request.user.is_authenticated:
+        registrar_evento(
+            user=request.user,
+            role=role,
+            action='LOGOUT',
+            model_affected=user_model_name,
+            object_id=request.user.pk,
+            details={'username': request.user.username},
+            request=request,
+        )
     logout(request)
     messages.info(request, "Has cerrado sesión correctamente")
     return redirect('home')
@@ -137,6 +166,25 @@ def registro_paciente(request):
                 # Usar el backend personalizado para login
                 auth_backend = CustomAuthBackend()
                 login(request, user, backend='usuarios.authentication.CustomAuthBackend')
+                request.session['_hl_user_model'] = type(user).__name__
+                registrar_evento(
+                    user=user,
+                    role='paciente',
+                    action='CREATE',
+                    model_affected='UserPaciente',
+                    object_id=user.pk,
+                    details={'username': user.username, 'tipo': 'paciente'},
+                    request=request,
+                )
+                registrar_evento(
+                    user=user,
+                    role='paciente',
+                    action='LOGIN',
+                    model_affected='UserPaciente',
+                    object_id=user.pk,
+                    details={'username': user.username},
+                    request=request,
+                )
 
                 # Mensaje personalizado según tipo de paciente
                 if es_paciente_especial:
@@ -846,6 +894,15 @@ def registro_staff(request):
             if form.is_valid():
                 try:
                     staff_user = form.save()
+                    registrar_evento(
+                        user=staff_user,
+                        role='gerente',
+                        action='CREATE',
+                        model_affected='UserAdmin',
+                        object_id=staff_user.pk,
+                        details={'username': staff_user.username},
+                        request=request,
+                    )
                     messages.success(request, f'Staff {staff_user.username} registrado exitosamente')
                     return redirect('dashboard_gerente')
                 except Exception as e:
@@ -932,6 +989,15 @@ def editar_doctor_view(request, id_doctor):
             if form.is_valid():
                 try:
                     form.save(doctor, user_doctor, direccion)
+                    registrar_evento(
+                        user=request.user,
+                        role='gerente',
+                        action='UPDATE',
+                        model_affected='Doctor',
+                        object_id=doctor.pk,
+                        details={'doctor_id': doctor.pk, 'username': user_doctor.username if user_doctor else None},
+                        request=request,
+                    )
                     messages.success(request, 'Doctor actualizado correctamente.')
                     return redirect('lista_personal')
                 except Exception as e:
@@ -1027,6 +1093,15 @@ def editar_recepcionista_view(request, id_recepcionista):
             if form.is_valid():
                 try:
                     form.save(recepcionista, user_recepcionista, direccion)
+                    registrar_evento(
+                        user=request.user,
+                        role='gerente',
+                        action='UPDATE',
+                        model_affected='Recepcionista',
+                        object_id=recepcionista.pk,
+                        details={'recepcionista_id': recepcionista.pk, 'username': user_recepcionista.username if user_recepcionista else None},
+                        request=request,
+                    )
                     messages.success(request, 'Recepcionista actualizada correctamente.')
                     return redirect('lista_personal')
                 except Exception as e:
@@ -1107,6 +1182,15 @@ def registrar_doctor(request):
                 try:
                     password_plana = form.cleaned_data['password1']
                     user_doctor = form.save(sede)
+                    registrar_evento(
+                        user=user_doctor,
+                        role='medico',
+                        action='CREATE',
+                        model_affected='UserDoctor',
+                        object_id=user_doctor.pk,
+                        details={'username': user_doctor.username, 'sede': sede.nombre_sede if sede else None},
+                        request=request,
+                    )
                     try:
                         from .email_config import enviar_correo_doctor
                         enviar_correo_doctor({
@@ -1162,6 +1246,15 @@ def registrar_recepcionista(request):
                 try:
                     password_plana = form.cleaned_data['password1']
                     user_rec = form.save(sede)
+                    registrar_evento(
+                        user=user_rec,
+                        role='recepcionista',
+                        action='CREATE',
+                        model_affected='UserRecepcionista',
+                        object_id=user_rec.pk,
+                        details={'username': user_rec.username, 'sede': sede.nombre_sede if sede else None},
+                        request=request,
+                    )
                     try:
                         from .email_config import enviar_correo_recepcionista
                         enviar_correo_recepcionista({

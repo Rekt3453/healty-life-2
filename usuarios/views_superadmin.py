@@ -1,10 +1,12 @@
 import hashlib
 import re
+from datetime import datetime
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
+from django.http import HttpResponse
 from .models import (
     UserSuperAdmin, Superadmin, Sede, DireccionSede, CentroMedico,
     UserAdmin, Administrador, DireccionAdmin,
@@ -170,13 +172,22 @@ def registrar_sede(request):
                     direccion=direccion,
                     referencia=referencia,
                 )
-                Sede.objects.create(
+                sede_obj = Sede.objects.create(
                     nombre_sede=nombre_sede,
                     rif_sede=rif_sede,
                     telefono=telefono,
                     id_direccion=dir_sede,
                     id_cm=centro,
                     status=True,
+                )
+                registrar_evento(
+                    user=user_sa,
+                    role='superadmin',
+                    action='CREATE',
+                    model_affected='Sede',
+                    object_id=sede_obj.pk,
+                    details={'nombre_sede': nombre_sede, 'rif': rif_sede},
+                    request=request,
                 )
                 messages.success(request, f'Sede "{nombre_sede}" registrada exitosamente.')
                 return redirect('dashboard_superadmin')
@@ -240,6 +251,18 @@ def registrar_gerente(request):
             errors.append('Tipo de cedula invalido.')
         if not re.match(r'^\d{7,9}$', cedula):
             errors.append('La cedula debe tener entre 7 y 9 digitos numericos.')
+        if fecha_nacimiento:
+            try:
+                from datetime import date as _date
+                fn = datetime.strptime(fecha_nacimiento, '%Y-%m-%d').date()
+                if fn > _date.today():
+                    errors.append('La fecha de nacimiento no puede ser futura.')
+                else:
+                    edad = _date.today().year - fn.year - ((_date.today().month, _date.today().day) < (fn.month, fn.day))
+                    if edad < 18:
+                        errors.append('El gerente debe tener al menos 18 años.')
+            except ValueError:
+                errors.append('La fecha de nacimiento no es valida.')
         if not re.match(r'^(0412|0426|0424|0422)-\d{3}-\d{4}$', telefono):
             errors.append('El telefono debe tener el formato 0412-123-4567.')
         if len(password) < 8:
@@ -290,6 +313,15 @@ def registrar_gerente(request):
                     id_sede_id=id_sede,
                     id_direccion_admin=dir_admin,
                     status=True,
+                )
+                registrar_evento(
+                    user=user_sa,
+                    role='superadmin',
+                    action='CREATE',
+                    model_affected='UserAdmin',
+                    object_id=user_admin.pk,
+                    details={'username': username, 'sede_id': id_sede, 'rol': 'gerente'},
+                    request=request,
                 )
 
                 try:
@@ -355,10 +387,20 @@ def lista_sedes(request):
 
 @_superadmin_required
 def toggle_sede_status(request, id_sede):
+    user_sa, _ = _get_superadmin_user(request)
     sede = get_object_or_404(Sede, pk=id_sede)
     sede.status = not sede.status if sede.status is not None else True
     sede.save()
     estado = 'activada' if sede.status else 'desactivada'
+    registrar_evento(
+        user=user_sa,
+        role='superadmin',
+        action='STATUS_CHANGE',
+        model_affected='Sede',
+        object_id=sede.pk,
+        details={'sede': sede.nombre_sede, 'nuevo_estado': estado},
+        request=request,
+    )
     messages.success(request, f'Sede "{sede.nombre_sede}" {estado} exitosamente.')
     return redirect('lista_sedes')
 
@@ -428,10 +470,20 @@ def lista_gerentes(request):
 
 @_superadmin_required
 def toggle_gerente_status(request, id_administrador):
+    user_sa, _ = _get_superadmin_user(request)
     gerente = get_object_or_404(Administrador, pk=id_administrador)
     gerente.status = not gerente.status if gerente.status is not None else True
     gerente.save()
     estado = 'activado' if gerente.status else 'desactivado'
+    registrar_evento(
+        user=user_sa,
+        role='superadmin',
+        action='STATUS_CHANGE',
+        model_affected='Administrador',
+        object_id=gerente.pk,
+        details={'gerente': str(gerente), 'nuevo_estado': estado},
+        request=request,
+    )
     messages.success(request, f'Gerente "{gerente}" {estado} exitosamente.')
     return redirect('lista_gerentes')
 
@@ -490,6 +542,357 @@ def editar_gerente(request, id_administrador):
     return render(request, 'usuarios/editar_gerente.html', context)
 
 
+# ── REPORTES SUPER ADMIN ──────────────────────────────────────────────────────
+
+@_superadmin_required
+def reportes_superadmin(request):
+    user_sa, sa = _get_superadmin_user(request)
+    from datetime import datetime
+    from citas.reportes import ReportesService
+
+    hoy = timezone.now().date()
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    id_sede = request.GET.get('id_sede')
+
+    if not fecha_inicio:
+        fecha_inicio = hoy.replace(day=1)
+    else:
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+
+    if not fecha_fin:
+        fecha_fin = hoy
+    else:
+        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+
+    if id_sede:
+        id_sede = int(id_sede)
+
+    # Métricas generales
+    datos_atencion = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, id_sede)
+    datos_balance = ReportesService.reporte_balance(fecha_inicio, fecha_fin, id_sede)
+    datos_honorarios = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, id_sede)
+    datos_pacientes = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, id_sede)
+    datos_doctores = ReportesService.reporte_doctores(id_sede)
+
+    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+
+    # Desglose por sede (solo cuando no se filtra una sede específica)
+    breakdown = []
+    if not id_sede:
+        for sede in sedes:
+            atencion_sede = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, sede.id_sede)
+            balance_sede = ReportesService.reporte_balance(fecha_inicio, fecha_fin, sede.id_sede)
+            honorarios_sede = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, sede.id_sede)
+            pacientes_sede = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, sede.id_sede)
+            doctores_sede = ReportesService.reporte_doctores(sede.id_sede)
+            breakdown.append({
+                'sede': sede,
+                'total_citas': atencion_sede['total_citas'],
+                'atendidas': atencion_sede['atendidas'],
+                'canceladas': atencion_sede['canceladas'],
+                'facturacion': balance_sede['facturacion']['total'],
+                'honorarios': honorarios_sede['totales']['total_honorarios'],
+                'pacientes_nuevos': pacientes_sede['total'],
+                'doctores': doctores_sede['total'],
+            })
+
+    # Desglose por doctor (solo cuando se filtra una sede específica)
+    breakdown_doctors = []
+    sede_obj = None
+    if id_sede:
+        sede_obj = get_object_or_404(Sede, pk=id_sede)
+        from citas.models import Cita
+        from django.db.models import Count
+        from decimal import Decimal
+        doctores = ReportesService.obtener_medicos(id_sede)
+        for doc in doctores:
+            citas_doc = Cita.objects.filter(
+                id_doctor_id=doc['id_doctor'],
+                fecha_consulta__date__gte=fecha_inicio,
+                fecha_consulta__date__lte=fecha_fin,
+                status=True
+            )
+            atendidas_doc = citas_doc.filter(estado=Cita.ESTADO_ATENDIDA).count()
+            canceladas_doc = citas_doc.filter(estado=Cita.ESTADO_CANCELADA).count()
+            # Honorarios del doctor
+            honor_doc = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, id_sede, doc['id_doctor'])
+            total_hon = honor_doc['totales']['total_honorarios']
+            total_pagado = honor_doc['totales']['total_pagado']
+            total_pendiente = honor_doc['totales']['total_pendiente']
+            breakdown_doctors.append({
+                'nombre': f"Dr. {doc['nombre_1'] or ''} {doc['apellido_1'] or ''}".strip(),
+                'total_citas': citas_doc.count(),
+                'atendidas': atendidas_doc,
+                'canceladas': canceladas_doc,
+                'honorarios': total_hon,
+                'pagado': total_pagado,
+                'pendiente': total_pendiente,
+            })
+
+    context = {
+        'user_sa': user_sa,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'id_sede': id_sede,
+        'sede_obj': sede_obj,
+        'sedes': sedes,
+        'datos_atencion': datos_atencion,
+        'datos_balance': datos_balance,
+        'datos_honorarios': datos_honorarios,
+        'datos_pacientes': datos_pacientes,
+        'datos_doctores': datos_doctores,
+        'breakdown': breakdown,
+        'breakdown_doctors': breakdown_doctors,
+    }
+    return render(request, 'usuarios/reportes_superadmin.html', context)
+
+
+# ── PDF REPORTES SUPER ADMIN ──────────────────────────────────────────────────
+
+def _generar_pdf_reportes(fecha_inicio, fecha_fin, id_sede, sede_obj,
+                          datos_atencion, datos_balance, datos_honorarios,
+                          datos_pacientes, datos_doctores,
+                          breakdown, breakdown_doctors):
+    """Genera un PDF de reportes usando ReportLab y devuelve el contenido binario."""
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from io import BytesIO
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+    elements = []
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle', parent=styles['Heading1'], fontSize=18,
+        textColor=colors.HexColor('#1f2937'), spaceAfter=12, alignment=1
+    )
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle', parent=styles['Normal'], fontSize=10,
+        textColor=colors.HexColor('#6b7280'), spaceAfter=20, alignment=1
+    )
+    header_style = ParagraphStyle(
+        'TableHeader', parent=styles['Normal'], fontSize=9,
+        textColor=colors.whitesmoke, alignment=1, fontName='Helvetica-Bold'
+    )
+    cell_style = ParagraphStyle(
+        'TableCell', parent=styles['Normal'], fontSize=9,
+        textColor=colors.HexColor('#374151'), alignment=1
+    )
+    left_cell_style = ParagraphStyle(
+        'LeftTableCell', parent=styles['Normal'], fontSize=9,
+        textColor=colors.HexColor('#374151'), alignment=0
+    )
+
+    # Titulo
+    elements.append(Paragraph("Healthy Life - Reporte de Operaciones", title_style))
+    elements.append(Paragraph(
+        f"Periodo: {fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')}"
+        f"{' | Sede: ' + sede_obj.nombre_sede if sede_obj else ' | Todas las sedes'}",
+        subtitle_style
+    ))
+    elements.append(Spacer(1, 0.3*cm))
+
+    # Metricas generales
+    metric_data = [
+        ['Citas Agendadas', 'Citas Atendidas', 'Doctores Activos'],
+        [str(datos_atencion['total_citas']), str(datos_atencion['atendidas']), str(datos_doctores['total'])],
+        ['Facturacion Total', 'Honorarios Medicos', 'Pacientes Nuevos'],
+        [f"${float(datos_balance['facturacion']['total']):,.2f}",
+         f"${float(datos_honorarios['totales']['total_honorarios']):,.2f}",
+         str(datos_pacientes['total'])],
+    ]
+    metric_table = Table(metric_data, colWidths=[5.5*cm, 5.5*cm, 5.5*cm])
+    metric_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3b82f6')),
+        ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor('#10b981')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('TEXTCOLOR', (0, 2), (-1, 2), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 2), (-1, 2), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        ('BOTTOMPADDING', (0, 2), (-1, 2), 8),
+        ('TOPPADDING', (0, 2), (-1, 2), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f9fafb')),
+        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#f9fafb')),
+    ]))
+    elements.append(metric_table)
+    elements.append(Spacer(1, 0.6*cm))
+
+    # Tabla de desglose
+    if not id_sede and breakdown:
+        elements.append(Paragraph("Desglose por Sede", styles['Heading2']))
+        elements.append(Spacer(1, 0.2*cm))
+        bd_data = [['Sede', 'Citas', 'Atend.', 'Cancel.', 'Doctores', 'Facturacion', 'Honorarios', 'Pac. Nuevos']]
+        for item in breakdown:
+            bd_data.append([
+                item['sede'].nombre_sede,
+                str(item['total_citas']),
+                str(item['atendidas']),
+                str(item['canceladas']),
+                str(item['doctores']),
+                f"${float(item['facturacion']):,.2f}",
+                f"${float(item['honorarios']):,.2f}",
+                str(item['pacientes_nuevos']),
+            ])
+        bd_table = Table(bd_data, colWidths=[4.5*cm, 1.5*cm, 1.5*cm, 1.5*cm, 1.8*cm, 2.5*cm, 2.5*cm, 1.8*cm])
+        bd_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f2937')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor('#f9fafb'), colors.white]),
+        ]))
+        elements.append(bd_table)
+        elements.append(Spacer(1, 0.4*cm))
+
+    if id_sede and breakdown_doctors:
+        elements.append(Paragraph(f"Desglose por Doctor - {sede_obj.nombre_sede}", styles['Heading2']))
+        elements.append(Spacer(1, 0.2*cm))
+        doc_data = [['Doctor', 'Citas', 'Atend.', 'Cancel.', 'Honorarios', 'Pagado', 'Pendiente']]
+        for item in breakdown_doctors:
+            doc_data.append([
+                item['nombre'],
+                str(item['total_citas']),
+                str(item['atendidas']),
+                str(item['canceladas']),
+                f"${float(item['honorarios']):,.2f}",
+                f"${float(item['pagado']):,.2f}",
+                f"${float(item['pendiente']):,.2f}",
+            ])
+        doc_table = Table(doc_data, colWidths=[5.5*cm, 1.5*cm, 1.5*cm, 1.5*cm, 2.5*cm, 2.5*cm, 2.5*cm])
+        doc_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f2937')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor('#f9fafb'), colors.white]),
+        ]))
+        elements.append(doc_table)
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf
+
+
+@_superadmin_required
+def reportes_superadmin_pdf(request):
+    """Genera y descarga el PDF de reportes con los mismos filtros que la vista HTML."""
+    from datetime import datetime
+    from citas.reportes import ReportesService
+
+    hoy = timezone.now().date()
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    id_sede = request.GET.get('id_sede')
+
+    if not fecha_inicio:
+        fecha_inicio = hoy.replace(day=1)
+    else:
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+
+    if not fecha_fin:
+        fecha_fin = hoy
+    else:
+        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+
+    if id_sede:
+        id_sede = int(id_sede)
+
+    # Metricas
+    datos_atencion = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, id_sede)
+    datos_balance = ReportesService.reporte_balance(fecha_inicio, fecha_fin, id_sede)
+    datos_honorarios = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, id_sede)
+    datos_pacientes = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, id_sede)
+    datos_doctores = ReportesService.reporte_doctores(id_sede)
+
+    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+    sede_obj = None
+    if id_sede:
+        sede_obj = get_object_or_404(Sede, pk=id_sede)
+
+    # Desglose por sede
+    breakdown = []
+    if not id_sede:
+        for sede in sedes:
+            atencion_sede = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, sede.id_sede)
+            balance_sede = ReportesService.reporte_balance(fecha_inicio, fecha_fin, sede.id_sede)
+            honorarios_sede = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, sede.id_sede)
+            pacientes_sede = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, sede.id_sede)
+            doctores_sede = ReportesService.reporte_doctores(sede.id_sede)
+            breakdown.append({
+                'sede': sede,
+                'total_citas': atencion_sede['total_citas'],
+                'atendidas': atencion_sede['atendidas'],
+                'canceladas': atencion_sede['canceladas'],
+                'facturacion': balance_sede['facturacion']['total'],
+                'honorarios': honorarios_sede['totales']['total_honorarios'],
+                'pacientes_nuevos': pacientes_sede['total'],
+                'doctores': doctores_sede['total'],
+            })
+
+    # Desglose por doctor
+    breakdown_doctors = []
+    if id_sede:
+        from citas.models import Cita
+        doctores = ReportesService.obtener_medicos(id_sede)
+        for doc in doctores:
+            citas_doc = Cita.objects.filter(
+                id_doctor_id=doc['id_doctor'],
+                fecha_consulta__date__gte=fecha_inicio,
+                fecha_consulta__date__lte=fecha_fin,
+                status=True
+            )
+            atendidas_doc = citas_doc.filter(estado=Cita.ESTADO_ATENDIDA).count()
+            canceladas_doc = citas_doc.filter(estado=Cita.ESTADO_CANCELADA).count()
+            honor_doc = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, id_sede, doc['id_doctor'])
+            breakdown_doctors.append({
+                'nombre': f"Dr. {doc['nombre_1'] or ''} {doc['apellido_1'] or ''}".strip(),
+                'total_citas': citas_doc.count(),
+                'atendidas': atendidas_doc,
+                'canceladas': canceladas_doc,
+                'honorarios': honor_doc['totales']['total_honorarios'],
+                'pagado': honor_doc['totales']['total_pagado'],
+                'pendiente': honor_doc['totales']['total_pendiente'],
+            })
+
+    pdf_bytes = _generar_pdf_reportes(
+        fecha_inicio, fecha_fin, id_sede, sede_obj,
+        datos_atencion, datos_balance, datos_honorarios,
+        datos_pacientes, datos_doctores,
+        breakdown, breakdown_doctors
+    )
+
+    filename = f"reporte_{fecha_inicio.strftime('%Y%m%d')}_{fecha_fin.strftime('%Y%m%d')}"
+    if sede_obj:
+        filename += f"_{sede_obj.nombre_sede.replace(' ', '_')}"
+    filename += ".pdf"
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write(pdf_bytes)
+    return response
+
+
 # ── LOGOUT SUPER ADMIN ────────────────────────────────────────────────────────
 
 def logout_superadmin(request):
@@ -516,7 +919,8 @@ def audit_log_list(request):
     user_sa, sa = _get_superadmin_user(request)
     centro = _get_centro(sa)
 
-    queryset = AuditLog.objects.all()
+    # Excluir siempre eventos del rol root
+    queryset = AuditLog.objects.exclude(role='root')
 
     # Filtros GET
     filtro_user_id = request.GET.get('user_id', '').strip()
@@ -553,16 +957,21 @@ def audit_log_list(request):
         except ValueError:
             pass
 
-    # Paginación simple (últimos 100 registros por defecto, o todos si se filtra)
+    # Paginacion
     total_registros = queryset.count()
-    logs = queryset[:200]
+    paginator = Paginator(queryset.order_by('-timestamp'), 50)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except Exception:
+        page_obj = paginator.page(1)
 
-    # Valores únicos para selects
-    roles_unicos = AuditLog.objects.values_list('role', flat=True).distinct().order_by('role')
-    acciones_unicas = AuditLog.objects.values_list('action', flat=True).distinct().order_by('action')
+    # Roles disponibles (todos menos root) para que siempre aparezcan en el filtro
+    roles_unicos = ['gerente', 'medico', 'paciente', 'recepcionista', 'superadmin']
+    acciones_unicas = AuditLog.objects.exclude(role='root').values_list('action', flat=True).distinct().order_by('action')
 
     context = {
-        'logs': logs,
+        'page_obj': page_obj,
         'total_registros': total_registros,
         'roles': roles_unicos,
         'acciones': acciones_unicas,
