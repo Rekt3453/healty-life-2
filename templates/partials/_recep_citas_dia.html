@@ -1,0 +1,73 @@
+<div class="dashboard-card overflow-hidden fade-in">
+    <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(0,112,243,.1);color:var(--accent);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+                <h2 class="text-base font-bold" style="color:var(--text-primary);">Citas del día</h2>
+                <p class="text-xs" style="color:var(--text-secondary);">{{ citas_hoy|default:"0" }} citas programadas</p>
+            </div>
+        </div>
+        <a href="{% url 'gestionar_citas' %}" class="btn-ghost">Ver todas</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead>
+                <tr style="background:var(--bg-primary);color:var(--text-secondary);">
+                    <th class="px-6 py-3 font-medium">Hora</th>
+                    <th class="px-6 py-3 font-medium">Paciente</th>
+                    <th class="px-6 py-3 font-medium">Médico</th>
+                    <th class="px-6 py-3 font-medium">Especialidad</th>
+                    <th class="px-6 py-3 font-medium">Consultorio</th>
+                    <th class="px-6 py-3 font-medium">Estado</th>
+                    <th class="px-6 py-3 font-medium text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="dailyAppointmentsBody">
+                {% for cita in citas_hoy_list %}
+                <tr class="border-b hover:bg-gray-50 transition-colors" style="border-color:var(--border);" data-row-id="{{ cita.id_citas }}">
+                    <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">{{ cita.fecha_consulta|time:"H:i" }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-primary);">{{ cita.id_paciente|default:"—" }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_especialidades|default:"—" }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_consultorio|default:"—" }}</td>
+                    <td class="px-6 py-4">
+                        {% if cita.estado == 'solicitada' %}
+                            <span class="badge-pendiente">Pendiente</span>
+                        {% elif cita.estado == 'confirmada' or cita.estado == 'aprobada' %}
+                            <span class="badge-confirmada">Confirmada</span>
+                        {% elif cita.estado == 'atendida' or cita.estado == 'en_consulta' %}
+                            <span class="badge-completada">Completada</span>
+                        {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' or cita.estado == 'no_asistio' %}
+                            <span class="badge-cancelada">Cancelada</span>
+                        {% else %}
+                            <span class="badge-pendiente">Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if cita.estado == 'solicitada' %}
+                            <button onclick="openModal('confirmar',{{ cita.id_citas }})" class="btn-success text-xs px-3 py-1.5 mr-1">Confirmar</button>
+                            <button onclick="openModal('rechazar',{{ cita.id_citas }})" class="btn-danger text-xs px-3 py-1.5">Rechazar</button>
+                        {% elif cita.estado == 'confirmada' or cita.estado == 'aprobada' %}
+                            <button onclick="openModal('llego',{{ cita.id_citas }})" class="btn-primary text-xs px-3 py-1.5 mr-1">Llegó</button>
+                            <button onclick="openModal('cancelar',{{ cita.id_citas }})" class="btn-danger text-xs px-3 py-1.5">Cancelar</button>
+                        {% else %}
+                            <span class="text-xs" style="color:var(--text-secondary);">Sin acciones</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <p class="text-sm font-medium">No hay citas programadas para hoy</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

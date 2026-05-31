@@ -1,0 +1,116 @@
+<script>
+(function(){
+    var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    var dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    var h=new Date();
+    var el=document.getElementById('currentDate');
+    if(el) el.textContent=dias[h.getDay()]+', '+h.getDate()+' de '+meses[h.getMonth()]+' de '+h.getFullYear();
+})();
+
+let currentAction=null, currentRowId=null;
+
+function openModal(action,id){
+    currentAction=action; currentRowId=id;
+    var modal=document.getElementById('modal'+capitalize(action));
+    if(modal) modal.classList.add('active');
+    document.body.style.overflow='hidden';
+}
+function closeModal(action){
+    var modal=document.getElementById('modal'+capitalize(action));
+    if(modal) modal.classList.remove('active');
+    document.body.style.overflow='';
+    currentAction=null; currentRowId=null;
+}
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+function confirmAction(action){
+    var row=document.querySelector('tr[data-row-id="'+currentRowId+'"]');
+    var request=document.querySelector('div[data-request-id="'+currentRowId+'"]');
+    if(action==='confirmar'){
+        if(row){
+            var badge=row.querySelector('td:nth-child(6) span');
+            if(badge){badge.className='badge-confirmada'; badge.textContent='Confirmada';}
+            var btns=row.querySelector('td:nth-child(7)');
+            if(btns) btns.innerHTML='<button onclick="openModal(\'llego\','+currentRowId+')" class="btn-primary text-xs px-3 py-1.5 mr-1">Llegó</button><button onclick="openModal(\'cancelar\','+currentRowId+')" class="btn-danger text-xs px-3 py-1.5">Cancelar</button>';
+        }
+        if(request) request.remove();
+        showToast('Cita confirmada correctamente','success');
+    } else if(action==='rechazar'){
+        if(row) row.remove();
+        if(request) request.remove();
+        showToast('Cita rechazada correctamente','error');
+    } else if(action==='cancelar'){
+        if(row){
+            var badge=row.querySelector('td:nth-child(6) span');
+            if(badge){badge.className='badge-cancelada'; badge.textContent='Cancelada';}
+            var btns=row.querySelector('td:nth-child(7)');
+            if(btns) btns.innerHTML='<span class="text-xs" style="color:var(--text-secondary);">Cancelada</span>';
+        }
+        if(request) request.remove();
+        showToast('Cita cancelada correctamente','error');
+    } else if(action==='llego'){
+        if(row){
+            var badge=row.querySelector('td:nth-child(6) span');
+            if(badge){badge.className='badge-completada'; badge.textContent='Completada';}
+            var btns=row.querySelector('td:nth-child(7)');
+            if(btns) btns.innerHTML='<a href="#" class="btn-ghost text-xs px-3 py-1.5">Ver detalles</a>';
+        }
+        showToast('Paciente marcado como atendido','success');
+    }
+    closeModal(action);
+}
+
+function showToast(message,type){
+    var container=document.getElementById('toastContainer');
+    if(!container) return;
+    var toast=document.createElement('div');
+    toast.className='toast toast-'+type;
+    var icon=type==='success'
+        ?'<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        :'<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+    toast.innerHTML=icon+'<span class="text-sm font-medium" style="color:var(--text-primary);">'+message+'</span>';
+    container.appendChild(toast);
+    requestAnimationFrame(function(){toast.classList.add('show');});
+    setTimeout(function(){toast.classList.remove('show');setTimeout(function(){toast.remove();},400);},3000);
+}
+
+function toggleSidebar(){
+    var sidebar=document.getElementById('sidebar');
+    var overlay=document.getElementById('sidebarOverlay');
+    if(sidebar) sidebar.classList.toggle('open');
+    if(overlay) overlay.classList.toggle('active');
+}
+
+function toggleUpcoming(){
+    var list=document.getElementById('upcomingList');
+    var chevron=document.getElementById('upcomingChevron');
+    if(list){list.classList.toggle('hidden');}
+    if(chevron){chevron.style.transform=list.classList.contains('hidden')?'rotate(0deg)':'rotate(180deg)';}
+}
+
+var patients=[
+    {name:'María González',cedula:'V-12.345.678',phone:'0412-1234567'},
+    {name:'José Pérez',cedula:'V-23.456.789',phone:'0414-2345678'},
+    {name:'Luisa Martínez',cedula:'V-34.567.890',phone:'0416-3456789'},
+    {name:'Carlos Herrera',cedula:'V-45.678.901',phone:'0424-4567890'},
+    {name:'Fernanda Díaz',cedula:'V-56.789.012',phone:'0412-5678901'}
+];
+
+function searchPatients(query){
+    var container=document.getElementById('patientSearchResults');
+    if(!container) return;
+    if(!query||query.length<2){container.classList.add('hidden');container.innerHTML='';return;}
+    var q=query.toLowerCase();
+    var results=patients.filter(function(p){return p.name.toLowerCase().indexOf(q)!==-1||p.cedula.toLowerCase().indexOf(q)!==-1;});
+    container.innerHTML='';
+    if(results.length===0){container.innerHTML='<p class="text-sm" style="color:var(--text-secondary);">No se encontraron pacientes.</p>';container.classList.remove('hidden');return;}
+    results.forEach(function(p){
+        var div=document.createElement('div');
+        div.className='flex items-center justify-between p-3 rounded-lg hover:bg-gray-50';
+        div.style.border='1px solid var(--border)';
+        div.innerHTML='<div><p class="text-sm font-medium" style="color:var(--text-primary);">'+p.name+'</p><p class="text-xs" style="color:var(--text-secondary);">'+p.cedula+' · '+p.phone+'</p></div><a href="#" class="btn-ghost text-xs px-3 py-1.5">Ver ficha</a>';
+        container.appendChild(div);
+    });
+    container.classList.remove('hidden');
+}
+</script>
