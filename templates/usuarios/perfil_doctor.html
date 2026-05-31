@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Doctor - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+    <style>body{background:var(--bg-primary);font-family:'Inter',sans-serif;}</style>
+</head>
+<body class="min-h-screen">
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{% url 'home' %}" class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#0070F3,#005CC2);">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </div>
+                    <span class="text-xl font-bold" style="color:var(--text-primary);">Healthy Life</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'dashboard_medico' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Dashboard
+                    </a>
+                    <a href="{% url 'logout' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Salir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold" style="color:var(--text-primary);">Perfil de Doctor</h1>
+            <p class="mt-2" style="color:var(--text-secondary);">Tu informacion personal y servicios que ofreces.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Datos personales -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Datos Personales</h2>
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Doctor</span>
+                        {% if not editando %}
+                        <a href="?edit=1" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            Editar perfil
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-2xl font-bold">
+                            {{ doctor.nombre_1|first|default:'D' }}{{ doctor.apellido_1|first|default:'R' }}
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-xl font-bold text-gray-900">{{ doctor.nombre_completo }}</p>
+                            <p class="text-sm text-gray-500">{{ request.user.email|default:doctor.id_user_doctor.email }}</p>
+                        </div>
+                    </div>
+
+                    {% if editando %}
+                    <form method="post" action="{% url 'perfil_doctor' %}">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Primer nombre *</label>
+                                <input type="text" name="nombre_1" value="{{ doctor.nombre_1|default:'' }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Segundo nombre</label>
+                                <input type="text" name="nombre_2" value="{{ doctor.nombre_2|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Primer apellido *</label>
+                                <input type="text" name="apellido_1" value="{{ doctor.apellido_1|default:'' }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Segundo apellido</label>
+                                <input type="text" name="apellido_2" value="{{ doctor.apellido_2|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Cedula</label>
+                                <input type="text" value="{{ doctor.tipo_cedula|default:'' }} {{ doctor.cedula|default:'' }}" disabled class="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-lg text-gray-500 text-sm cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Sexo</label>
+                                <select name="sexo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                    <option value="" {% if not doctor.sexo %}selected{% endif %}>—</option>
+                                    <option value="Masculino" {% if doctor.sexo == 'Masculino' %}selected{% endif %}>Masculino</option>
+                                    <option value="Femenino" {% if doctor.sexo == 'Femenino' %}selected{% endif %}>Femenino</option>
+                                    <option value="Otro" {% if doctor.sexo == 'Otro' %}selected{% endif %}>Otro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Fecha de nacimiento</label>
+                                <input type="text" value="{{ doctor.fecha_nacimiento|date:'d/m/Y'|default:'—' }}" disabled class="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-lg text-gray-500 text-sm cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Edad</label>
+                                <input type="text" value="{{ edad|default:'—' }} anos" disabled class="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-lg text-gray-500 text-sm cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Telefono</label>
+                                <input type="text" name="telefono" value="{{ doctor.telefono|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 uppercase tracking-wide mb-1">Correo</label>
+                                <input type="email" name="email" value="{{ request.user.email|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            </div>
+                        </div>
+                        <div class="mt-6 flex items-center gap-3">
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">Guardar cambios</button>
+                            <a href="{% url 'perfil_doctor' %}" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancelar</a>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Primer nombre</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.nombre_1|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Segundo nombre</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.nombre_2|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Primer apellido</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.apellido_1|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Segundo apellido</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.apellido_2|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Cedula</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.tipo_cedula|default:'' }} {{ doctor.cedula|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Sexo</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.sexo|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Fecha de nacimiento</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.fecha_nacimiento|date:"d/m/Y"|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Edad</p>
+                            <p class="text-sm font-medium text-gray-900">{{ edad|default:'-' }} anos</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Telefono</p>
+                            <p class="text-sm font-medium text-gray-900">{{ doctor.telefono|default:'-' }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Correo</p>
+                            <p class="text-sm font-medium text-gray-900">{{ request.user.email|default:'-' }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Acciones rapidas -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Acciones</h2>
+                </div>
+                <div class="p-6 space-y-3">
+                    <a href="{% url 'servicios_doctor' %}" class="flex items-center p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
+                        <svg class="h-8 w-8 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                        <div>
+                            <p class="font-medium text-gray-900">Modificar Servicios</p>
+                            <p class="text-sm text-gray-600">Gestionar catalogo de servicios</p>
+                        </div>
+                    </a>
+                    <a href="{% url 'gestionar_horarios' %}" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                        <svg class="h-8 w-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div>
+                            <p class="font-medium text-gray-900">Gestionar Horarios</p>
+                            <p class="text-sm text-gray-600">Configurar tu disponibilidad</p>
+                        </div>
+                    </a>
+                    <a href="{% url 'calendario_citas' %}" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                        <svg class="h-8 w-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div>
+                            <p class="font-medium text-gray-900">Calendario</p>
+                            <p class="text-sm text-gray-600">Ver calendario de citas</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Servicios -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">Servicios que Ofrece</h2>
+                <a href="{% url 'servicios_doctor' %}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    Modificar
+                </a>
+            </div>
+            <div class="p-6">
+                {% if servicios %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for servicio in servicios %}
+                    <div class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                        <div class="flex items-start">
+                            <div class="p-2 bg-indigo-100 rounded-lg">
+                                <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="font-medium text-gray-900">{{ servicio.nombre }}</p>
+                                <p class="text-sm text-gray-600 mt-1">{{ servicio.descripcion|truncatewords:12|default:'Sin descripcion' }}</p>
+                                <p class="text-sm font-semibold text-indigo-600 mt-2">${{ servicio.precio }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No tienes servicios registrados</h3>
+                    <p class="mt-1 text-sm text-gray-500">Agrega servicios a tu catalogo para que los pacientes puedan solicitar citas.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</body>
+</html>
