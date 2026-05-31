@@ -228,6 +228,8 @@ def gestionar_horarios(request):
         messages.error(request, "No se encontró tu perfil de médico.")
         return redirect('dashboard_medico')
 
+    hoy = date.today()
+
     if request.method == 'POST':
         fecha_str = request.POST.get('fecha', '').strip()
         action = request.POST.get('action', 'save')
@@ -262,7 +264,6 @@ def gestionar_horarios(request):
         return redirect(f'{request.path}?año={fecha.year}&mes={fecha.month}')
 
     # Calendario mensual
-    hoy = date.today()
     try:
         año = int(request.GET.get('año', hoy.year))
         mes = int(request.GET.get('mes', hoy.month))

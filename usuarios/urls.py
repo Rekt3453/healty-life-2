@@ -38,6 +38,7 @@ urlpatterns = [
     # Dashboards
     path('dashboard/paciente/', views.dashboard_paciente, name='dashboard_paciente'),
     path('dashboard/medico/', views.dashboard_medico, name='dashboard_medico'),
+    path('perfil/doctor/', views.perfil_doctor, name='perfil_doctor'),
     path('dashboard/recepcionista/', views.dashboard_recepcionista, name='dashboard_recepcionista'),
     path('dashboard/gerente/', views.dashboard_gerente, name='dashboard_gerente'),
     path('dashboard/root/', views_root.dashboard_root, name='dashboard_root'),

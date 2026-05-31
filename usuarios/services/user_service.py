@@ -270,7 +270,7 @@ def get_medico_dashboard_context(datos_medico):
     try:
         hoy              = date.today()
         citas_hoy        = Cita.objects.filter(id_doctor=datos_medico, fecha_consulta__date=hoy, status=True)
-        citas_pendientes = Cita.objects.filter(id_doctor=datos_medico, status=True)
+        citas_pendientes = Cita.objects.filter(id_doctor=datos_medico, status=True).select_related('id_paciente').order_by('fecha_consulta')[:5]
         total_citas      = Cita.objects.filter(id_doctor=datos_medico).count()
     except Exception:
         citas_hoy = citas_pendientes = Cita.objects.none()

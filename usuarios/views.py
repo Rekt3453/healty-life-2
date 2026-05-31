@@ -720,6 +720,88 @@ def dashboard_medico(request):
     stats = get_medico_dashboard_context(datos_medico)
     return render(request, 'usuarios/dashboard_medico.html', {'nombre': nombre, **stats})
 
+
+@login_required(login_url='/login/medico/')
+@rol_requerido('medico')
+def perfil_doctor(request):
+    """Perfil del médico con datos personales y servicios que ofrece."""
+    from datetime import date
+    from citas.models import ServicioMedico
+    from usuarios.authentication import CustomAuthBackend
+
+    auth_backend = CustomAuthBackend()
+    datos_medico = auth_backend.get_datos_personales(request.user)
+
+    if not datos_medico:
+        messages.error(request, 'No se encontró tu perfil de médico.')
+        return redirect('dashboard_medico')
+
+    # Calcular edad
+    edad = None
+    if datos_medico.fecha_nacimiento:
+        try:
+            hoy = date.today()
+            fn = datos_medico.fecha_nacimiento.date() if hasattr(datos_medico.fecha_nacimiento, 'date') else datos_medico.fecha_nacimiento
+            edad = hoy.year - fn.year - ((hoy.month, hoy.day) < (fn.month, fn.day))
+        except Exception:
+            pass
+
+    editando = request.GET.get('edit') == '1'
+
+    if request.method == 'POST':
+        # Guardar cambios
+        nombre_1 = request.POST.get('nombre_1', '').strip()
+        nombre_2 = request.POST.get('nombre_2', '').strip() or None
+        apellido_1 = request.POST.get('apellido_1', '').strip()
+        apellido_2 = request.POST.get('apellido_2', '').strip() or None
+        sexo = request.POST.get('sexo', '').strip() or None
+        telefono = request.POST.get('telefono', '').strip() or None
+        email = request.POST.get('email', '').strip()
+
+        errores = []
+        if not nombre_1:
+            errores.append('El primer nombre es obligatorio.')
+        if not apellido_1:
+            errores.append('El primer apellido es obligatorio.')
+        if email and '@' not in email:
+            errores.append('El correo electrónico no es válido.')
+
+        if not errores:
+            datos_medico.nombre_1 = nombre_1
+            datos_medico.nombre_2 = nombre_2
+            datos_medico.apellido_1 = apellido_1
+            datos_medico.apellido_2 = apellido_2
+            datos_medico.sexo = sexo
+            datos_medico.telefono = telefono
+            datos_medico.save()
+
+            if email:
+                request.user.email = email
+                request.user.save()
+
+            messages.success(request, 'Perfil actualizado correctamente.')
+            return redirect('perfil_doctor')
+        else:
+            for e in errores:
+                messages.error(request, e)
+            editando = True
+
+    # Servicios del doctor
+    try:
+        servicios = ServicioMedico.objects.filter(
+            id_doctor=datos_medico,
+            activo=True,
+        ).order_by('nombre')
+    except Exception:
+        servicios = []
+
+    return render(request, 'usuarios/perfil_doctor.html', {
+        'doctor': datos_medico,
+        'edad': edad,
+        'servicios': servicios,
+        'editando': editando,
+    })
+
 def dashboard_recepcionista(request):
     """Dashboard de recepcionista — datos reales de citas"""
     user, backend, err = resolve_and_check(
