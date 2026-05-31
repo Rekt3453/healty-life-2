@@ -300,11 +300,15 @@ class CitaService:
         """
         from citas.models import Cita as CitaModel, Doctor, DisponibilidadDoctor
         from datetime import datetime, date, time, timedelta
+        from django.utils import timezone as tz
 
         doctor = Doctor.objects.get(id_doctor=doctor_id)
 
         if isinstance(fecha, str):
             fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
+
+        hoy = tz.now().date()
+        ahora = tz.now().time()
 
         try:
             disp = DisponibilidadDoctor.objects.get(doctor=doctor, fecha=fecha)
@@ -326,6 +330,14 @@ class CitaService:
                 slots.append(h.strftime('%H:%M'))
                 h = (datetime.combine(date.today(), h) + timedelta(hours=1)).time()
 
+        # Si la fecha es pasada, no hay slots disponibles
+        if fecha < hoy:
+            return [], 'La fecha seleccionada ya pasó'
+
+        # Si la fecha es hoy, filtrar slots que ya pasaron
+        if fecha == hoy:
+            slots = [s for s in slots if datetime.strptime(s, '%H:%M').time() > ahora]
+
         from django.utils.timezone import localtime
         ocupadas = set()
         citas_ocupadas = CitaModel.objects.filter(
@@ -343,6 +355,11 @@ class CitaService:
                 ocupadas.add(f"{hora_local.hour:02d}:00")
 
         horas = [s for s in slots if s not in ocupadas]
+
+        if not horas:
+            if ocupadas:
+                return [], 'Todos los horarios de este día ya están reservados'
+            return [], 'No hay horarios disponibles para esta fecha'
         return horas, None
 
     @staticmethod

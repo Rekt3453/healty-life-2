@@ -599,9 +599,9 @@ def ajax_fechas_disponibles(request):
 
     doctor_id = request.GET.get('doctor_id')
     if not doctor_id:
-        return JsonResponse({'fechas': []})
+        return JsonResponse({'fechas': [], 'debug': 'doctor_id vacio'})
     try:
-        año = int(request.GET.get('año', date.today().year))
+        año = int(request.GET.get('anio', request.GET.get('año', date.today().year)))
         mes = int(request.GET.get('mes', date.today().month))
 
         inicio = date(año, mes, 1)
@@ -687,7 +687,7 @@ def ajax_servicios_medico(request):
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
 def mis_citas(request):
-    """Lista paginada de citas del paciente autenticado."""
+    """Lista paginada de citas del paciente autenticado con filtros por estado."""
     user = request.user
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
 
@@ -697,20 +697,44 @@ def mis_citas(request):
             'id_doctor', 'id_especialidades', 'id_sede', 'id_servicio_especialidad'
         ).order_by('-fecha_emision')
 
-    estado_filtro = request.GET.get('estado', '')
-    if estado_filtro == 'activa':
-        citas_qs = citas_qs.filter(status=True)
+    # Filtros por estado del modelo Cita
+    estado_filtro = request.GET.get('estado', 'todos')
+    if estado_filtro == 'pendiente':
+        citas_qs = citas_qs.filter(estado__in=[
+            Cita.ESTADO_SOLICITADA,
+            Cita.ESTADO_APROBADA,
+            Cita.ESTADO_PAGO_PENDIENTE,
+            Cita.ESTADO_PAGADA_ADELANTO,
+        ])
+    elif estado_filtro == 'confirmada':
+        citas_qs = citas_qs.filter(estado__in=[
+            Cita.ESTADO_CONFIRMADA,
+            Cita.ESTADO_EN_CONSULTA,
+        ])
+    elif estado_filtro == 'completada':
+        citas_qs = citas_qs.filter(estado=Cita.ESTADO_ATENDIDA)
     elif estado_filtro == 'cancelada':
-        citas_qs = citas_qs.filter(status=False)
+        citas_qs = citas_qs.filter(estado__in=[
+            Cita.ESTADO_CANCELADA,
+            Cita.ESTADO_RECHAZADA,
+            Cita.ESTADO_NO_ASISTIO,
+        ])
 
     paginator = Paginator(citas_qs, 10)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
+    page_obj = paginator.get_page(request.GET.get('page', 1))
 
-    estados_choices = [('activa', 'Activa'), ('cancelada', 'Cancelada')]
+    estados_choices = [
+        ('todos', 'Todos'),
+        ('pendiente', 'Pendientes'),
+        ('confirmada', 'Confirmadas'),
+        ('completada', 'Completadas'),
+        ('cancelada', 'Canceladas / Rechazadas'),
+    ]
+
     return render(request, 'citas/mis_citas.html', {
-        'page_obj':       page_obj,
+        'page_obj': page_obj,
         'estados_choices': estados_choices,
-        'estado_actual':  estado_filtro,
+        'estado_actual': estado_filtro,
     })
 
 
