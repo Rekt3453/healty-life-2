@@ -359,6 +359,7 @@ def dashboard_paciente(request):
     return render(request, 'usuarios/dashboard_paciente.html', {
         'nombre':           nombre,
         'citas':            stats['citas'],
+        'proxima_cita':     stats['proxima_cita'],
         'citas_pendientes': stats['citas_activas'],
         'citas_aprobadas':  stats['citas_activas'],
         'citas_rechazadas': stats['citas_canceladas'],
