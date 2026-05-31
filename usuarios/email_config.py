@@ -49,9 +49,8 @@ Nos complace informarte que tu cuenta ha sido creada exitosamente. Estamos emoci
 🆔 Cédula: {cedula}
 📅 Fecha de Registro: {fecha_registro}
 
-🔐 **Tu contraseña:** {password}
 
-⚠️ **IMPORTANTE:** Por seguridad, te recomendamos cambiar tu contraseña después de tu primer inicio de sesión.
+
 
 🚀 **¿Qué puedes hacer ahora?**
 

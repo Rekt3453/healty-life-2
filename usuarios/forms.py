@@ -59,7 +59,7 @@ class RegistroPacienteForm(forms.Form):
     """Formulario de registro para pacientes con soporte para menores de edad y condiciones especiales"""
     # ==================== DATOS DE AUTENTICACIÓN ====================
     username = forms.CharField(
-        max_length=150,
+        max_length=30,
         min_length=4,
         required=True,
         label="Nombre de Usuario",
@@ -74,18 +74,24 @@ class RegistroPacienteForm(forms.Form):
             'class': 'form-control',
             'placeholder': 'usuario_ejemplo',
             'data-validate': 'username',
+            'maxlength': '30',
         })
     )
     
     email = forms.EmailField(
+        max_length=30,
         required=True,
         label="Correo Electrónico",
         validators=[EmailValidator(message='Ingrese un correo electrónico válido')],
-        error_messages={'required': 'El correo electrónico es obligatorio'},
+        error_messages={
+            'required': 'El correo electrónico es obligatorio',
+            'max_length': 'Máximo 30 caracteres',
+        },
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'ejemplo@correo.com',
             'data-validate': 'email',
+            'maxlength': '30',
         })
     )
     
@@ -93,10 +99,18 @@ class RegistroPacienteForm(forms.Form):
         required=True,
         label="Contraseña",
         min_length=8,
+        max_length=30,
+        validators=[
+            RegexValidator(
+                r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:\'",.<>/?\\|`~]).{8,30}$',
+                'Debe contener al menos 1 mayúscula, 1 número, 1 carácter especial y tener entre 8 y 30 caracteres'
+            ),
+        ],
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'placeholder': 'Mínimo 8 caracteres',
             'data-validate': 'password',
+            'maxlength': '30',
         })
     )
     
@@ -112,44 +126,47 @@ class RegistroPacienteForm(forms.Form):
     
     # ==================== DATOS PERSONALES ====================
     nombre_1 = forms.CharField(
-        max_length=100, min_length=2, required=True,
+        max_length=30, min_length=2, required=True,
         label="Primer Nombre",
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras')],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Juan', 'data-validate': 'nombre'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Juan', 'data-validate': 'nombre', 'maxlength': '30'})
     )
     
     nombre_2 = forms.CharField(
-        max_length=100, required=False,
+        max_length=30, required=False,
         label="Segundo Nombre",
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$', 'Solo letras')],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Carlos (opcional)', 'data-validate': 'nombre'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Carlos (opcional)', 'data-validate': 'nombre', 'maxlength': '30'})
     )
     
     apellido_1 = forms.CharField(
-        max_length=100, min_length=2, required=True,
+        max_length=30, min_length=2, required=True,
         label="Primer Apellido",
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras')],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Pérez', 'data-validate': 'apellido'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Pérez', 'data-validate': 'apellido', 'maxlength': '30'})
     )
     
     apellido_2 = forms.CharField(
-        max_length=100, required=False,
+        max_length=30, required=False,
         label="Segundo Apellido",
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$', 'Solo letras')],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: García (opcional)', 'data-validate': 'apellido'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: García (opcional)', 'data-validate': 'apellido', 'maxlength': '30'})
     )
     
     tipo_cedula = forms.ChoiceField(
-        choices=[('V','V'), ('E','E'), ('J','J'), ('C','C'), ('G','G'), ('P','P'), ('F','F')],
+        choices=[('V','V'), ('E','E'), ('J','J')],
         required=True, label="Tipo de Cédula",
         widget=forms.Select(attrs={'class': 'form-select', 'data-validate': 'select'})
     )
     
     cedula = forms.CharField(
-        max_length=20, min_length=6, required=True,
+        max_length=9, min_length=7, required=True,
         label="Cédula de Identidad",
-        validators=[RegexValidator(r'^\d+$', 'Solo números'), MinLengthValidator(6, 'Mínimo 6 dígitos')],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678', 'data-validate': 'cedula'})
+        validators=[
+            RegexValidator(r'^\d+$', 'Solo números'),
+            MinLengthValidator(7, 'Mínimo 7 dígitos'),
+        ],
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678', 'data-validate': 'cedula', 'maxlength': '9'})
     )
     
     sexo = forms.ChoiceField(
@@ -221,26 +238,17 @@ class RegistroPacienteForm(forms.Form):
     )
     
     direccion = forms.CharField(
-        max_length=500, required=False,
+        max_length=100, required=False,
         label="Dirección",
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Dirección de domicilio (opcional)'})
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Dirección de domicilio (opcional)', 'maxlength': '100'})
     )
     
     referencia = forms.CharField(
-        max_length=500, required=False,
+        max_length=100, required=False,
         label="Referencia",
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Punto de referencia (opcional)'})
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Punto de referencia (opcional)', 'maxlength': '100'})
     )
     
-    latitud = forms.CharField(
-        max_length=100, required=False, label="Latitud",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 10.4806'})
-    )
-    
-    longitud = forms.CharField(
-        max_length=100, required=False, label="Longitud",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: -66.9036'})
-    )
     
     # ==================== CONDICIÓN ESPECIAL ====================
     tiene_condicion_especial = forms.BooleanField(
@@ -436,8 +444,6 @@ class RegistroPacienteForm(forms.Form):
             id_parroquia=self.cleaned_data['id_parroquia'],
             direccion=self.cleaned_data.get('direccion', ''),
             referencia=self.cleaned_data.get('referencia', '') or '',
-            latitud=self.cleaned_data.get('latitud', '') or '',
-            longitud=self.cleaned_data.get('longitud', '') or '',
         )
         
         # Crear usuario paciente
