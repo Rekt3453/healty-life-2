@@ -4,329 +4,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Recepción - Healthy Life</title>
+    <title>Panel de Recepción - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
     <style>
-        .dashboard-header {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .stat-card {
-            transition: all 0.3s ease;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-        }
-        
-        .action-card {
-            transition: all 0.3s ease;
-            background: white;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .action-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.2);
-            border-color: #10b981;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
-        }
-        
-        .floating-shapes {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-        }
-        
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            animation: float 8s ease-in-out infinite;
-        }
-        
-        .shape:nth-child(1) {
-            width: 100px;
-            height: 100px;
-            left: 5%;
-            animation-delay: 0s;
-        }
-        
-        .shape:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            right: 10%;
-            animation-delay: 3s;
-        }
-        
-        .shape:nth-child(3) {
-            width: 80px;
-            height: 80px;
-            left: 80%;
-            animation-delay: 6s;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-30px) rotate(180deg);
-            }
-        }
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .badge-pendiente{background:#FEF3C7;color:#D97706;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-confirmada{background:#D1FAE5;color:#059669;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-cancelada{background:#FEE2E2;color:#DC2626;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-completada{background:#DBEAFE;color:#2563EB;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-nueva{background:#E0E7FF;color:#4338CA;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;color:var(--text-secondary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid transparent;cursor:pointer;transition:all .15s ease;}
+        .btn-ghost:hover{background:rgba(0,0,0,.04);color:var(--text-primary);}
+        .btn-success{background:#059669;color:#fff;border-color:#059669;}
+        .btn-success:hover{background:#047857;}
+        .btn-danger{background:#DC2626;color:#fff;border-color:#DC2626;}
+        .btn-danger:hover{background:#B91C1C;}
+        .input-modern{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;}
+        .input-modern:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        .modal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:16px;}
+        .modal-overlay.active{display:flex;}
+        .modal-card{background:#fff;border-radius:16px;padding:24px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+        .toast-container{position:fixed;top:20px;right:20px;z-index:70;display:flex;flex-direction:column;gap:10px;}
+        .toast{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.12);border-left:4px solid var(--accent);transform:translateX(120%);transition:transform .4s cubic-bezier(0.175,0.885,0.32,1.275);max-width:340px;}
+        .toast.show{transform:translateX(0);}
+        .toast-success{border-left-color:#059669;}
+        .toast-error{border-left-color:#DC2626;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fadeIn .3s ease;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="dashboard-header relative text-white">
-        <div class="floating-shapes">
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
+<body class="min-h-screen">
+
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
+        </a>
+    </div>
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_recepcionista' %}" class="sidebar-link active">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <a href="{% url 'gestionar_citas' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Citas
+        </a>
+        <a href="{% url 'facturas_recepcionista' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Facturación
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Pacientes
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Horarios
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Reportes
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Cerrar sesión
+        </a>
+    </div>
+</aside>
+
+<!-- Main -->
+<div class="dashboard-main">
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menú">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">Dashboard</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Panel de Recepción</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Gestiona citas, pacientes y horarios del día</p>
+            </div>
         </div>
-        
-        <div class="relative z-10">
-            <nav class="container mx-auto px-4 py-6">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-                        </svg>
-                        <span class="text-2xl font-bold">Healthy Life</span>
-                    </div>
-                    
-                    <div class="flex items-center space-x-6">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium">{{ user.first_name|default:user.username }}</p>
-                                <p class="text-xs text-green-100">Recepcionista</p>
-                            </div>
-                        </div>
-                        
-                        <a href="{% url 'logout' %}" class="text-white hover:text-green-100 transition-colors flex items-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                            <span>Salir</span>
-                        </a>
-                    </div>
-                </div>
-            </nav>
-            
-            <!-- Hero Section -->
-            <div class="container mx-auto px-4 py-12">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold mb-4">Panel de Recepción - {{ user.first_name|default:user.username }}</h1>
-                    <p class="text-xl text-green-100">Gestiona citas, pacientes y operaciones administrativas.</p>
-                </div>
+        <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+                <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ nombre|default:"Recepcionista" }}</p>
+                <p class="text-xs" style="color:var(--text-secondary);">Recepcionista</p>
+            </div>
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background:var(--accent);">
+                {{ nombre|default:"R"|first|upper }}
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        <!-- Fecha -->
+        <div class="flex items-center justify-between fade-in">
+            <p id="currentDate" class="text-sm font-medium" style="color:var(--text-secondary);"></p>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 fade-in">
+            <div class="dashboard-card p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Citas Hoy</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ citas_hoy }}</p>
-                        <p class="text-sm text-gray-600">Programadas</p>
+                        <p class="text-xs font-medium" style="color:var(--text-secondary);">Citas hoy</p>
+                        <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ citas_hoy|default:"0" }}</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">Programadas</p>
                     </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(0,112,243,.1);color:var(--accent);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
                 </div>
             </div>
-            
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
+            <div class="dashboard-card p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Citas Pendientes</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ citas_pendientes }}</p>
-                        <p class="text-sm text-gray-600">Por aprobar</p>
+                        <p class="text-xs font-medium" style="color:var(--text-secondary);">Citas pendientes</p>
+                        <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ citas_pendientes|default:"0" }}</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">Por confirmar</p>
                     </div>
-                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(217,119,6,.1);color:#D97706;">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                 </div>
             </div>
-            
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
+            <div class="dashboard-card p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Pacientes</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_pacientes }}</p>
-                        <p class="text-sm text-gray-600">Registrados</p>
+                        <p class="text-xs font-medium" style="color:var(--text-secondary);">Pacientes nuevos hoy</p>
+                        <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ pacientes_nuevos_hoy|default:"0" }}</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">Registrados</p>
                     </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(5,150,105,.1);color:#059669;">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                 </div>
             </div>
-            
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
+            <div class="dashboard-card p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Tasa Aprobación</p>
-                        <p class="text-2xl font-bold text-gray-900">85%</p>
-                        <p class="text-sm text-gray-600">Este mes</p>
+                        <p class="text-xs font-medium" style="color:var(--text-secondary);">Médicos activos</p>
+                        <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ medicos_activos|default:"0" }}</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">En turno</p>
                     </div>
-                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(37,99,235,.1);color:#2563EB;">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-8v8"/></svg>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Action Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Gestionar Citas</h3>
-                    <p class="text-gray-600 mb-4">Aprueba o rechaza solicitudes de citas</p>
-                    <a href="{% url 'gestionar_citas' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Gestionar Citas
-                    </a>
+        <!-- Búsqueda rápida -->
+        <div class="dashboard-card p-5 fade-in">
+            <div class="flex flex-col md:flex-row md:items-center gap-4">
+                <div class="relative flex-1">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="patientSearchInput" type="text" placeholder="Buscar paciente por nombre o cédula..." class="input-modern pl-10" oninput="searchPatients(this.value)">
                 </div>
-            </div>
-            
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Gestión Pacientes</h3>
-                    <p class="text-gray-600 mb-4">Ver y gestionar pacientes registrados</p>
-                    <button class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium">
-                        Ver Pacientes
-                    </button>
-                </div>
-            </div>
-            
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Facturación</h3>
-                    <p class="text-gray-600 mb-4">Gestionar facturas y pagos</p>
-                    <a href="{% url 'facturas_recepcionista' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Ver Facturas
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Citas Pendientes Resumen -->
-        {% if citas_pendientes > 0 %}
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                    </svg>
-                    <div>
-                        <h3 class="text-lg font-medium text-yellow-800">Tienes {{ citas_pendientes }} citas pendientes de aprobación</h3>
-                        <p class="text-sm text-yellow-700">Es necesario revisarlas y aprobarlas o rechazarlas.</p>
-                    </div>
-                </div>
-                <a href="{% url 'gestionar_citas' %}" class="btn-primary px-4 py-2 rounded-lg text-white font-medium">
-                    Revisar Ahora
+                <a href="#" class="btn-primary whitespace-nowrap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    Registrar paciente
                 </a>
             </div>
+            <div id="patientSearchResults" class="hidden mt-4 space-y-2"></div>
         </div>
-        {% endif %}
 
-        <!-- Recent Activity -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Actividad Reciente</h3>
-            <div class="space-y-4">
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-900">Sistema operativo</p>
-                            <p class="text-sm text-gray-600">Todos los servicios funcionando correctamente</p>
-                        </div>
-                    </div>
-                    <span class="text-sm text-gray-500">Ahora</span>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-900">Recordatorio de citas</p>
-                            <p class="text-sm text-gray-600">Revisa las solicitudes pendientes</p>
-                        </div>
-                    </div>
-                    <span class="text-sm text-gray-500">Hace 1 hora</span>
-                </div>
+        {% include "partials/_recep_citas_dia.html" %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+            {% include "partials/_recep_solicitudes.html" %}
+            <div class="space-y-6">
+                {% include "partials/_recep_acciones.html" %}
             </div>
         </div>
     </main>
+</div>
 
-    <script>
-        // Animación de entrada
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.stat-card, .action-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    card.style.transition = 'all 0.6s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, 100 * index);
-            });
-        });
-    </script>
+{% include "partials/_recep_modales.html" %}
+
+{% include "partials/_recep_scripts.html" %}
+
 </body>
 </html>

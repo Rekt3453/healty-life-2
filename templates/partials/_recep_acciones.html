@@ -1,0 +1,63 @@
+<!-- Acciones rápidas -->
+<div class="dashboard-card p-5">
+    <h2 class="text-base font-bold mb-4" style="color:var(--text-primary);">Acciones rápidas</h2>
+    <div class="space-y-2">
+        <a href="{% url 'solicitar_cita' %}" class="btn-primary w-full">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Agendar cita
+        </a>
+        <a href="#" class="btn-secondary w-full">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Gestionar horarios
+        </a>
+        <a href="#" class="btn-secondary w-full">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            Registrar paciente
+        </a>
+    </div>
+</div>
+
+<!-- Próximas citas -->
+<div class="dashboard-card overflow-hidden">
+    <button onclick="toggleUpcoming()" class="w-full px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);background:transparent;cursor:pointer;">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(37,99,235,.1);color:#2563EB;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+                <h2 class="text-base font-bold" style="color:var(--text-primary);">Próximas citas</h2>
+                <p class="text-xs" style="color:var(--text-secondary);">Próximos 3 días</p>
+            </div>
+        </div>
+        <svg id="upcomingChevron" class="w-5 h-5 transition-transform" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <div id="upcomingList" class="hidden divide-y" style="border-color:var(--border);">
+        <div class="px-6 py-3">
+            <p class="text-xs font-semibold" style="color:var(--text-secondary);">Mañana</p>
+        </div>
+        <div class="px-6 py-3 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium" style="color:var(--text-primary);">Roberto Silva</p>
+                <p class="text-xs" style="color:var(--text-secondary);">09:00 · Neurología</p>
+            </div>
+            <span class="badge-pendiente">Pendiente</span>
+        </div>
+        <div class="px-6 py-3">
+            <p class="text-xs font-semibold" style="color:var(--text-secondary);">Pasado mañana</p>
+        </div>
+        <div class="px-6 py-3 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium" style="color:var(--text-primary);">Elena Castro</p>
+                <p class="text-xs" style="color:var(--text-secondary);">10:30 · Ginecología</p>
+            </div>
+            <span class="badge-confirmada">Confirmada</span>
+        </div>
+        <div class="px-6 py-3 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium" style="color:var(--text-primary);">Miguel Ángel</p>
+                <p class="text-xs" style="color:var(--text-secondary);">14:00 · Traumatología</p>
+            </div>
+            <span class="badge-pendiente">Pendiente</span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+<!-- Modal Confirmar -->
+<div id="modalConfirmar" class="modal-overlay" onclick="if(event.target===this)closeModal('confirmar')">
+    <div class="modal-card">
+        <h3 class="text-lg font-bold mb-2" style="color:var(--text-primary);">Confirmar cita</h3>
+        <p class="text-sm mb-6" style="color:var(--text-secondary);">¿Deseas confirmar esta cita? El paciente recibirá una notificación.</p>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeModal('confirmar')" class="btn-ghost">Cancelar</button>
+            <button onclick="confirmAction('confirmar')" class="btn-success">Sí, confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rechazar -->
+<div id="modalRechazar" class="modal-overlay" onclick="if(event.target===this)closeModal('rechazar')">
+    <div class="modal-card">
+        <h3 class="text-lg font-bold mb-2" style="color:var(--text-primary);">Rechazar cita</h3>
+        <p class="text-sm mb-4" style="color:var(--text-secondary);">¿Deseas rechazar esta cita? Esta acción no se puede deshacer.</p>
+        <div class="mb-4">
+            <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Motivo (opcional)</label>
+            <textarea id="rejectReason" rows="3" class="input-modern resize-none" placeholder="Indica el motivo del rechazo..."></textarea>
+        </div>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeModal('rechazar')" class="btn-ghost">Cancelar</button>
+            <button onclick="confirmAction('rechazar')" class="btn-danger">Sí, rechazar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cancelar -->
+<div id="modalCancelar" class="modal-overlay" onclick="if(event.target===this)closeModal('cancelar')">
+    <div class="modal-card">
+        <h3 class="text-lg font-bold mb-2" style="color:var(--text-primary);">Cancelar cita</h3>
+        <p class="text-sm mb-6" style="color:var(--text-secondary);">¿Deseas cancelar esta cita confirmada? El paciente será notificado.</p>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeModal('cancelar')" class="btn-ghost">No, mantener</button>
+            <button onclick="confirmAction('cancelar')" class="btn-danger">Sí, cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Llegó -->
+<div id="modalLlego" class="modal-overlay" onclick="if(event.target===this)closeModal('llego')">
+    <div class="modal-card">
+        <h3 class="text-lg font-bold mb-2" style="color:var(--text-primary);">Marcar como atendida</h3>
+        <p class="text-sm mb-6" style="color:var(--text-secondary);">¿Confirmas que el paciente llegó a su consulta?</p>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeModal('llego')" class="btn-ghost">Cancelar</button>
+            <button onclick="confirmAction('llego')" class="btn-primary">Sí, marcar llegada</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toastContainer" class="toast-container"></div>

@@ -288,10 +288,11 @@ def get_recepcionista_dashboard_context():
     Devuelve el contexto de estadísticas para el dashboard de recepcionista.
     """
     from citas.models import Cita
-    from usuarios.models import UserPaciente
+    from usuarios.models import UserPaciente, PacienteDatosPersonales, Doctor
+
+    hoy = date.today()
 
     try:
-        hoy              = date.today()
         citas_pendientes = Cita.objects.filter(status=True).count()
         citas_hoy        = Cita.objects.filter(fecha_consulta__date=hoy).count()
         citas_recientes  = Cita.objects.select_related('id_paciente', 'id_doctor').order_by('-fecha_emision')[:10]
@@ -304,11 +305,45 @@ def get_recepcionista_dashboard_context():
     except Exception:
         total_pacientes = 0
 
+    try:
+        citas_hoy_list = Cita.objects.filter(
+            fecha_consulta__date=hoy
+        ).select_related(
+            'id_paciente', 'id_doctor', 'id_especialidades', 'id_consultorio'
+        ).order_by('fecha_consulta')
+    except Exception:
+        citas_hoy_list = []
+
+    try:
+        citas_pendientes_list = Cita.objects.filter(
+            estado=Cita.ESTADO_SOLICITADA
+        ).select_related(
+            'id_paciente', 'id_doctor', 'id_especialidades', 'id_consultorio'
+        ).order_by('fecha_consulta')[:20]
+    except Exception:
+        citas_pendientes_list = []
+
+    try:
+        pacientes_nuevos_hoy = PacienteDatosPersonales.objects.filter(
+            fecha_registro__date=hoy
+        ).count()
+    except Exception:
+        pacientes_nuevos_hoy = 0
+
+    try:
+        medicos_activos = Doctor.objects.filter(status=True).count()
+    except Exception:
+        medicos_activos = 0
+
     return {
-        'citas_pendientes': citas_pendientes,
-        'citas_hoy':        citas_hoy,
-        'citas_recientes':  citas_recientes,
-        'total_pacientes':  total_pacientes,
+        'citas_pendientes':      citas_pendientes,
+        'citas_hoy':             citas_hoy,
+        'citas_recientes':       citas_recientes,
+        'total_pacientes':       total_pacientes,
+        'citas_hoy_list':        citas_hoy_list,
+        'citas_pendientes_list': citas_pendientes_list,
+        'pacientes_nuevos_hoy':  pacientes_nuevos_hoy,
+        'medicos_activos':       medicos_activos,
     }
 
 
