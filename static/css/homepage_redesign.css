@@ -81,7 +81,7 @@ body.hl-redesign {
 /* ── Botones ── */
 .hl-btn-primary {
   background: var(--accent);
-  color: #fff;
+  color: #fff !important;
   border-radius: var(--radius-button);
   padding: 12px 28px;
   font-weight: 600;
