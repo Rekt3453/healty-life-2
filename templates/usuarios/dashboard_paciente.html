@@ -4,414 +4,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Paciente - Healthy Life</title>
+    <title>Dashboard Paciente — Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .dashboard-header {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .stat-card {
-            transition: all 0.3s ease;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-        }
-        
-        .action-card {
-            transition: all 0.3s ease;
-            background: white;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .action-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.2);
-            border-color: #10b981;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
-        }
-        
-        .floating-shapes {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-        }
-        
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            animation: float 8s ease-in-out infinite;
-        }
-        
-        .shape:nth-child(1) {
-            width: 100px;
-            height: 100px;
-            left: 5%;
-            animation-delay: 0s;
-        }
-        
-        .shape:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            right: 10%;
-            animation-delay: 3s;
-        }
-        
-        .shape:nth-child(3) {
-            width: 80px;
-            height: 80px;
-            left: 80%;
-            animation-delay: 6s;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-30px) rotate(180deg);
-            }
-        }
+        .dashboard-layout { display:flex; min-height:100vh; }
+        .dashboard-sidebar { width:260px; background:#FFFFFF; border-right:1px solid rgba(0,0,0,0.06); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:40; transition:transform .3s ease; }
+        .dashboard-sidebar.collapsed { transform:translateX(-100%); }
+        .dashboard-main { flex:1; margin-left:260px; min-height:100vh; transition:margin-left .3s ease; }
+        .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.25); z-index:35; }
+        .sidebar-overlay.active { display:block; }
+        .sidebar-nav-link { display:flex; align-items:center; gap:12px; padding:12px 20px; margin:0 12px; border-radius:10px; font-size:0.9rem; font-weight:500; color:#64748B; transition:all .2s ease; text-decoration:none; }
+        .sidebar-nav-link:hover, .sidebar-nav-link.active { background:rgba(0,112,243,0.06); color:#0070F3; }
+        .sidebar-nav-link.active { font-weight:600; }
+        .sidebar-icon { width:20px; height:20px; flex-shrink:0; }
+        .dashboard-card { background:#FFFFFF; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid rgba(0,0,0,0.04); transition:all .25s cubic-bezier(0.4,0,0.2,1); }
+        .dashboard-card:hover { box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+        .stat-icon-wrap { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .next-appointment-card { background: linear-gradient(135deg, #0070F3 0%, #005CC2 100%); color:#fff; border-radius:12px; }
+        .badge-pill { display:inline-flex; align-items:center; padding:4px 12px; border-radius:9999px; font-size:0.75rem; font-weight:600; }
+        @media (max-width:1024px) { .dashboard-sidebar { transform:translateX(-100%); } .dashboard-sidebar.open { transform:translateX(0); } .dashboard-main { margin-left:0; } }
+        @media (min-width:1025px) { .sidebar-overlay { display:none !important; } }
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="dashboard-header relative text-white">
-        <div class="floating-shapes">
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
+<body class="hl-redesign" style="font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; background:#F7F9FC; color:#1E293B;">
+    <!-- Mobile sidebar overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="dashboard-sidebar">
+        <div class="p-6">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:#1E293B;">
+                <svg class="w-8 h-8" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Healthy Life</span>
+            </a>
         </div>
-        
-        <div class="relative z-10">
-            <nav class="container mx-auto px-4 py-6">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-                        </svg>
-                        <span class="text-2xl font-bold">Healthy Life</span>
+        <nav class="flex-1 px-2 space-y-1" aria-label="Navegación del paciente">
+            <a href="{% url 'dashboard_paciente' %}" class="sidebar-nav-link active">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>Mi Dashboard</span>
+            </a>
+            <a href="{% url 'mis_citas' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Mis Citas</span>
+            </a>
+            <a href="{% url 'perfil_paciente' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Mi Perfil</span>
+            </a>
+            <a href="{% url 'historial_medico' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Historial Médico</span>
+            </a>
+            <a href="{% url 'mis_facturas' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                <span>Mis Recetas</span>
+            </a>
+            <a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>Menores a Cargo</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t" style="border-color:rgba(0,0,0,0.06);">
+            <a href="{% url 'logout' %}" class="sidebar-nav-link" style="color:#EF4444;">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="dashboard-main">
+        <!-- Sticky Header -->
+        <header class="hl-header" style="position:sticky; top:0; z-index:30;">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="Abrir menú">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        </button>
+                        <span class="font-semibold text-lg" style="color:#1E293B;">Dashboard</span>
                     </div>
-                    
-                    <div class="flex items-center space-x-6">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
+                    <div class="relative" id="userMenuContainer">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors" aria-haspopup="true" aria-expanded="false" id="userMenuBtn">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:linear-gradient(135deg,#0070F3,#005CC2);">
+                                {{ user.first_name|default:user.username|first|upper }}
                             </div>
-                            <div>
-                                <p class="text-sm font-medium">{{ user.username }}</p>
-                                <p class="text-xs text-green-100">Paciente</p>
+                            <div class="hidden sm:block text-left">
+                                <p class="text-sm font-semibold leading-tight" style="color:#1E293B;">{{ user.first_name|default:user.username }}</p>
+                                <p class="text-xs" style="color:#64748B;">Paciente</p>
                             </div>
+                            <svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="userMenu" class="hl-dropdown absolute right-0 mt-2 w-48 hidden">
+                            <a href="{% url 'perfil_paciente' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors" style="color:#1E293B;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                Mi Perfil
+                            </a>
+                            <div class="border-t" style="border-color:rgba(0,0,0,0.06);"></div>
+                            <a href="{% url 'logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors" style="color:#EF4444;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                Cerrar Sesión
+                            </a>
                         </div>
-                        
-                        <a href="{% url 'logout' %}" class="text-white hover:text-green-100 transition-colors flex items-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                            <span>Salir</span>
-                        </a>
                     </div>
                 </div>
-            </nav>
-            
-            <!-- Hero Section -->
-            <div class="container mx-auto px-4 py-12">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold mb-4">¡Bienvenido de nuevo, {{ user.first_name|default:user.username }}!</h1>
-                    <p class="text-xl text-green-100">Tu salud es nuestra prioridad. Gestiona tus citas y consultas desde aquí.</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Welcome + Next Appointment -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-extrabold tracking-tight mb-6" style="color:#1E293B;">Hola, {{ user.first_name|default:user.username }}</h1>
+
+                <div class="next-appointment-card p-6 sm:p-8 relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span class="font-semibold text-sm uppercase tracking-wide opacity-90">Próxima Cita</span>
+                            </div>
+                            {% if proxima_cita %}
+                            <p class="text-2xl sm:text-3xl font-bold mb-1">{{ proxima_cita.fecha_consulta|date:"l, d \d\e F"|capfirst }}</p>
+                            <p class="text-lg opacity-90 mb-4">{{ proxima_cita.fecha_consulta|time:"h:i A" }} — {{ proxima_cita.id_especialidades|default:"Consulta general" }}</p>
+                            <div class="flex items-center gap-2 text-sm opacity-90">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>Dr(a). {{ proxima_cita.id_doctor|default:"Por asignar" }}</span>
+                            </div>
+                            {% else %}
+                            <p class="text-xl font-medium opacity-90 mb-2">No tienes citas programadas próximamente.</p>
+                            <p class="text-sm opacity-75">Agenda tu próxima consulta con nosotros.</p>
+                            {% endif %}
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            {% if proxima_cita %}
+                            <a href="{% url 'detalle_cita' proxima_cita.id_citas %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Ver Detalles
+                            </a>
+                            <a href="{% url 'mis_citas' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-white text-blue-700 hover:bg-blue-50 transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                Reprogramar
+                            </a>
+                            {% else %}
+                            <a href="{% url 'solicitar_cita' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-white text-blue-700 hover:bg-blue-50 transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Solicitar Cita
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div class="dashboard-card p-5 flex items-center gap-4">
+                    <div class="stat-icon-wrap" style="background:rgba(0,112,243,0.08);">
+                        <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </div>
                     <div>
-                        <p class="text-gray-500 text-sm">Citas Pendientes</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ citas_pendientes }}</p>
-                        <p class="text-sm text-gray-600">Esperando aprobación</p>
-                    </div>
-                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+                        <p class="text-2xl font-extrabold" style="color:#1E293B;">{{ total_citas|default:0 }}</p>
+                        <p class="text-sm font-medium" style="color:#64748B;">Total de Citas</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
+                <div class="dashboard-card p-5 flex items-center gap-4">
+                    <div class="stat-icon-wrap" style="background:rgba(16,185,129,0.08);">
+                        <svg class="w-5 h-5" style="color:#059669;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                     <div>
-                        <p class="text-gray-500 text-sm">Citas Aprobadas</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ citas_aprobadas }}</p>
-                        <p class="text-sm text-gray-600">Confirmadas</p>
-                    </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+                        <p class="text-2xl font-extrabold" style="color:#1E293B;">{{ citas_aprobadas|default:0 }}</p>
+                        <p class="text-sm font-medium" style="color:#64748B;">Citas Activas</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
+                <div class="dashboard-card p-5 flex items-center gap-4">
+                    <div class="stat-icon-wrap" style="background:rgba(245,158,11,0.08);">
+                        <svg class="w-5 h-5" style="color:#D97706;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                     <div>
-                        <p class="text-gray-500 text-sm">Citas Rechazadas</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ citas_rechazadas }}</p>
-                        <p class="text-sm text-gray-600">No aprobadas</p>
-                    </div>
-                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+                        <p class="text-2xl font-extrabold" style="color:#1E293B;">{{ citas_pendientes|default:0 }}</p>
+                        <p class="text-sm font-medium" style="color:#64748B;">Pendientes</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="stat-card bg-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
+                <div class="dashboard-card p-5 flex items-center gap-4">
+                    <div class="stat-icon-wrap" style="background:rgba(239,68,68,0.08);">
+                        <svg class="w-5 h-5" style="color:#DC2626;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                     <div>
-                        <p class="text-gray-500 text-sm">Total Citas</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ citas.count }}</p>
-                        <p class="text-sm text-gray-600">Historial completo</p>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
+                        <p class="text-2xl font-extrabold" style="color:#1E293B;">{{ citas_rechazadas|default:0 }}</p>
+                        <p class="text-sm font-medium" style="color:#64748B;">Canceladas</p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Action Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Nueva Cita</h3>
-                    <p class="text-gray-600 mb-4">Solicita una nueva cita médica</p>
-                    <a href="{% url 'solicitar_cita' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Solicitar Cita
+            <!-- Quick Actions -->
+            <div class="mb-8">
+                <h2 class="text-lg font-bold mb-4" style="color:#1E293B;">Acciones Rápidas</h2>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{% url 'solicitar_cita' %}" class="hl-btn-primary text-sm" style="padding:10px 22px; border-radius:9999px;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Solicitar Nueva Cita
                     </a>
-                </div>
-            </div>
-            
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Historial Médico</h3>
-                    <p class="text-gray-600 mb-4">Consulta tu historial completo</p>
-                    <a href="{% url 'historial_consultas' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Ver Historial
+                    <a href="{% url 'mis_citas' %}" class="hl-btn-secondary text-sm" style="padding:10px 22px; border-radius:9999px;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Ver todas mis citas
                     </a>
-                </div>
-            </div>
-            
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Mi Perfil</h3>
-                    <p class="text-gray-600 mb-4">Actualiza tus datos personales</p>
-                    <a href="{% url 'perfil_paciente' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Ver / Editar Perfil
+                    <a href="{% url 'perfil_paciente' %}" class="hl-btn-ghost text-sm" style="padding:10px 22px; border-radius:9999px;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Editar mi perfil
                     </a>
                 </div>
             </div>
 
-            <!-- Registrar menor de edad -->
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 4v16m8-8H4"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Registrar Menor</h3>
-                    <p class="text-gray-600 mb-4">Añade un menor de edad bajo tu tutela</p>
-                    <a href="{% url 'registrar_paciente_especial' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Registrar Menor
-                    </a>
+            <!-- Citas Recientes -->
+            <div class="dashboard-card p-6 mb-8">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-lg font-bold" style="color:#1E293B;">Citas Recientes</h2>
+                    <a href="{% url 'mis_citas' %}" class="text-sm font-semibold hover:underline" style="color:#0070F3;">Ver todas</a>
                 </div>
-            </div>
-
-            <!-- Listado de menores -->
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Mis Menores</h3>
-                    <p class="text-gray-600 mb-4">Ver y gestionar pacientes especiales</p>
-                    <a href="{% url 'lista_pacientes_especiales' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Ver Mis Menores
-                    </a>
-                </div>
-            </div>
-
-            <!-- Mis Facturas -->
-            <div class="action-card rounded-xl p-6 shadow-lg">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Mis Facturas</h3>
-                    <p class="text-gray-600 mb-4">Consulta y descarga tus facturas de consultas</p>
-                    <a href="{% url 'mis_facturas' %}" class="btn-primary block w-full py-2 px-4 rounded-lg text-white font-medium text-center">
-                        Ver Facturas
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Citas Table -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Mis Citas</h3>
-            {% if citas %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sede</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Médico</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for cita in citas %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ cita.id_citas }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_especialidades|default:"—" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_sede|default:"—" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|date:"d/m/Y"|default:"—" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.fecha_consulta|time:"H:i"|default:"—" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                {% if cita.estado == 'solicitada' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Solicitada</span>
-                                {% elif cita.estado == 'aprobada' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Aprobada</span>
-                                {% elif cita.estado == 'pago_pendiente' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">Pago en revisión</span>
-                                {% elif cita.estado == 'confirmada' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Confirmada</span>
-                                {% elif cita.estado == 'en_consulta' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-teal-100 text-teal-800">En Consulta</span>
-                                {% elif cita.estado == 'atendida' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-700">Atendida</span>
-                                {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">{{ cita.get_estado_display }}</span>
-                                {% elif cita.status %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activa</span>
-                                {% else %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactiva</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_doctor|default:"Sin asignar" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                {% if cita.estado == 'aprobada' %}
-                                    <a href="{% url 'pagar_cita' cita.id_citas %}"
-                                       class="inline-flex items-center px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full hover:bg-green-700">
-                                        Pagar
-                                    </a>
-                                {% elif cita.estado == 'atendida' %}
-                                    {% if cita.factura and cita.factura.estado == 'emitida' %}
-                                        <a href="{% url 'pagar_saldo' cita.id_citas %}"
-                                           class="inline-flex items-center px-3 py-1 bg-orange-600 text-white text-xs font-medium rounded-full hover:bg-orange-700">
-                                            Pagar Saldo
-                                        </a>
+                {% if citas %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left">
+                        <thead>
+                            <tr class="border-b" style="border-color:rgba(0,0,0,0.06);">
+                                <th class="pb-3 text-xs font-semibold uppercase tracking-wider" style="color:#64748B;">Servicio</th>
+                                <th class="pb-3 text-xs font-semibold uppercase tracking-wider" style="color:#64748B;">Fecha / Hora</th>
+                                <th class="pb-3 text-xs font-semibold uppercase tracking-wider" style="color:#64748B;">Médico</th>
+                                <th class="pb-3 text-xs font-semibold uppercase tracking-wider" style="color:#64748B;">Estado</th>
+                                <th class="pb-3 text-xs font-semibold uppercase tracking-wider" style="color:#64748B;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y" style="border-color:rgba(0,0,0,0.04);">
+                            {% for cita in citas|slice:":5" %}
+                            <tr class="hover:bg-black/[0.02] transition-colors">
+                                <td class="py-3.5 pr-4">
+                                    <p class="text-sm font-semibold" style="color:#1E293B;">{{ cita.id_especialidades|default:"Consulta general" }}</p>
+                                    <p class="text-xs" style="color:#64748B;">{{ cita.id_sede|default:"—" }}</p>
+                                </td>
+                                <td class="py-3.5 pr-4">
+                                    <p class="text-sm font-medium" style="color:#1E293B;">{{ cita.fecha_consulta|date:"d/m/Y"|default:"—" }}</p>
+                                    <p class="text-xs" style="color:#64748B;">{{ cita.fecha_consulta|time:"h:i A"|default:"—" }}</p>
+                                </td>
+                                <td class="py-3.5 pr-4 text-sm font-medium" style="color:#1E293B;">{{ cita.id_doctor|default:"Por asignar" }}</td>
+                                <td class="py-3.5 pr-4">
+                                    {% if cita.estado == 'solicitada' %}
+                                        <span class="badge-pill" style="background:rgba(245,158,11,0.08); color:#D97706;">Solicitada</span>
+                                    {% elif cita.estado == 'aprobada' %}
+                                        <span class="badge-pill" style="background:rgba(0,112,243,0.08); color:#0070F3;">Aprobada</span>
+                                    {% elif cita.estado == 'pago_pendiente' %}
+                                        <span class="badge-pill" style="background:rgba(249,115,22,0.08); color:#EA580C;">Pago en revisión</span>
+                                    {% elif cita.estado == 'confirmada' %}
+                                        <span class="badge-pill" style="background:rgba(16,185,129,0.08); color:#059669;">Confirmada</span>
+                                    {% elif cita.estado == 'en_consulta' %}
+                                        <span class="badge-pill" style="background:rgba(6,182,212,0.08); color:#0891B2;">En Consulta</span>
+                                    {% elif cita.estado == 'atendida' %}
+                                        <span class="badge-pill" style="background:rgba(100,116,139,0.08); color:#475569;">Atendida</span>
+                                    {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' %}
+                                        <span class="badge-pill" style="background:rgba(239,68,68,0.08); color:#DC2626;">{{ cita.get_estado_display }}</span>
+                                    {% elif cita.status %}
+                                        <span class="badge-pill" style="background:rgba(16,185,129,0.08); color:#059669;">Activa</span>
                                     {% else %}
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Saldada</span>
+                                        <span class="badge-pill" style="background:rgba(239,68,68,0.08); color:#DC2626;">Inactiva</span>
                                     {% endif %}
-                                {% elif cita.estado == 'solicitada' or cita.estado == 'pago_pendiente' or cita.estado == 'confirmada' %}
-                                    <span class="text-xs text-gray-400">—</span>
-                                {% else %}
-                                    <span class="text-xs text-gray-400">—</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No tienes citas aún</h3>
-                <p class="mt-1 text-sm text-gray-500">Comienza solicitando tu primera cita médica.</p>
-                <div class="mt-6">
-                    <a href="{% url 'solicitar_cita' %}" class="btn-primary inline-flex px-4 py-2 rounded-lg text-white font-medium">
-                        Solicitar Primera Cita
-                    </a>
+                                </td>
+                                <td class="py-3.5">
+                                    {% if cita.estado == 'aprobada' %}
+                                        <a href="{% url 'pagar_cita' cita.id_citas %}" class="text-xs font-semibold hover:underline" style="color:#0070F3;">Pagar</a>
+                                    {% elif cita.estado == 'atendida' and cita.factura and cita.factura.estado == 'emitida' %}
+                                        <a href="{% url 'pagar_saldo' cita.id_citas %}" class="text-xs font-semibold hover:underline" style="color:#EA580C;">Pagar Saldo</a>
+                                    {% else %}
+                                        <a href="{% url 'detalle_cita' cita.id_citas %}" class="text-xs font-semibold hover:underline" style="color:#0070F3;">Ver</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="text-center py-10">
+                    <svg class="mx-auto h-10 w-10 mb-3" style="color:#94A3B8;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <p class="text-sm font-medium" style="color:#64748B;">No tienes citas registradas.</p>
+                    <a href="{% url 'solicitar_cita' %}" class="inline-block mt-3 text-sm font-semibold hover:underline" style="color:#0070F3;">Solicitar primera cita</a>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-        </div>
-    </main>
+
+        </main>
+    </div>
 
     <script>
-        // Animación de entrada
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('sidebarOverlay');
+            sb.classList.toggle('open');
+            ov.classList.toggle('active');
+        }
+
+        // User dropdown
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            const btn = document.getElementById('userMenuBtn');
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                btn.setAttribute('aria-expanded', 'true');
+            } else {
+                menu.classList.add('hidden');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('userMenuContainer');
+            const menu = document.getElementById('userMenu');
+            if (container && !container.contains(e.target) && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                document.getElementById('userMenuBtn').setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Sticky header shadow on scroll
+        document.addEventListener('scroll', function() {
+            const header = document.querySelector('.hl-header');
+            if (window.scrollY > 10) { header.classList.add('scrolled'); }
+            else { header.classList.remove('scrolled'); }
+        });
+
+        // Entrance animation
         document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.stat-card, .action-card');
+            const cards = document.querySelectorAll('.dashboard-card');
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                
+                card.style.transform = 'translateY(12px)';
                 setTimeout(() => {
-                    card.style.transition = 'all 0.6s ease';
+                    card.style.transition = 'all 0.5s cubic-bezier(0.4,0,0.2,1)';
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
-                }, 100 * index);
+                }, 80 * index);
             });
         });
     </script>
