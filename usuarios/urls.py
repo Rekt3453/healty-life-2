@@ -58,6 +58,8 @@ urlpatterns = [
     path('super-admin/gerentes/<int:id_administrador>/editar/', views_superadmin.editar_gerente, name='editar_gerente'),
     path('super-admin/gerentes/<int:id_administrador>/toggle/', views_superadmin.toggle_gerente_status, name='toggle_gerente_status'),
     path('super-admin/auditoria/', views_superadmin.audit_log_list, name='audit_log_list'),
+    path('super-admin/reportes/', views_superadmin.reportes_superadmin, name='reportes_superadmin'),
+    path('super-admin/reportes/pdf/', views_superadmin.reportes_superadmin_pdf, name='reportes_superadmin_pdf'),
     
     # Registro de staff (gerente)
     path('dashboard/gerente/registrar-staff/', views.registro_staff, name='registro_staff'),

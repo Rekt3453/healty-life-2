@@ -7,6 +7,7 @@ from .models import (
     Sede, UserAdmin, Administrador, Estado, Municipio, Ciudad, Parroquia,
     DireccionSuperadmin,
 )
+from .audit_services import registrar_evento
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +43,15 @@ def login_root(request):
         if user:
             request.session['_root_user_id'] = user.id_user_root
             request.session['_root_username'] = user.username
+            registrar_evento(
+                user=user,
+                role='root',
+                action='LOGIN',
+                model_affected='UserRoot',
+                object_id=user.pk,
+                details={'username': user.username},
+                request=request,
+            )
             messages.success(request, f'Bienvenido, {user.username}')
             return redirect('dashboard_root')
         else:
@@ -200,6 +210,17 @@ def registrar_superadmin(request):
 # ── LOGOUT ROOT ───────────────────────────────────────────────────────────────
 
 def logout_root(request):
+    user = _get_root_user(request)
+    if user:
+        registrar_evento(
+            user=user,
+            role='root',
+            action='LOGOUT',
+            model_affected='UserRoot',
+            object_id=user.pk,
+            details={'username': user.username},
+            request=request,
+        )
     request.session.pop('_root_user_id', None)
     request.session.pop('_root_username', None)
     return redirect('login_root')

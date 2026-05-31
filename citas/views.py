@@ -10,6 +10,8 @@ from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from usuarios.decorators import rol_requerido
 from usuarios.models import PacienteDatosPersonales, Doctor, PacienteEspecial
+from usuarios.audit_services import registrar_evento
+from usuarios.authentication import CustomAuthBackend
 from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio, ConsultaMedica, Factura,
@@ -141,6 +143,15 @@ def checkout_reserva(request):
                 )
                 del request.session['reserva_cita']
                 request.session.modified = True
+                registrar_evento(
+                    user=request.user,
+                    role='paciente',
+                    action='CREATE',
+                    model_affected='Cita',
+                    object_id=cita.pk,
+                    details={'cita_id': cita.pk, 'estado': cita.estado},
+                    request=request,
+                )
                 messages.success(request, mensaje)
                 return redirect('dashboard_paciente')
             except PermissionError as e:
@@ -257,6 +268,15 @@ def confirmar_cita(request, cita_id):
             CitaService.transicionar(cita, Cita.ESTADO_CONFIRMADA)
             cita.status = True
             cita.save(update_fields=['status'])
+            registrar_evento(
+                user=request.user,
+                role='medico',
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'nuevo_estado': 'confirmada'},
+                request=request,
+            )
             messages.success(request, f"Cita #{cita_id} confirmada.")
         except ValueError as e:
             messages.error(request, str(e))
@@ -433,6 +453,15 @@ def confirmar_pago(request, cita_id):
         )
         try:
             CitaService.confirmar_pago(request.user, cita)
+            registrar_evento(
+                user=request.user,
+                role=CustomAuthBackend().get_rol(request.user),
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'accion': 'confirmar_pago'},
+                request=request,
+            )
             messages.success(request, f"✅ Pago de cita #{cita_id} confirmado. Cita lista para consulta.")
         except PermissionError as e:
             messages.error(request, str(e))
@@ -527,6 +556,15 @@ def aprobar_cita(request, cita_id):
         cita = get_object_or_404(Cita, id_citas=cita_id)
         try:
             CitaService.aprobar_cita(request.user, cita)
+            registrar_evento(
+                user=request.user,
+                role=CustomAuthBackend().get_rol(request.user),
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'nuevo_estado': 'aprobada'},
+                request=request,
+            )
             messages.success(request, f"✅ Cita #{cita_id} aprobada correctamente.")
         except PermissionError as e:
             messages.error(request, str(e))
@@ -544,6 +582,15 @@ def rechazar_cita(request, cita_id):
             CitaService.transicionar(cita, Cita.ESTADO_RECHAZADA)
             cita.status = False
             cita.save(update_fields=['status'])
+            registrar_evento(
+                user=request.user,
+                role=CustomAuthBackend().get_rol(request.user),
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'nuevo_estado': 'rechazada'},
+                request=request,
+            )
             messages.info(request, f"Cita #{cita_id} rechazada.")
         except ValueError as e:
             messages.error(request, str(e))
@@ -558,6 +605,15 @@ def cancelar_cita_secretaria(request, cita_id):
         motivo = request.POST.get('motivo_cancelacion', 'Cancelada por recepcionista/gerente').strip()
         try:
             CitaService.cancelar_cita(cita, cancelada_por=request.user, motivo=motivo)
+            registrar_evento(
+                user=request.user,
+                role=CustomAuthBackend().get_rol(request.user),
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'nuevo_estado': 'cancelada', 'motivo': motivo},
+                request=request,
+            )
             messages.info(request, f"Cita #{cita_id} cancelada correctamente.")
         except ValueError as e:
             messages.error(request, str(e))
@@ -578,6 +634,15 @@ def registrar_adelanto(request, cita_id):
                     monto=form.cleaned_data['monto'],
                     metodo_pago=form.cleaned_data['metodo_pago'],
                     referencia=form.cleaned_data.get('referencia'),
+                )
+                registrar_evento(
+                    user=request.user,
+                    role=CustomAuthBackend().get_rol(request.user),
+                    action='UPDATE',
+                    model_affected='Cita',
+                    object_id=cita.pk,
+                    details={'cita_id': cita_id, 'accion': 'registrar_adelanto', 'monto': str(form.cleaned_data['monto'])},
+                    request=request,
                 )
                 messages.success(request, f"✅ Adelanto registrado. Cita #{cita_id} marcada como pagada con adelanto.")
                 return redirect('gestionar_citas')
@@ -898,6 +963,15 @@ def cancelar_cita_paciente(request, cita_id):
     if request.method == 'POST':
         try:
             CitaService.cancelar_cita(cita, cancelada_por=user, motivo='Cancelada por el paciente')
+            registrar_evento(
+                user=user,
+                role='paciente',
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'nuevo_estado': 'cancelada', 'motivo': 'Cancelada por el paciente'},
+                request=request,
+            )
             messages.info(request, f"Cita #{cita_id} cancelada correctamente.")
         except ValueError as e:
             messages.warning(request, str(e))
@@ -948,6 +1022,15 @@ def pagar_cita(request, cita_id):
                     cita.estado = Cita.ESTADO_PAGO_PENDIENTE
                     cita.save(update_fields=['estado'])
 
+                registrar_evento(
+                    user=user,
+                    role='paciente',
+                    action='UPDATE',
+                    model_affected='Cita',
+                    object_id=cita.pk,
+                    details={'cita_id': cita_id, 'accion': 'pago_registrado', 'metodo': metodo},
+                    request=request,
+                )
                 messages.success(
                     request,
                     "✅ Pago registrado. La recepcionista verificará y confirmará tu cita."
@@ -1048,6 +1131,15 @@ def realizar_receta(request, cita_id):
                         fecha_emision=timezone.now(),
                     )
 
+                registrar_evento(
+                    user=request.user,
+                    role='medico',
+                    action='CREATE',
+                    model_affected='Recipe',
+                    object_id=recipe.pk,
+                    details={'cita_id': cita_id, 'receta_id': recipe.pk},
+                    request=request,
+                )
                 messages.success(
                     request,
                     f"✅ Receta #{recipe.pk} generada exitosamente para "
@@ -1205,6 +1297,15 @@ def iniciar_consulta(request, cita_id):
 
             try:
                 CitaService.cerrar_consulta(request.user, cita)
+                registrar_evento(
+                    user=request.user,
+                    role='medico',
+                    action='UPDATE',
+                    model_affected='Cita',
+                    object_id=cita.pk,
+                    details={'cita_id': cita_id, 'nuevo_estado': 'atendida', 'accion': 'cerrar_consulta'},
+                    request=request,
+                )
                 messages.success(
                     request,
                     '✅ Consulta guardada y cerrada correctamente. La cita ha sido marcada como atendida.'
@@ -1240,6 +1341,15 @@ def cerrar_consulta(request, cita_id):
     if request.method == 'POST':
         try:
             CitaService.cerrar_consulta(request.user, cita)
+            registrar_evento(
+                user=request.user,
+                role='medico',
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'nuevo_estado': 'atendida', 'accion': 'cerrar_consulta'},
+                request=request,
+            )
             messages.success(request, '✅ Consulta cerrada. Cita marcada como atendida.')
             return redirect('citas_pendientes_medico')
         except PermissionError as e:
