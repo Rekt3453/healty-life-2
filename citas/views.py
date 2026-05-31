@@ -174,23 +174,73 @@ def checkout_reserva(request):
 @login_required(login_url='/login/medico/')
 @rol_requerido('medico')
 def citas_pendientes_medico(request):
-    """Citas pendientes y asignadas para el médico autenticado.
-
-    Pendientes  → activas, pago aún NO aprobado por recepcionista.
-    Asignadas   → activas, pago YA aprobado por recepcionista (listas para consulta).
-
-    Se eliminó el filtro de fecha porque excluía citas pasadas y usaba
-    datetime.now() sin zona horaria (bug de TZ con USE_TZ=True).
-    """
+    """Todas las citas del medico autenticado con paginacion, ordenamiento, busqueda y filtros."""
     try:
         citas_pendientes, citas_asignadas, datos_medico = CitaService.listar_citas_medico(request.user)
     except PermissionError as e:
         messages.error(request, str(e))
         return redirect('home')
 
+    todas_citas = []
+    citas_completadas = []
+    busqueda = request.GET.get('q', '').strip()
+    filtro = request.GET.get('filtro', 'todas')
+    orden = request.GET.get('orden', 'fecha_desc')
+
+    if datos_medico:
+        qs = Cita.objects.filter(
+            id_doctor=datos_medico
+        ).select_related('id_paciente', 'id_especialidades')
+
+        if busqueda:
+            try:
+                qs = qs.filter(id_citas=int(busqueda))
+            except ValueError:
+                qs = qs.none()
+
+        # Filtro por estado
+        por_atender = [
+            Cita.ESTADO_SOLICITADA, Cita.ESTADO_APROBADA,
+            Cita.ESTADO_PAGO_PENDIENTE, Cita.ESTADO_PAGADA_ADELANTO,
+            Cita.ESTADO_CONFIRMADA, Cita.ESTADO_EN_CONSULTA,
+        ]
+        sin_atender = [Cita.ESTADO_CANCELADA, Cita.ESTADO_RECHAZADA, Cita.ESTADO_NO_ASISTIO]
+
+        if filtro == 'por_atender':
+            qs = qs.filter(estado__in=por_atender)
+        elif filtro == 'sin_atender':
+            qs = qs.filter(estado__in=sin_atender)
+
+        # Ordenamiento
+        if orden == 'fecha_asc':
+            qs = qs.order_by('fecha_consulta')
+        elif orden == 'fecha_desc':
+            qs = qs.order_by('-fecha_consulta')
+        elif orden == 'estado_asc':
+            qs = qs.order_by('estado')
+        elif orden == 'estado_desc':
+            qs = qs.order_by('-estado')
+        else:
+            qs = qs.order_by('-fecha_consulta')
+
+        todas_citas = qs
+        citas_completadas = [c for c in todas_citas if c.estado == Cita.ESTADO_ATENDIDA]
+
+    total_citas_count = len(todas_citas)
+
+    paginator = Paginator(todas_citas, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'citas/citas_pendientes_medico.html', {
         'citas_pendientes': citas_pendientes,
         'citas_asignadas':  citas_asignadas,
+        'citas_completadas': citas_completadas,
+        'page_obj':         page_obj,
+        'total_citas_count': total_citas_count,
+        'orden':            orden,
+        'busqueda':         busqueda,
+        'filtro':           filtro,
         'datos_medico':     datos_medico,
     })
 
@@ -396,76 +446,78 @@ def confirmar_pago(request, cita_id):
 @login_required(login_url='/login/medico/')
 @rol_requerido('medico')
 def calendario_citas(request):
-    """Calendario mensual de citas del médico autenticado."""
+    """Calendario semanal de citas del medico autenticado."""
     from usuarios.authentication import CustomAuthBackend
-    from calendar import Calendar
     from django.utils.timezone import localtime
     datos_medico = CustomAuthBackend().get_datos_personales(request.user)
 
     hoy = date.today()
     try:
-        año = int(request.GET.get('año', hoy.year))
-        mes = int(request.GET.get('mes', hoy.month))
+        semana_offset = int(request.GET.get('semana', 0))
     except ValueError:
-        año, mes = hoy.year, hoy.month
-    if mes < 1:
-        mes, año = 12, año - 1
-    elif mes > 12:
-        mes, año = 1, año + 1
+        semana_offset = 0
 
-    # Rango del mes
-    inicio_mes = date(año, mes, 1)
-    if mes == 12:
-        fin_mes = date(año + 1, 1, 1)
-    else:
-        fin_mes = date(año, mes + 1, 1)
+    # Lunes de la semana solicitada
+    dias_desde_lunes = hoy.weekday()  # 0=lun, 6=dom
+    lunes = hoy - timedelta(days=dias_desde_lunes) + timedelta(weeks=semana_offset)
+    domingo = lunes + timedelta(days=6)
 
-    # Citas del médico en este mes (excluir canceladas/rechazadas/no_asistio)
-    citas_por_dia = {}
+    dia_nombres = ['Lun','Mar','Mie','Jue','Vie','Sab','Dom']
+    dias_semana = []
+    for i in range(7):
+        d = lunes + timedelta(days=i)
+        dias_semana.append({
+            'fecha': d,
+            'dia_num': d.day,
+            'dia_nombre': dia_nombres[i],
+            'es_hoy': d == hoy,
+        })
+
+    # Citas del medico en esta semana
+    citas_por_dia = {d['fecha'].isoformat(): [] for d in dias_semana}
+    total_citas = 0
     if datos_medico:
         citas = Cita.objects.filter(
             id_doctor=datos_medico,
-            fecha_consulta__date__gte=inicio_mes,
-            fecha_consulta__date__lt=fin_mes,
+            fecha_consulta__date__gte=lunes,
+            fecha_consulta__date__lte=domingo,
             status=True,
         ).exclude(estado__in=[
             Cita.ESTADO_CANCELADA, Cita.ESTADO_RECHAZADA, Cita.ESTADO_NO_ASISTIO
         ]).select_related('id_paciente', 'id_especialidades').order_by('fecha_consulta')
 
         for c in citas:
-            dia = localtime(c.fecha_consulta).day
-            if dia not in citas_por_dia:
-                citas_por_dia[dia] = []
-            citas_por_dia[dia].append(c)
+            dia_key = localtime(c.fecha_consulta).date().isoformat()
+            if dia_key in citas_por_dia:
+                citas_por_dia[dia_key].append(c)
+                total_citas += 1
 
-    # Calendario
-    cal = Calendar(firstweekday=0)
-    semanas = cal.monthdayscalendar(año, mes)
-
-    mes_nombres = [
-        'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
-    ]
-
-    total_citas = sum(len(v) for v in citas_por_dia.values())
-    dias_con_citas = len(citas_por_dia)
+    dias_con_citas = sum(1 for v in citas_por_dia.values() if v)
     promedio_citas = round(total_citas / dias_con_citas, 1) if dias_con_citas > 0 else 0
 
+    # Rango texto para titulo
+    rango_texto = f"{lunes.day} de {mes_nombre(lunes.month)} - {domingo.day} de {mes_nombre(domingo.month)} {lunes.year}"
+
     return render(request, 'citas/calendario_citas.html', {
-        'calendar':       semanas,
+        'dias_semana':    dias_semana,
         'citas_por_dia':  citas_por_dia,
         'total_citas':    total_citas,
         'promedio_citas': promedio_citas,
-        'month_name':     mes_nombres[mes - 1],
-        'year':           año,
-        'today':          hoy.day if hoy.year == año and hoy.month == mes else None,
+        'rango_texto':    rango_texto,
+        'semana_offset':  semana_offset,
+        'prev_offset':    semana_offset - 1,
+        'next_offset':    semana_offset + 1,
         'hoy':            hoy.isoformat(),
-        'prev_month':     mes - 1 if mes > 1 else 12,
-        'prev_year':      año if mes > 1 else año - 1,
-        'next_month':     mes + 1 if mes < 12 else 1,
-        'next_year':      año if mes < 12 else año + 1,
         'datos_medico':   datos_medico,
     })
+
+
+def mes_nombre(mes):
+    nombres = [
+        'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+    ]
+    return nombres[mes - 1]
 
 
 @rol_requerido('recepcionista', 'gerente')
