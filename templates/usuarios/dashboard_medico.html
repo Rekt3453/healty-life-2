@@ -63,7 +63,7 @@
                 </a>
                 <a href="{% url 'citas_pendientes_medico' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    Citas Pendientes
+                    Mis citas
                 </a>
                 <a href="{% url 'gestionar_horarios' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -127,7 +127,7 @@
 
             <div class="bg-white rounded-lg shadow mb-8">
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-lg font-medium text-gray-900">Citas Pendientes</h2>
+                    <h2 class="text-lg font-medium text-gray-900">Proximas Citas</h2>
                 </div>
                 <div class="p-6">
                     {% if citas_pendientes %}
@@ -154,7 +154,7 @@
                     {% else %}
                     <div class="text-center py-8">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">No tienes citas pendientes</h3>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No tienes citas proximas</h3>
                         <p class="mt-1 text-sm text-gray-500">Todas tus citas estan gestionadas.</p>
                     </div>
                     {% endif %}
