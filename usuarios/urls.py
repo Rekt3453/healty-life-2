@@ -50,7 +50,13 @@ urlpatterns = [
 
     # Super Admin
     path('super-admin/registrar-sede/', views_superadmin.registrar_sede, name='registrar_sede'),
+    path('super-admin/sedes/', views_superadmin.lista_sedes, name='lista_sedes'),
+    path('super-admin/sedes/<int:id_sede>/editar/', views_superadmin.editar_sede, name='editar_sede'),
+    path('super-admin/sedes/<int:id_sede>/toggle/', views_superadmin.toggle_sede_status, name='toggle_sede_status'),
     path('super-admin/registrar-gerente/', views_superadmin.registrar_gerente, name='registrar_gerente'),
+    path('super-admin/gerentes/', views_superadmin.lista_gerentes, name='lista_gerentes'),
+    path('super-admin/gerentes/<int:id_administrador>/editar/', views_superadmin.editar_gerente, name='editar_gerente'),
+    path('super-admin/gerentes/<int:id_administrador>/toggle/', views_superadmin.toggle_gerente_status, name='toggle_gerente_status'),
     path('super-admin/auditoria/', views_superadmin.audit_log_list, name='audit_log_list'),
     
     # Registro de staff (gerente)

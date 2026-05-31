@@ -1,5 +1,8 @@
 import hashlib
-from django.shortcuts import render, redirect
+import re
+from django.core.mail import send_mail
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from .models import (
@@ -81,14 +84,20 @@ def dashboard_superadmin(request):
     user_sa, sa = _get_superadmin_user(request)
     centro = _get_centro(sa)
 
-    sedes = Sede.objects.filter(
-        id_cm=centro
-    ).select_related('id_direccion').order_by('nombre_sede') if centro else Sede.objects.none()
+    if centro:
+        sedes = Sede.objects.filter(
+            id_cm=centro
+        ).select_related('id_direccion').order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.all().select_related('id_direccion').order_by('nombre_sede')
 
     sede_ids = list(sedes.values_list('id_sede', flat=True))
-    gerentes = Administrador.objects.filter(
-        id_sede__in=sede_ids
-    ).select_related('id_user_admin', 'id_sede').order_by('nombre_1') if sede_ids else Administrador.objects.none()
+    if sede_ids:
+        gerentes = Administrador.objects.filter(
+            id_sede__in=sede_ids
+        ).select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+    else:
+        gerentes = Administrador.objects.all().select_related('id_user_admin', 'id_sede').order_by('nombre_1')
 
     context = {
         'superadmin': sa,
@@ -112,8 +121,8 @@ def registrar_sede(request):
 
     if request.method == 'POST':
         nombre_sede = request.POST.get('nombre_sede', '').strip()
-        rif_sede = request.POST.get('rif_sede', '').strip() or None
-        telefono = request.POST.get('telefono', '').strip() or None
+        rif_sede = request.POST.get('rif_sede', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
         id_estado = request.POST.get('id_estado')
         id_municipio = request.POST.get('id_municipio')
         id_ciudad = request.POST.get('id_ciudad')
@@ -121,10 +130,36 @@ def registrar_sede(request):
         direccion = request.POST.get('direccion', '').strip()
         referencia = request.POST.get('referencia', '').strip() or None
 
+        errors = []
         if not nombre_sede:
-            messages.error(request, 'El nombre de la sede es obligatorio.')
-        elif not all([id_estado, id_municipio, id_ciudad, id_parroquia, direccion]):
-            messages.error(request, 'Completa los campos de dirección.')
+            errors.append('El nombre de la sede es obligatorio.')
+        elif len(nombre_sede) > 30:
+            errors.append('El nombre de la sede no puede exceder 30 caracteres.')
+
+        if not rif_sede:
+            errors.append('El RIF es obligatorio.')
+        elif not re.match(r'^J-\d{8}-\d$', rif_sede):
+            errors.append('El RIF debe tener el formato J-12345678-9.')
+
+        if not telefono:
+            errors.append('El telefono es obligatorio.')
+        elif not re.match(r'^(0412|0426|0424|0422)-\d{3}-\d{4}$', telefono):
+            errors.append('El telefono debe tener el formato 0412-123-4567.')
+
+        if not direccion:
+            errors.append('La direccion es obligatoria.')
+        elif len(direccion) > 100:
+            errors.append('La direccion no puede exceder 100 caracteres.')
+
+        if referencia and len(referencia) > 100:
+            errors.append('La referencia no puede exceder 100 caracteres.')
+
+        if not all([id_estado, id_municipio, id_ciudad, id_parroquia]):
+            errors.append('Completa todos los campos de ubicacion.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
         else:
             try:
                 dir_sede = DireccionSede.objects.create(
@@ -148,7 +183,7 @@ def registrar_sede(request):
             except Exception as e:
                 messages.error(request, f'Error al registrar la sede: {e}')
 
-    context = {'estados': estados}
+    context = {'estados': estados, 'user_sa': user_sa}
     return render(request, 'usuarios/registrar_sede.html', context)
 
 
@@ -158,9 +193,12 @@ def registrar_sede(request):
 def registrar_gerente(request):
     user_sa, sa = _get_superadmin_user(request)
     centro = _get_centro(sa)
-    sedes = Sede.objects.filter(
-        id_cm=centro, status=True
-    ).order_by('nombre_sede') if centro else Sede.objects.none()
+    if centro:
+        sedes = Sede.objects.filter(
+            id_cm=centro, status=True
+        ).order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
     estados = Estado.objects.all().order_by('estado')
 
     if request.method == 'POST':
@@ -182,19 +220,36 @@ def registrar_gerente(request):
         id_ciudad = request.POST.get('id_ciudad')
         id_parroquia = request.POST.get('id_parroquia')
         direccion = request.POST.get('direccion', '').strip()
-        referencias = request.POST.get('referencia', '').strip() or None
 
         errors = []
-        if not all([username, correo, password, nombre_1, apellido_1, cedula, id_sede]):
+        if not all([username, correo, password, nombre_1, apellido_1, cedula, id_sede, telefono]):
             errors.append('Completa todos los campos obligatorios.')
-        if UserAdmin.objects.filter(username=username).exists():
-            errors.append('El username ya está en uso.')
-        if UserAdmin.objects.filter(email=correo).exists():
-            errors.append('El correo ya está en uso.')
-        if Administrador.objects.filter(cedula=cedula).exists():
-            errors.append('La cédula ya está registrada.')
+        if len(username) > 30:
+            errors.append('El username no puede exceder 30 caracteres.')
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', correo):
+            errors.append('El correo no tiene un formato valido.')
+        if not re.match(r'^[A-Za-z\s]+$', nombre_1) or len(nombre_1) > 30:
+            errors.append('Nombre 1: solo letras, maximo 30 caracteres.')
+        if nombre_2 and (not re.match(r'^[A-Za-z\s]+$', nombre_2) or len(nombre_2) > 30):
+            errors.append('Nombre 2: solo letras, maximo 30 caracteres.')
+        if not re.match(r'^[A-Za-z\s]+$', apellido_1) or len(apellido_1) > 30:
+            errors.append('Apellido 1: solo letras, maximo 30 caracteres.')
+        if apellido_2 and (not re.match(r'^[A-Za-z\s]+$', apellido_2) or len(apellido_2) > 30):
+            errors.append('Apellido 2: solo letras, maximo 30 caracteres.')
+        if tipo_cedula not in ('V', 'E', 'J'):
+            errors.append('Tipo de cedula invalido.')
+        if not re.match(r'^\d{7,9}$', cedula):
+            errors.append('La cedula debe tener entre 7 y 9 digitos numericos.')
+        if not re.match(r'^(0412|0426|0424|0422)-\d{3}-\d{4}$', telefono):
+            errors.append('El telefono debe tener el formato 0412-123-4567.')
         if len(password) < 8:
-            errors.append('La contraseña debe tener mínimo 8 caracteres.')
+            errors.append('La contrasena debe tener minimo 8 caracteres.')
+        if UserAdmin.objects.filter(username=username).exists():
+            errors.append('El username ya esta en uso.')
+        if UserAdmin.objects.filter(email=correo).exists():
+            errors.append('El correo ya esta en uso.')
+        if Administrador.objects.filter(cedula=cedula).exists():
+            errors.append('La cedula ya esta registrada.')
 
         if errors:
             for e in errors:
@@ -218,7 +273,6 @@ def registrar_gerente(request):
                         id_ciudad_id=id_ciudad,
                         id_parroquia_id=id_parroquia,
                         direccion=direccion,
-                        referencias=referencias,
                     )
 
                 Administrador.objects.create(
@@ -237,6 +291,28 @@ def registrar_gerente(request):
                     id_direccion_admin=dir_admin,
                     status=True,
                 )
+
+                try:
+                    send_mail(
+                        subject='Bienvenido a Healthy Life - Tu cuenta ha sido creada',
+                        message=f"""Hola {nombre_1} {apellido_1},
+
+Tu cuenta de gerente ha sido creada exitosamente en Healthy Life.
+
+Usuario: {username}
+Sede asignada: {Sede.objects.filter(id_sede=id_sede).first() or 'N/A'}
+
+Puedes iniciar sesion con tu usuario y contrasena.
+
+Saludos,
+Equipo Healthy Life""",
+                        from_email=None,
+                        recipient_list=[correo],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
+
                 messages.success(request, f'Gerente {username} registrado exitosamente.')
                 return redirect('dashboard_superadmin')
             except Exception as e:
@@ -245,10 +321,173 @@ def registrar_gerente(request):
     context = {
         'sedes': sedes,
         'estados': estados,
-        'TIPO_CEDULA': [('V','V'),('E','E'),('J','J'),('C','C'),('G','G'),('P','P'),('F','F')],
+        'user_sa': user_sa,
+        'TIPO_CEDULA': [('V','V'),('E','E'),('J','J')],
         'SEXO': [('M','Masculino'),('F','Femenino'),('NB','No Binario'),('O','Otro'),('PN','Prefiero no decir')],
     }
     return render(request, 'usuarios/registrar_gerente.html', context)
+
+
+# ── LISTA SEDES ───────────────────────────────────────────────────────────────
+
+@_superadmin_required
+def lista_sedes(request):
+    user_sa, sa = _get_superadmin_user(request)
+    filtro = request.GET.get('filtro', 'todos')
+
+    queryset = Sede.objects.all().select_related('id_cm').order_by('nombre_sede')
+    if filtro == 'activos':
+        queryset = queryset.filter(status=True)
+    elif filtro == 'inactivos':
+        queryset = queryset.filter(status=False)
+
+    paginator = Paginator(queryset, 10)
+    page = request.GET.get('page')
+    page_obj = paginator.get_page(page)
+
+    context = {
+        'user_sa': user_sa,
+        'page_obj': page_obj,
+        'filtro': filtro,
+    }
+    return render(request, 'usuarios/lista_sedes.html', context)
+
+
+@_superadmin_required
+def toggle_sede_status(request, id_sede):
+    sede = get_object_or_404(Sede, pk=id_sede)
+    sede.status = not sede.status if sede.status is not None else True
+    sede.save()
+    estado = 'activada' if sede.status else 'desactivada'
+    messages.success(request, f'Sede "{sede.nombre_sede}" {estado} exitosamente.')
+    return redirect('lista_sedes')
+
+
+@_superadmin_required
+def editar_sede(request, id_sede):
+    user_sa, sa = _get_superadmin_user(request)
+    sede = get_object_or_404(Sede, pk=id_sede)
+
+    if request.method == 'POST':
+        nombre_sede = request.POST.get('nombre_sede', '').strip()
+        rif_sede = request.POST.get('rif_sede', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
+
+        errors = []
+        if not nombre_sede:
+            errors.append('El nombre de la sede es obligatorio.')
+        elif len(nombre_sede) > 30:
+            errors.append('El nombre no puede exceder 30 caracteres.')
+        if rif_sede and not re.match(r'^J-\d{8}-\d$', rif_sede):
+            errors.append('El RIF debe tener el formato J-12345678-9.')
+        if telefono and not re.match(r'^(0412|0426|0424|0422)-\d{3}-\d{4}$', telefono):
+            errors.append('El telefono debe tener el formato 0412-123-4567.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            sede.nombre_sede = nombre_sede
+            sede.rif_sede = rif_sede or None
+            sede.telefono = telefono or None
+            sede.save()
+            messages.success(request, f'Sede "{nombre_sede}" actualizada exitosamente.')
+            return redirect('lista_sedes')
+
+    context = {
+        'user_sa': user_sa,
+        'sede': sede,
+    }
+    return render(request, 'usuarios/editar_sede.html', context)
+
+
+# ── LISTA GERENTES ──────────────────────────────────────────────────────────────
+
+@_superadmin_required
+def lista_gerentes(request):
+    user_sa, sa = _get_superadmin_user(request)
+    filtro = request.GET.get('filtro', 'todos')
+
+    queryset = Administrador.objects.all().select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+    if filtro == 'activos':
+        queryset = queryset.filter(status=True)
+    elif filtro == 'inactivos':
+        queryset = queryset.filter(status=False)
+
+    paginator = Paginator(queryset, 10)
+    page = request.GET.get('page')
+    page_obj = paginator.get_page(page)
+
+    context = {
+        'user_sa': user_sa,
+        'page_obj': page_obj,
+        'filtro': filtro,
+    }
+    return render(request, 'usuarios/lista_gerentes.html', context)
+
+
+@_superadmin_required
+def toggle_gerente_status(request, id_administrador):
+    gerente = get_object_or_404(Administrador, pk=id_administrador)
+    gerente.status = not gerente.status if gerente.status is not None else True
+    gerente.save()
+    estado = 'activado' if gerente.status else 'desactivado'
+    messages.success(request, f'Gerente "{gerente}" {estado} exitosamente.')
+    return redirect('lista_gerentes')
+
+
+@_superadmin_required
+def editar_gerente(request, id_administrador):
+    user_sa, sa = _get_superadmin_user(request)
+    gerente = get_object_or_404(Administrador, pk=id_administrador)
+    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+
+    if request.method == 'POST':
+        nombre_1 = request.POST.get('nombre_1', '').strip().upper()
+        nombre_2 = request.POST.get('nombre_2', '').strip().upper() or None
+        apellido_1 = request.POST.get('apellido_1', '').strip().upper()
+        apellido_2 = request.POST.get('apellido_2', '').strip().upper() or None
+        telefono = request.POST.get('telefono', '').strip()
+        id_sede = request.POST.get('id_sede')
+        status = request.POST.get('status', '1') == '1'
+
+        errors = []
+        if not nombre_1:
+            errors.append('El nombre es obligatorio.')
+        elif not re.match(r'^[A-Za-z\s]+$', nombre_1) or len(nombre_1) > 30:
+            errors.append('Nombre 1: solo letras, maximo 30 caracteres.')
+        if nombre_2 and (not re.match(r'^[A-Za-z\s]+$', nombre_2) or len(nombre_2) > 30):
+            errors.append('Nombre 2: solo letras, maximo 30 caracteres.')
+        if not apellido_1:
+            errors.append('El apellido es obligatorio.')
+        elif not re.match(r'^[A-Za-z\s]+$', apellido_1) or len(apellido_1) > 30:
+            errors.append('Apellido 1: solo letras, maximo 30 caracteres.')
+        if apellido_2 and (not re.match(r'^[A-Za-z\s]+$', apellido_2) or len(apellido_2) > 30):
+            errors.append('Apellido 2: solo letras, maximo 30 caracteres.')
+        if telefono and not re.match(r'^(0412|0426|0424|0422)-\d{3}-\d{4}$', telefono):
+            errors.append('El telefono debe tener el formato 0412-123-4567.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            gerente.nombre_1 = nombre_1
+            gerente.nombre_2 = nombre_2
+            gerente.apellido_1 = apellido_1
+            gerente.apellido_2 = apellido_2
+            gerente.telefono = telefono
+            gerente.id_sede_id = id_sede or None
+            gerente.status = status
+            gerente.save()
+            messages.success(request, f'Gerente "{gerente}" actualizado exitosamente.')
+            return redirect('lista_gerentes')
+
+    context = {
+        'user_sa': user_sa,
+        'gerente': gerente,
+        'sedes': sedes,
+    }
+    return render(request, 'usuarios/editar_gerente.html', context)
 
 
 # ── LOGOUT SUPER ADMIN ────────────────────────────────────────────────────────

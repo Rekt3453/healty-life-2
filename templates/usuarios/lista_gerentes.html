@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerentes - Super Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+    <style>
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{% url 'home' %}" class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#0070F3,#005CC2);">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </div>
+                    <span class="text-xl font-bold" style="color:var(--text-primary);">Healthy Life</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">{{ user_sa.username }}</span>
+                    </div>
+                    <a href="{% url 'logout_superadmin' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Salir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex min-h-screen">
+        <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold">{{ user_sa.username|first|default:'S'|upper }}</div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">{{ user_sa.username }}</p>
+                        <p class="text-xs text-gray-500">Super Admin</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 p-4 space-y-1">
+                <a href="{% url 'dashboard_superadmin' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    Dashboard
+                </a>
+                <a href="{% url 'registrar_sede' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    Sedes
+                </a>
+                <a href="{% url 'lista_sedes' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    Ver Sedes
+                </a>
+                <a href="{% url 'registrar_gerente' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Gerentes
+                </a>
+                <a href="{% url 'lista_gerentes' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    Ver Gerentes
+                </a>
+                <a href="{% url 'audit_log_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Auditoria
+                </a>
+            </nav>
+            <div class="p-4 border-t border-gray-200">
+                <a href="{% url 'logout_superadmin' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Cerrar sesion
+                </a>
+            </div>
+        </aside>
+
+        <main class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold" style="color:var(--text-primary);">Gerentes</h1>
+                    <p class="mt-1 text-sm" style="color:var(--text-secondary);">Gestion de todos los gerentes registrados.</p>
+                </div>
+                <a href="{% url 'registrar_gerente' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-md hover:opacity-90 transition" style="background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Registrar Gerente
+                </a>
+            </div>
+
+            {% if messages %}
+            <div class="mb-5 space-y-2">
+                {% for message in messages %}
+                <div class="border rounded-lg p-3 text-sm font-medium {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Filtros -->
+            <div class="flex gap-2 mb-6">
+                <a href="?filtro=todos" class="px-3 py-1.5 rounded-lg text-sm font-medium {% if filtro == 'todos' %}bg-blue-600 text-white{% else %}bg-white text-gray-600 border border-gray-200 hover:bg-gray-50{% endif %} transition">Todos</a>
+                <a href="?filtro=activos" class="px-3 py-1.5 rounded-lg text-sm font-medium {% if filtro == 'activos' %}bg-blue-600 text-white{% else %}bg-white text-gray-600 border border-gray-200 hover:bg-gray-50{% endif %} transition">Activos</a>
+                <a href="?filtro=inactivos" class="px-3 py-1.5 rounded-lg text-sm font-medium {% if filtro == 'inactivos' %}bg-blue-600 text-white{% else %}bg-white text-gray-600 border border-gray-200 hover:bg-gray-50{% endif %} transition">Inactivos</a>
+            </div>
+
+            <!-- Tabla -->
+            <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nombre</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Cedula</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Correo</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Telefono</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Sede</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            {% for g in page_obj %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ g }}</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">{{ g.tipo_cedula|default:'' }}{{ g.cedula }}</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">{{ g.id_user_admin.email|default:"—" }}</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">{{ g.telefono|default:"—" }}</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">{{ g.id_sede|default:"—" }}</td>
+                                <td class="px-5 py-3">
+                                    {% if g.status %}
+                                    <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">Activo</span>
+                                    {% else %}
+                                    <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <a href="{% url 'editar_gerente' g.id_administrador %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Editar</a>
+                                        <span class="text-gray-300">|</span>
+                                        <a href="{% url 'toggle_gerente_status' g.id_administrador %}" class="{% if g.status %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %} text-sm font-medium">
+                                            {% if g.status %}Desactivar{% else %}Activar{% endif %}
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="px-5 py-6 text-center text-gray-400 text-sm">No hay gerentes registrados.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.has_other_pages %}
+                <div class="px-5 py-4 border-t border-gray-100 flex justify-between items-center">
+                    <p class="text-sm text-gray-500">Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }}</p>
+                    <div class="flex gap-1">
+                        {% if page_obj.has_previous %}
+                        <a href="?filtro={{ filtro }}&page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Anterior</a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                        <a href="?filtro={{ filtro }}&page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Siguiente</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>
