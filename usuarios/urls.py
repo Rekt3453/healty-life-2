@@ -44,6 +44,9 @@ urlpatterns = [
     path('dashboard/root/', views_root.dashboard_root, name='dashboard_root'),
     path('dashboard/super-admin/', views_superadmin.dashboard_superadmin, name='dashboard_superadmin'),
 
+    # Lista de pacientes (staff)
+    path('dashboard/pacientes/', views.lista_pacientes, name='lista_pacientes'),
+
     # Root
     path('root/registrar-centro-medico/', views_root.registrar_centro_medico, name='registrar_centro_medico'),
     path('root/registrar-superadmin/', views_root.registrar_superadmin, name='registrar_superadmin'),

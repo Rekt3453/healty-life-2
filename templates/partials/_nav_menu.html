@@ -55,7 +55,7 @@
         <a href="{% url 'calendario_general' %}" class="nav-link {% if request.resolver_match.url_name == 'calendario_general' %}nav-link-active{% endif %}">
             📅 Calendario General
         </a>
-        <a href="{% url 'registrar_paciente' %}" class="nav-link {% if request.resolver_match.url_name == 'registrar_paciente' %}nav-link-active{% endif %}">
+        <a href="{% url 'registro' %}" class="nav-link {% if request.resolver_match.url_name == 'registro' %}nav-link-active{% endif %}">
             ➕ Registrar Paciente
         </a>
         <a href="{% url 'verificar_pagos' %}" class="nav-link {% if request.resolver_match.url_name == 'verificar_pagos' %}nav-link-active{% endif %}">

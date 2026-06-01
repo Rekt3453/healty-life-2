@@ -120,19 +120,19 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white rounded-lg shadow p-5 text-center">
                     <p class="text-sm text-gray-500 font-medium">Pendientes</p>
-                    <p class="text-3xl font-bold text-yellow-600">{{ citas_pendientes.count }}</p>
+                    <p class="text-3xl font-bold text-yellow-600">{{ conteo_pendientes }}</p>
                 </div>
                 <div class="bg-white rounded-lg shadow p-5 text-center">
-                    <p class="text-sm text-gray-500 font-medium">Asignadas</p>
-                    <p class="text-3xl font-bold text-blue-600">{{ citas_asignadas.count }}</p>
+                    <p class="text-sm text-gray-500 font-medium">Confirmadas</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ conteo_confirmadas }}</p>
                 </div>
                 <div class="bg-white rounded-lg shadow p-5 text-center">
                     <p class="text-sm text-gray-500 font-medium">Completadas</p>
-                    <p class="text-3xl font-bold text-green-600">{{ citas_completadas.count }}</p>
+                    <p class="text-3xl font-bold text-green-600">{{ conteo_completadas }}</p>
                 </div>
                 <div class="bg-white rounded-lg shadow p-5 text-center">
-                    <p class="text-sm text-gray-500 font-medium">Total</p>
-                    <p class="text-3xl font-bold text-gray-800">{{ total_citas_count }}</p>
+                    <p class="text-sm text-gray-500 font-medium">Canceladas</p>
+                    <p class="text-3xl font-bold text-red-600">{{ conteo_canceladas }}</p>
                 </div>
             </div>
 

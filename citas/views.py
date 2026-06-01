@@ -244,16 +244,41 @@ def citas_pendientes_medico(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
+    # Conteos por estado para los marcadores del médico
+    conteo_pendientes   = 0
+    conteo_confirmadas  = 0
+    conteo_completadas  = 0
+    conteo_canceladas   = 0
+
+    if datos_medico:
+        base_conteo = Cita.objects.filter(id_doctor=datos_medico, status=True)
+        conteo_pendientes = base_conteo.filter(
+            estado__in=[Cita.ESTADO_SOLICITADA, Cita.ESTADO_APROBADA, Cita.ESTADO_PAGO_PENDIENTE]
+        ).count()
+        conteo_confirmadas = base_conteo.filter(
+            estado__in=[Cita.ESTADO_CONFIRMADA, Cita.ESTADO_PAGADA_ADELANTO, Cita.ESTADO_EN_CONSULTA]
+        ).count()
+        conteo_completadas = base_conteo.filter(
+            estado=Cita.ESTADO_ATENDIDA
+        ).count()
+        conteo_canceladas = base_conteo.filter(
+            estado__in=[Cita.ESTADO_CANCELADA, Cita.ESTADO_RECHAZADA, Cita.ESTADO_NO_ASISTIO]
+        ).count()
+
     return render(request, 'citas/citas_pendientes_medico.html', {
-        'citas_pendientes': citas_pendientes,
-        'citas_asignadas':  citas_asignadas,
-        'citas_completadas': citas_completadas,
-        'page_obj':         page_obj,
-        'total_citas_count': total_citas_count,
-        'orden':            orden,
-        'busqueda':         busqueda,
-        'filtro':           filtro,
-        'datos_medico':     datos_medico,
+        'citas_pendientes':   citas_pendientes,
+        'citas_asignadas':    citas_asignadas,
+        'citas_completadas':  citas_completadas,
+        'page_obj':           page_obj,
+        'total_citas_count':  total_citas_count,
+        'orden':              orden,
+        'busqueda':           busqueda,
+        'filtro':             filtro,
+        'datos_medico':       datos_medico,
+        'conteo_pendientes':  conteo_pendientes,
+        'conteo_confirmadas': conteo_confirmadas,
+        'conteo_completadas': conteo_completadas,
+        'conteo_canceladas':  conteo_canceladas,
     })
 
 

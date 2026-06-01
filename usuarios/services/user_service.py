@@ -335,6 +335,22 @@ def get_recepcionista_dashboard_context():
     except Exception:
         medicos_activos = 0
 
+    try:
+        proximas_citas = Cita.objects.filter(
+            fecha_consulta__gte=datetime.now(),
+            estado__in=[
+                Cita.ESTADO_CONFIRMADA,
+                Cita.ESTADO_APROBADA,
+                Cita.ESTADO_PAGO_PENDIENTE,
+                Cita.ESTADO_PAGADA_ADELANTO,
+                Cita.ESTADO_EN_CONSULTA,
+            ]
+        ).select_related(
+            'id_paciente', 'id_doctor', 'id_especialidades'
+        ).order_by('fecha_consulta')[:3]
+    except Exception:
+        proximas_citas = []
+
     return {
         'citas_pendientes':      citas_pendientes,
         'citas_hoy':             citas_hoy,
@@ -344,6 +360,7 @@ def get_recepcionista_dashboard_context():
         'citas_pendientes_list': citas_pendientes_list,
         'pacientes_nuevos_hoy':  pacientes_nuevos_hoy,
         'medicos_activos':       medicos_activos,
+        'proximas_citas':      proximas_citas,
     }
 
 

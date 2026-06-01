@@ -98,7 +98,11 @@
                 </svg>
                 <span class="text-xl font-bold" style="color:#1E293B;">Healthy Life</span>
             </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'dashboard_recepcionista' %}" class="text-sm font-medium" style="color:#64748B;">&larr; Volver al dashboard</a>
+            {% else %}
             <a href="{% url 'home' %}" class="text-sm font-medium" style="color:#64748B;">&larr; Volver al inicio</a>
+            {% endif %}
         </div>
     </header>
 

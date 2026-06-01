@@ -127,15 +127,22 @@ def registro_paciente(request):
     """
     Vista de registro de pacientes.
     Maneja pacientes menores de edad, pacientes especiales y selección de sede.
+    Los usuarios autenticados que sean pacientes son redirigidos a su dashboard.
+    El staff (recepcionista, gerente, admin) puede registrar pacientes sin cerrar sesión.
     """
+    # Si el usuario está autenticado, verificar su rol
     if request.user.is_authenticated:
         try:
             auth_backend = CustomAuthBackend()
             rol = auth_backend.get_rol(request.user)
-            return redirect(f'dashboard_{rol}')
-        except:
+            # Los pacientes ya registrados no deben acceder al formulario de registro
+            if rol == 'paciente':
+                return redirect('dashboard_paciente')
+            # El staff sí puede acceder para registrar nuevos pacientes
+            # Continuar ejecutando el formulario
+        except Exception:
             logout(request)
-    
+
     sede_id = request.GET.get('sede')
     initial = {}
     if sede_id:
@@ -146,11 +153,11 @@ def registro_paciente(request):
 
     if request.method == 'POST':
         form = RegistroPacienteForm(request.POST)
-        
+
         if form.is_valid():
             try:
                 user = form.save()
-                
+
                 # Determinar si es paciente especial
                 fecha_nacimiento = form.cleaned_data.get('fecha_nacimiento')
                 tiene_condicion = form.cleaned_data.get('tiene_condicion_especial', False)
@@ -158,7 +165,7 @@ def registro_paciente(request):
                 edad = hoy.year - fecha_nacimiento.year - ((hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day))
                 es_menor = edad < 18
                 es_paciente_especial = es_menor or tiene_condicion
-                
+
                 # Enviar correo de bienvenida
                 datos_paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
                 password_plana = form.cleaned_data.get('password1', '')
@@ -166,10 +173,7 @@ def registro_paciente(request):
                 centro_medico_nombre = sede.id_cm.nombre_cm if sede and sede.id_cm else ''
                 send_welcome_email(user, datos_paciente, password_plana, centro_medico_nombre=centro_medico_nombre)
 
-                # Usar el backend personalizado para login
-                auth_backend = CustomAuthBackend()
-                login(request, user, backend='usuarios.authentication.CustomAuthBackend')
-                request.session['_hl_user_model'] = type(user).__name__
+                # Registrar evento de creación del paciente
                 registrar_evento(
                     user=user,
                     role='paciente',
@@ -179,6 +183,24 @@ def registro_paciente(request):
                     details={'username': user.username, 'tipo': 'paciente'},
                     request=request,
                 )
+
+                # Si el registro lo hace staff (no es un paciente anónimo),
+                # no hacemos login del nuevo paciente ni redirigimos al dashboard paciente.
+                if request.user.is_authenticated:
+                    auth_backend = CustomAuthBackend()
+                    rol_staff = auth_backend.get_rol(request.user)
+                    nombre_paciente = datos_paciente.nombre_completo if datos_paciente else user.username
+                    messages.success(
+                        request,
+                        f"Paciente registrado exitosamente: {nombre_paciente}. "
+                        "Se ha enviado un correo de bienvenida."
+                    )
+                    return redirect(f'dashboard_{rol_staff}')
+
+                # Si no hay usuario autenticado (registro público), loguear al nuevo paciente
+                auth_backend = CustomAuthBackend()
+                login(request, user, backend='usuarios.authentication.CustomAuthBackend')
+                request.session['_hl_user_model'] = type(user).__name__
                 registrar_evento(
                     user=user,
                     role='paciente',
@@ -204,7 +226,7 @@ def registro_paciente(request):
                         "Cuenta creada con éxito. Bienvenido al sistema. Revisa tu correo electrónico.")
 
                 return redirect('dashboard_paciente')
-                
+
             except Exception as e:
                 messages.error(request, f'Error al registrar: {str(e)}')
                 import traceback
@@ -1802,3 +1824,50 @@ def crear_horario(request):
             except Exception as e:
                 messages.error(request, f'Error al crear el horario: {e}')
     return render(request, 'usuarios/crear_horario.html', {'sede': sede})
+
+
+@login_required
+@rol_requerido('recepcionista', 'gerente', 'administrador')
+def lista_pacientes(request):
+    """
+    Lista todos los pacientes registrados en el sistema.
+    Accesible para recepcionistas, gerentes y administradores.
+    """
+    from django.db.models import Count
+
+    # Buscar pacientes con filtro opcional
+    q = request.GET.get('q', '').strip()
+    pacientes_qs = PacienteDatosPersonales.objects.select_related(
+        'id_user_paciente', 'id_sede'
+    ).prefetch_related('tutores').filter(status=True).order_by('nombre_1', 'apellido_1')
+
+    if q:
+        pacientes_qs = pacientes_qs.filter(
+            nombre_1__icontains=q
+        ) | pacientes_qs.filter(
+            apellido_1__icontains=q
+        ) | pacientes_qs.filter(
+            cedula__icontains=q
+        ) | pacientes_qs.filter(
+            telefono__icontains=q
+        )
+
+    # Agregar conteo de menores a cargo (pacientes especiales vinculados)
+    pacientes = []
+    for p in pacientes_qs:
+        menores_count = p.tutores.filter(status=True).count()
+        pacientes.append({
+            'obj': p,
+            'menores_count': menores_count,
+        })
+
+    # Nombre del usuario logueado para el header
+    auth_backend = CustomAuthBackend()
+    datos = auth_backend.get_datos_personales(request.user)
+    nombre = datos.nombre_completo if datos else request.user.username
+
+    return render(request, 'usuarios/lista_pacientes.html', {
+        'pacientes': pacientes,
+        'nombre': nombre,
+        'q': q,
+    })

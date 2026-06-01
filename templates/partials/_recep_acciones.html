@@ -1,22 +1,3 @@
-<!-- Acciones rápidas -->
-<div class="dashboard-card p-5">
-    <h2 class="text-base font-bold mb-4" style="color:var(--text-primary);">Acciones rápidas</h2>
-    <div class="space-y-2">
-        <a href="{% url 'solicitar_cita' %}" class="btn-primary w-full">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-            Agendar cita
-        </a>
-        <a href="#" class="btn-secondary w-full">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Gestionar horarios
-        </a>
-        <a href="#" class="btn-secondary w-full">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-            Registrar paciente
-        </a>
-    </div>
-</div>
-
 <!-- Próximas citas -->
 <div class="dashboard-card overflow-hidden">
     <button onclick="toggleUpcoming()" class="w-full px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);background:transparent;cursor:pointer;">
@@ -32,32 +13,36 @@
         <svg id="upcomingChevron" class="w-5 h-5 transition-transform" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
     </button>
     <div id="upcomingList" class="hidden divide-y" style="border-color:var(--border);">
-        <div class="px-6 py-3">
-            <p class="text-xs font-semibold" style="color:var(--text-secondary);">Mañana</p>
-        </div>
-        <div class="px-6 py-3 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium" style="color:var(--text-primary);">Roberto Silva</p>
-                <p class="text-xs" style="color:var(--text-secondary);">09:00 · Neurología</p>
+        {% if proximas_citas %}
+            {% for cita in proximas_citas %}
+            <div class="px-6 py-3 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium" style="color:var(--text-primary);">{{ cita.id_paciente.nombre_completo|default:"Sin paciente" }}</p>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"l j \\d\\e F, g:i A" }} · {{ cita.id_especialidades.tipo_especialidad|default:"Sin especialidad" }}</p>
+                    <p class="text-xs" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor.nombre_completo|default:"Sin médico" }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if cita.estado == 'confirmada' %}
+                        <span class="badge-confirmada">Confirmada</span>
+                    {% elif cita.estado == 'aprobada' %}
+                        <span class="badge-nueva">Aprobada</span>
+                    {% elif cita.estado == 'pago_pendiente' %}
+                        <span class="badge-pendiente">Pago Pendiente</span>
+                    {% elif cita.estado == 'pagada_adelanto' %}
+                        <span class="badge-completada">Pagada</span>
+                    {% elif cita.estado == 'en_consulta' %}
+                        <span class="badge-confirmada">En Consulta</span>
+                    {% else %}
+                        <span class="badge-pendiente">{{ cita.get_estado_display }}</span>
+                    {% endif %}
+                    <a href="{% url 'detalle_cita' cita.id_citas %}" class="btn-secondary" style="padding:4px 10px;font-size:.75rem;">Ver detalles</a>
+                </div>
             </div>
-            <span class="badge-pendiente">Pendiente</span>
-        </div>
-        <div class="px-6 py-3">
-            <p class="text-xs font-semibold" style="color:var(--text-secondary);">Pasado mañana</p>
-        </div>
-        <div class="px-6 py-3 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium" style="color:var(--text-primary);">Elena Castro</p>
-                <p class="text-xs" style="color:var(--text-secondary);">10:30 · Ginecología</p>
+            {% endfor %}
+        {% else %}
+            <div class="px-6 py-6 text-center">
+                <p class="text-sm" style="color:var(--text-secondary);">No hay citas programadas próximamente</p>
             </div>
-            <span class="badge-confirmada">Confirmada</span>
-        </div>
-        <div class="px-6 py-3 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium" style="color:var(--text-primary);">Miguel Ángel</p>
-                <p class="text-xs" style="color:var(--text-secondary);">14:00 · Traumatología</p>
-            </div>
-            <span class="badge-pendiente">Pendiente</span>
-        </div>
+        {% endif %}
     </div>
 </div>
