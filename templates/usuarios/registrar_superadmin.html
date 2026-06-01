@@ -6,194 +6,314 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Super Admin - Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .form-input, .form-select { transition: all 0.3s; border: 2px solid #e5e7eb; }
-        .form-input:focus, .form-select:focus { border-color: #1a1a2e; box-shadow: 0 0 0 3px rgba(26,26,46,0.1); outline: none; }
-        .btn-dark { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); }
-        .section-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; border-bottom: 1px solid #f3f4f6; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        body { font-family: 'Inter', sans-serif; }
+        .nav-item { transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item.active { background: rgba(255,255,255,0.15); border-left: 3px solid #60a5fa; }
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); }
+        .form-input, .form-select { transition: all 0.2s ease; border: 1.5px solid #e2e8f0; }
+        .form-input:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
+        .form-input::placeholder { color: #94a3b8; }
+        .field-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important; }
+        .error-msg { color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem; display: none; }
+        .error-msg.visible { display: block; }
+        .section-card { background: #fff; border-radius: 1rem; border: 1px solid #f1f5f9; padding: 1.5rem; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-slate-50 min-h-screen">
 
-<nav class="bg-white shadow-sm border-b border-gray-200">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-        <span class="text-xl font-bold text-gray-900">Healthy Life <span class="text-sm font-normal text-gray-500">| Root</span></span>
-        <a href="{% url 'dashboard_root' %}" class="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            Volver
+<aside class="sidebar-gradient fixed left-0 top-0 h-full w-64 text-white z-40 hidden lg:block">
+    <div class="p-6 flex items-center gap-3 border-b border-white/10">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <i data-lucide="heart-pulse" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+            <h1 class="font-bold text-lg tracking-tight">Healthy Life</h1>
+            <p class="text-xs text-slate-400">Panel Root</p>
+        </div>
+    </div>
+    <nav class="p-4 space-y-1">
+        <a href="{% url 'dashboard_root' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+        </a>
+        <a href="{% url 'registrar_centro_medico' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="building-2" class="w-5 h-5"></i> Centros Médicos
+        </a>
+        <a href="{% url 'registrar_superadmin' %}" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium">
+            <i data-lucide="shield-check" class="w-5 h-5"></i> Super Admins
+        </a>
+    </nav>
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+        <a href="{% url 'logout_root' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-300 hover:bg-red-500/10 transition-colors">
+            <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
         </a>
     </div>
-</nav>
+</aside>
 
-<div class="max-w-3xl mx-auto px-4 py-10">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <h1 class="text-2xl font-bold text-gray-900 mb-1">Registrar Super Admin</h1>
-        <p class="text-gray-500 text-sm mb-6">El Super Admin gestiona un centro médico y sus sedes.</p>
+<div class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <i data-lucide="heart-pulse" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="font-bold text-gray-900">Healthy Life</span>
+    </div>
+    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">Salir</a>
+</div>
+
+<main class="lg:ml-64 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <a href="{% url 'dashboard_root' %}" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Dashboard
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Registrar Super Admin</h1>
+            <p class="text-gray-500 mt-1">El Super Admin gestiona un centro médico y sus sedes.</p>
+        </div>
 
         {% if messages %}
-        <div class="mb-5 space-y-2">
+        <div class="mb-6 space-y-3">
             {% for message in messages %}
-            <div class="border rounded-lg p-3 text-sm font-medium
-                {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
-                {% else %}bg-green-50 border-green-200 text-green-800{% endif %}">
-                {{ message }}
+            <div class="flex items-center gap-3 p-4 rounded-xl border {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
+                <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                <p class="text-sm font-medium">{{ message }}</p>
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
-        <form method="POST" class="space-y-6">
+        <form method="POST" class="space-y-6" novalidate id="saForm">
             {% csrf_token %}
 
-            <!-- Credenciales -->
-            <div>
-                <p class="section-title">Credenciales de acceso</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="section-card">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <i data-lucide="key-round" class="w-4 h-4 text-blue-600"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">Credenciales de acceso</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Username <span class="text-red-500">*</span></label>
-                        <input type="text" name="username" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900" required>
+                        <label for="id_username" class="block text-sm font-semibold text-gray-700 mb-2">Nombre de Usuario <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.username }}
+                        </div>
+                        <p class="error-msg" id="err-username"></p>
+                        <p class="text-xs text-gray-400 mt-1">Máx. 30 caracteres. Solo letras, números y guiones bajos.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Correo <span class="text-red-500">*</span></label>
-                        <input type="email" name="correo" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900" required>
+                        <label for="id_correo" class="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="mail" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.correo }}
+                        </div>
+                        <p class="error-msg" id="err-correo"></p>
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña <span class="text-red-500">*</span></label>
-                        <input type="password" name="password" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900" minlength="8" required>
-                        <p class="text-xs text-gray-400 mt-1">Mínimo 8 caracteres</p>
+                    <div>
+                        <label for="id_password" class="block text-sm font-semibold text-gray-700 mb-2">Contraseña <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="lock" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.password }}
+                        </div>
+                        <p class="error-msg" id="err-password"></p>
+                        <p class="text-xs text-gray-400 mt-1">8-30 caracteres. Al menos 1 mayúscula, 1 número y 1 especial.</p>
+                    </div>
+                    <div>
+                        <label for="id_password_confirm" class="block text-sm font-semibold text-gray-700 mb-2">Confirmar Contraseña <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="lock" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.password_confirm }}
+                        </div>
+                        <p class="error-msg" id="err-password_confirm"></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Datos personales -->
-            <div>
-                <p class="section-title">Datos personales</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="section-card">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                        <i data-lucide="user-circle" class="w-4 h-4 text-emerald-600"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">Datos personales</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre 1 <span class="text-red-500">*</span></label>
-                        <input type="text" name="nombre_1" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900" required>
+                        <label for="id_nombre_1" class="block text-sm font-semibold text-gray-700 mb-2">Primer Nombre <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.nombre_1 }}
+                        </div>
+                        <p class="error-msg" id="err-nombre_1"></p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre 2</label>
-                        <input type="text" name="nombre_2" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900">
+                        <label for="id_nombre_2" class="block text-sm font-semibold text-gray-700 mb-2">Segundo Nombre</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.nombre_2 }}
+                        </div>
+                        <p class="error-msg" id="err-nombre_2"></p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Apellido 1 <span class="text-red-500">*</span></label>
-                        <input type="text" name="apellido_1" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900" required>
+                        <label for="id_apellido_1" class="block text-sm font-semibold text-gray-700 mb-2">Primer Apellido <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.apellido_1 }}
+                        </div>
+                        <p class="error-msg" id="err-apellido_1"></p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Apellido 2</label>
-                        <input type="text" name="apellido_2" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900">
+                        <label for="id_apellido_2" class="block text-sm font-semibold text-gray-700 mb-2">Segundo Apellido</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.apellido_2 }}
+                        </div>
+                        <p class="error-msg" id="err-apellido_2"></p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo Cédula <span class="text-red-500">*</span></label>
-                        <select name="tipo_cedula" class="form-select w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white">
-                            {% for v,l in TIPO_CEDULA %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
-                        </select>
+                        <label for="id_tipo_cedula" class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Cédula <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="credit-card" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.tipo_cedula }}
+                        </div>
+                        <p class="error-msg" id="err-tipo_cedula"></p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Cédula <span class="text-red-500">*</span></label>
-                        <input type="text" name="cedula" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900" required>
+                        <label for="id_cedula" class="block text-sm font-semibold text-gray-700 mb-2">Cédula <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="hash" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.cedula }}
+                        </div>
+                        <p class="error-msg" id="err-cedula"></p>
+                        <p class="text-xs text-gray-400 mt-1">7-8 dígitos numéricos.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Sexo</label>
-                        <select name="sexo" class="form-select w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white">
-                            {% for v,l in SEXO %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
-                        </select>
+                        <label for="id_sexo" class="block text-sm font-semibold text-gray-700 mb-2">Sexo</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="users" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.sexo }}
+                        </div>
+                        <p class="error-msg" id="err-sexo"></p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de Nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900">
+                        <label for="id_fecha_nacimiento" class="block text-sm font-semibold text-gray-700 mb-2">Fecha de Nacimiento <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="calendar" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.fecha_nacimiento }}
+                        </div>
+                        <p class="error-msg" id="err-fecha_nacimiento"></p>
+                        <p class="text-xs text-gray-400 mt-1">Debe ser mayor de 18 años.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
-                        <input type="text" name="telefono" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900">
+                        <label for="id_telefono" class="block text-sm font-semibold text-gray-700 mb-2">Teléfono <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="phone" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.telefono }}
+                        </div>
+                        <p class="error-msg" id="err-telefono"></p>
+                        <p class="text-xs text-gray-400 mt-1">11 dígitos. Ej: 04241234567</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Centro Médico <span class="text-red-500">*</span></label>
-                        <select name="id_cm" class="form-select w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white" required>
-                            <option value="">-- Seleccionar --</option>
-                            {% for cm in centros %}<option value="{{ cm.id_cm }}">{{ cm.nombre_cm }}</option>{% endfor %}
-                        </select>
+                        <label for="id_id_cm" class="block text-sm font-semibold text-gray-700 mb-2">Centro Médico <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="building-2" class="w-5 h-5 text-slate-400"></i></div>
+                            {{ form.id_cm }}
+                        </div>
+                        <p class="error-msg" id="err-id_cm"></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Dirección -->
-            <div>
-                <p class="section-title">Dirección (opcional)</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
-                        <select name="id_estado" id="id_estado" class="form-select w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white">
-                            <option value="">-- Estado --</option>
-                            {% for e in estados %}<option value="{{ e.id_estado }}">{{ e.estado }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Municipio</label>
-                        <select name="id_municipio" id="id_municipio" class="form-select w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white">
-                            <option value="">-- Municipio --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Ciudad</label>
-                        <select name="id_ciudad" id="id_ciudad" class="form-select w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white">
-                            <option value="">-- Ciudad --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Parroquia</label>
-                        <select name="id_parroquia" id="id_parroquia" class="form-select w-full px-4 py-2.5 rounded-lg text-gray-900 bg-white">
-                            <option value="">-- Parroquia --</option>
-                        </select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Dirección</label>
-                        <textarea name="direccion" rows="2" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900"></textarea>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Referencia</label>
-                        <textarea name="referencia" rows="2" class="form-input w-full px-4 py-2.5 rounded-lg text-gray-900"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-3 pt-2">
-                <button type="submit" class="btn-dark flex-1 py-3 rounded-lg text-white font-semibold shadow-md hover:opacity-90 transition">
-                    Registrar Super Admin
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all flex-1">
+                    <i data-lucide="save" class="w-4 h-4"></i> Registrar Super Admin
                 </button>
-                <a href="{% url 'dashboard_root' %}" class="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold text-center hover:bg-gray-50 transition">
-                    Cancelar
+                <a href="{% url 'dashboard_root' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex-1">
+                    <i data-lucide="x" class="w-4 h-4"></i> Cancelar
                 </a>
             </div>
         </form>
     </div>
-</div>
+</main>
 
 <script>
-function cargarOpciones(url, targetId) {
-    const sel = document.getElementById(targetId);
-    sel.innerHTML = '<option value="">Cargando...</option>';
-    fetch(url).then(r=>r.json()).then(data=>{
-        sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-        data.forEach(item => {
-            const key = Object.keys(item).find(k=>k.startsWith('id_'));
-            const label = Object.values(item).find((v,i)=>i>0);
-            sel.innerHTML += `<option value="${item[key]}">${label}</option>`;
-        });
-    });
+lucide.createIcons();
+
+// Validación en tiempo real
+function setError(fieldId, msg) {
+    const el = document.getElementById('id_' + fieldId);
+    const err = document.getElementById('err-' + fieldId);
+    if (el) el.classList.add('field-error');
+    if (err) { err.textContent = msg; err.classList.add('visible'); }
+}
+function clearError(fieldId) {
+    const el = document.getElementById('id_' + fieldId);
+    const err = document.getElementById('err-' + fieldId);
+    if (el) el.classList.remove('field-error');
+    if (err) { err.textContent = ''; err.classList.remove('visible'); }
 }
 
-document.getElementById('id_estado').addEventListener('change', function(){
-    if(this.value){
-        cargarOpciones(`/ajax/municipios/?estado_id=${this.value}`, 'id_municipio');
-        cargarOpciones(`/ajax/ciudades/?estado_id=${this.value}`, 'id_ciudad');
-        document.getElementById('id_parroquia').innerHTML = '<option value="">-- Parroquia --</option>';
-    }
+const rules = {
+    username:  v => /^[a-zA-Z0-9_]{3,30}$/.test(v) ? '' : 'Máx. 30 caracteres. Solo letras, números y guiones bajos.',
+    correo:    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Ingrese un correo válido.',
+    password:  v => /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:'"\\|,.<>/?`~]).{8,30}$/.test(v) ? '' : '8-30 caracteres, 1 mayúscula, 1 número, 1 especial.',
+    password_confirm: v => {
+        const p = document.getElementById('id_password').value;
+        return v === p ? '' : 'Las contraseñas no coinciden.';
+    },
+    nombre_1:  v => /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,30}$/.test(v) ? '' : 'Solo letras, máx. 30.',
+    nombre_2:  v => !v || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{0,30}$/.test(v) ? '' : 'Solo letras, máx. 30.',
+    apellido_1:v => /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,30}$/.test(v) ? '' : 'Solo letras, máx. 30.',
+    apellido_2:v => !v || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{0,30}$/.test(v) ? '' : 'Solo letras, máx. 30.',
+    cedula:    v => /^\d{7,8}$/.test(v) ? '' : '7-8 dígitos numéricos.',
+    telefono:  v => /^0\d{10}$/.test(v) ? '' : '11 dígitos, debe comenzar con 0.',
+};
+
+Object.keys(rules).forEach(key => {
+    const el = document.getElementById('id_' + key);
+    if (!el) return;
+    el.addEventListener('input', () => {
+        const msg = rules[key](el.value.trim());
+        msg ? setError(key, msg) : clearError(key);
+    });
+    el.addEventListener('blur', () => {
+        const msg = rules[key](el.value.trim());
+        msg ? setError(key, msg) : clearError(key);
+    });
 });
-document.getElementById('id_municipio').addEventListener('change', function(){
-    if(this.value) cargarOpciones(`/ajax/parroquias/?municipio_id=${this.value}`, 'id_parroquia');
+
+// Fecha mínima 18 años atrás
+document.getElementById('id_fecha_nacimiento').setAttribute('max', new Date(new Date().setFullYear(new Date().getFullYear()-18)).toISOString().split('T')[0]);
+
+// Cédula solo números
+['cedula','telefono'].forEach(id => {
+    const el = document.getElementById('id_' + id);
+    if(el) el.addEventListener('input', () => el.value = el.value.replace(/\D/g,''));
+});
+
+// Nombres/apellidos solo letras
+['nombre_1','nombre_2','apellido_1','apellido_2'].forEach(id => {
+    const el = document.getElementById('id_' + id);
+    if(el) el.addEventListener('input', () => el.value = el.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g,''));
+});
+
+// Validar al enviar
+const form = document.getElementById('saForm');
+form.addEventListener('submit', e => {
+    let hasErrors = false;
+    Object.keys(rules).forEach(key => {
+        const el = document.getElementById('id_' + key);
+        if (!el) return;
+        const msg = rules[key](el.value.trim());
+        if (msg) { setError(key, msg); hasErrors = true; }
+    });
+    if (hasErrors) {
+        e.preventDefault();
+        const first = document.querySelector('.field-error');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 });
 </script>
 </body>

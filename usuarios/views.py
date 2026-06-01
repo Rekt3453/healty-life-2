@@ -11,6 +11,7 @@ from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin, UserSuperAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador,
     Estado, Municipio, Ciudad, Parroquia, PacienteEspecial, Sede,
+    CentroMedico,
     DireccionPaciente, DireccionDoctor, DireccionRecepcionista,
     RecuperacionContrasenaPaciente, RecuperacionContrasenaDoctor,
     RecuperacionContrasenaRecepcionista, RecuperacionContrasenaAdmin,
@@ -161,7 +162,9 @@ def registro_paciente(request):
                 # Enviar correo de bienvenida
                 datos_paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
                 password_plana = form.cleaned_data.get('password1', '')
-                send_welcome_email(user, datos_paciente)
+                sede = form.cleaned_data.get('sede')
+                centro_medico_nombre = sede.id_cm.nombre_cm if sede and sede.id_cm else ''
+                send_welcome_email(user, datos_paciente, password_plana, centro_medico_nombre=centro_medico_nombre)
 
                 # Usar el backend personalizado para login
                 auth_backend = CustomAuthBackend()
@@ -214,13 +217,9 @@ def registro_paciente(request):
     else:
         form = RegistroPacienteForm(initial=initial)
 
-    # Pasar sedes disponibles al template
-    from .models import Sede
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
-
     context = {
         'form': form,
-        'sedes': sedes,
+        'centros_medicos': CentroMedico.objects.filter(status=True).order_by('nombre_cm'),
     }
 
     return render(request, 'usuarios/registro_paciente.html', context)
@@ -1310,6 +1309,18 @@ def cargar_parroquias(request):
     if municipio_id:
         parroquias = Parroquia.objects.filter(id_municipio_id=municipio_id).values('id_parroquia', 'parroquia')
         return JsonResponse(list(parroquias), safe=False)
+    return JsonResponse([], safe=False)
+
+
+def ajax_sedes_por_cm(request):
+    """Retorna las sedes filtradas por centro médico."""
+    cm_id = request.GET.get('cm_id')
+    if cm_id:
+        sedes = Sede.objects.filter(
+            id_cm_id=cm_id,
+            status=True
+        ).values('id_sede', 'nombre_sede').order_by('nombre_sede')
+        return JsonResponse(list(sedes), safe=False)
     return JsonResponse([], safe=False)
 
 # ==================== VISTAS AJAX PARA VALIDACIÓN EN TIEMPO REAL ====================

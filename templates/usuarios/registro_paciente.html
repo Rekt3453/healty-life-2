@@ -265,6 +265,25 @@
                         </div>
                     </div>
 
+                <!-- Centro Médico -->
+                <div>
+                    <div class="hl-section-label">Centro Médico</div>
+                    <div>
+                        <label for="id_centro_medico" class="block text-sm font-semibold mb-1.5" style="color:#1E293B;">Seleccione el Centro Médico *</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <select name="centro_medico" id="id_centro_medico" class="form-select" required>
+                                <option value="">Seleccione un centro médico</option>
+                                {% for cm in centros_medicos %}
+                                <option value="{{ cm.id_cm }}" {% if request.POST.centro_medico == cm.id_cm|stringformat:'s' %}selected{% endif %}>
+                                    {{ cm.nombre_cm }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Sede -->
                 <div>
                     <div class="hl-section-label">Sede de Atencion</div>
@@ -530,20 +549,25 @@
                     clearTimeout(cedulaTimeout);
                     const cedula = this.value.trim();
                     
-                    if (cedula.length < 6) {
-                        showValidation('cedula', 'Mínimo 6 dígitos', true);
+                    if (cedula.length < 7) {
+                        showValidation('cedula', 'Mínimo 7 dígitos', true);
                         return;
                     }
-                    
+
+                    if (cedula.length > 8) {
+                        showValidation('cedula', 'Máximo 8 dígitos', true);
+                        return;
+                    }
+
                     if (!/^\d+$/.test(cedula)) {
                         showValidation('cedula', 'Solo números', true);
                         return;
                     }
-                    
+
                     clearValidation('cedula');
-                    
+
                     cedulaTimeout = setTimeout(() => {
-                        if (cedula.length >= 6) {
+                        if (cedula.length >= 7) {
                             fetch(`/usuarios/ajax/validar-cedula/?cedula=${encodeURIComponent(cedula)}`)
                                 .then(response => response.json())
                                 .then(data => {
@@ -891,6 +915,64 @@
                     descripcionCondicion.style.display = 'block';
                     descripcionCondicion.required = true;
                 }
+            }
+        });
+    </script>
+
+    <!-- Selector dependiente: Centro Médico -> Sede -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cmSelect = document.getElementById('id_centro_medico');
+            const sedeSelect = document.getElementById('id_sede');
+
+            if (!cmSelect || !sedeSelect) return;
+
+            // Limpiar sede al inicio (excepto si hay un POST previo con centro_medico)
+            function resetSede() {
+                sedeSelect.innerHTML = '<option value="">Primero seleccione un centro médico</option>';
+                sedeSelect.disabled = true;
+            }
+
+            if (!cmSelect.value) {
+                resetSede();
+            }
+
+            cmSelect.addEventListener('change', function() {
+                const cmId = this.value;
+
+                if (!cmId) {
+                    resetSede();
+                    return;
+                }
+
+                sedeSelect.disabled = true;
+                sedeSelect.innerHTML = '<option value="">Cargando...</option>';
+
+                fetch(`/ajax/sedes/?cm_id=${encodeURIComponent(cmId)}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Error de red');
+                        return response.json();
+                    })
+                    .then(data => {
+                        sedeSelect.innerHTML = '<option value="">Seleccione una sede</option>';
+                        data.forEach(sede => {
+                            const option = document.createElement('option');
+                            option.value = sede.id_sede;
+                            option.textContent = sede.nombre_sede;
+                            sedeSelect.appendChild(option);
+                        });
+                        sedeSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar sedes:', error);
+                        sedeSelect.innerHTML = '<option value="">Error al cargar sedes</option>';
+                    });
+            });
+
+            // Si hay un valor preseleccionado (por ejemplo, tras POST con error),
+            // disparar el change manualmente para recargar sedes.
+            if (cmSelect.value) {
+                cmSelect.dispatchEvent(new Event('change'));
             }
         });
     </script>

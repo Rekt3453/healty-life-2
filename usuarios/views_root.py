@@ -1,4 +1,5 @@
 import hashlib
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
@@ -26,6 +27,13 @@ def _root_required(view_func):
         return view_func(request, *args, **kwargs)
     wrapper.__name__ = view_func.__name__
     return wrapper
+
+
+def _validar_rif_cm(rif_cm):
+    """Valida formato estricto J-12345678-9 (u otros prefijos VEJ/G)."""
+    if not rif_cm:
+        return True
+    return bool(re.fullmatch(r'^[VJEG]-\d{8}-\d$', rif_cm))
 
 
 # ── LOGIN ROOT ────────────────────────────────────────────────────────────────
@@ -92,6 +100,10 @@ def registrar_centro_medico(request):
 
         if not nombre_cm:
             messages.error(request, 'El nombre del centro médico es obligatorio.')
+        elif len(nombre_cm) > 30:
+            messages.error(request, 'El nombre del centro médico no puede superar los 30 caracteres.')
+        elif rif_cm and not _validar_rif_cm(rif_cm):
+            messages.error(request, 'El RIF debe tener el formato J-12345678-9.')
         elif CentroMedico.objects.filter(rif_cm=rif_cm).exists() and rif_cm:
             messages.error(request, 'Ya existe un centro médico con ese RIF.')
         else:
@@ -110,99 +122,68 @@ def registrar_centro_medico(request):
 
 @_root_required
 def registrar_superadmin(request):
-    centros = CentroMedico.objects.filter(status=True).order_by('nombre_cm')
-    estados = Estado.objects.all().order_by('estado')
+    from .forms import RegistroSuperAdminForm
 
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        correo = request.POST.get('correo', '').strip()
-        password = request.POST.get('password', '')
-        nombre_1 = request.POST.get('nombre_1', '').strip().upper()
-        nombre_2 = request.POST.get('nombre_2', '').strip().upper() or None
-        apellido_1 = request.POST.get('apellido_1', '').strip().upper()
-        apellido_2 = request.POST.get('apellido_2', '').strip().upper() or None
-        cedula = request.POST.get('cedula', '').strip()
-        tipo_cedula = request.POST.get('tipo_cedula', 'V')
-        sexo = request.POST.get('sexo', '')
-        fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
-        telefono = request.POST.get('telefono', '').strip()
-        id_cm = request.POST.get('id_cm')
-        id_estado = request.POST.get('id_estado')
-        id_municipio = request.POST.get('id_municipio')
-        id_ciudad = request.POST.get('id_ciudad')
-        id_parroquia = request.POST.get('id_parroquia')
-        direccion = request.POST.get('direccion', '').strip()
-        referencia = request.POST.get('referencia', '').strip() or None
-
-        errors = []
-        if not all([username, correo, password, nombre_1, apellido_1, cedula, id_cm]):
-            errors.append('Completa todos los campos obligatorios.')
-        if UserSuperAdmin.objects.filter(username=username).exists():
-            errors.append('El username ya está en uso.')
-        if UserSuperAdmin.objects.filter(correo=correo).exists():
-            errors.append('El correo ya está en uso.')
-        if Superadmin.objects.filter(cedula=cedula).exists():
-            errors.append('La cédula ya está registrada.')
-        if len(password) < 8:
-            errors.append('La contraseña debe tener mínimo 8 caracteres.')
-
-        if errors:
-            for e in errors:
-                messages.error(request, e)
-        else:
+        form = RegistroSuperAdminForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
             try:
-                password_hash = hashlib.md5(password.encode()).hexdigest()
+                password_hash = hashlib.md5(cd['password'].encode()).hexdigest()
                 user_sa = UserSuperAdmin.objects.create(
-                    username=username,
-                    correo=correo,
+                    username=cd['username'],
+                    correo=cd['correo'],
                     contrasena=password_hash,
                     status=True,
                 )
 
-                dir_sa = None
-                if id_estado and id_municipio and id_ciudad and id_parroquia and direccion:
-                    dir_sa = DireccionSuperadmin.objects.create(
-                        id_estado_id=id_estado,
-                        id_municipio_id=id_municipio,
-                        id_ciudad_id=id_ciudad,
-                        id_parroquia_id=id_parroquia,
-                        direccion=direccion,
-                        referencia=referencia,
-                    )
-
                 sede_sa = None
-                if id_cm:
+                if cd['id_cm']:
                     from usuarios.models import Sede
-                    sede_sa = Sede.objects.filter(id_cm_id=id_cm, status=True).first()
+                    sede_sa = Sede.objects.filter(id_cm_id=cd['id_cm'].id_cm, status=True).first()
 
                 Superadmin.objects.create(
                     id_user_superadmin=user_sa,
-                    nombre_1=nombre_1,
-                    nombre_2=nombre_2,
-                    apellido_1=apellido_1,
-                    apellido_2=apellido_2,
-                    cedula=cedula,
-                    tipo_cedula=tipo_cedula,
+                    nombre_1=cd['nombre_1'].upper(),
+                    nombre_2=(cd['nombre_2'] or '').upper() or None,
+                    apellido_1=cd['apellido_1'].upper(),
+                    apellido_2=(cd['apellido_2'] or '').upper() or None,
+                    cedula=cd['cedula'],
+                    tipo_cedula=cd['tipo_cedula'],
                     id_sede=sede_sa,
                     status=True,
                 )
-                messages.success(request, f'Super Admin {username} registrado exitosamente.')
+
+                # Enviar correo de bienvenida con credenciales
+                from .email_config import enviar_correo_superadmin
+                ok = enviar_correo_superadmin({
+                    'primer_nombre': cd['nombre_1'],
+                    'segundo_nombre': cd['nombre_2'] or '',
+                    'primer_apellido': cd['apellido_1'],
+                    'segundo_apellido': cd['apellido_2'] or '',
+                    'email': cd['correo'],
+                    'username': cd['username'],
+                    'password': cd['password'],
+                    'centro_medico': cd['id_cm'].nombre_cm if cd['id_cm'] else 'Nuestro Centro Médico',
+                })
+                if ok:
+                    messages.success(request, 'Se enviaron las credenciales al correo del Super Admin.')
+                else:
+                    messages.warning(request, 'El Super Admin se registró pero no se pudieron enviar las credenciales por correo.')
+
+                messages.success(request, f'Super Admin {cd["username"]} registrado exitosamente.')
                 return redirect('dashboard_root')
             except Exception as e:
                 messages.error(request, f'Error al registrar: {e}')
-
-    municipios = Municipio.objects.none()
-    ciudades = Ciudad.objects.none()
-    parroquias = Parroquia.objects.none()
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{form.fields[field].label or field}: {error}")
+    else:
+        form = RegistroSuperAdminForm()
 
     context = {
-        'centros': centros,
-        'estados': estados,
-        'municipios': municipios,
-        'ciudades': ciudades,
-        'parroquias': parroquias,
-        'TIPO_CEDULA': [('V','V'),('E','E'),('J','J'),('C','C'),('G','G'),('P','P'),('F','F')],
-        'SEXO': [('M','Masculino'),('F','Femenino'),('NB','No Binario'),('O','Otro'),('PN','Prefiero no decir')],
+        'form': form,
     }
     return render(request, 'usuarios/registrar_superadmin.html', context)
 

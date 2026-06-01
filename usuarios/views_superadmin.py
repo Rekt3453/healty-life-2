@@ -565,8 +565,18 @@ def reportes_superadmin(request):
     else:
         fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
 
+    # Obtener sedes del centro médico del superadmin
+    centro = _get_centro(sa)
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro, status=True).order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.none()
+    mis_sede_ids = list(sedes.values_list('id_sede', flat=True))
+
     if id_sede:
         id_sede = int(id_sede)
+        if id_sede not in mis_sede_ids:
+            id_sede = None
 
     # Métricas generales
     datos_atencion = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, id_sede)
@@ -574,8 +584,6 @@ def reportes_superadmin(request):
     datos_honorarios = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, id_sede)
     datos_pacientes = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, id_sede)
     datos_doctores = ReportesService.reporte_doctores(id_sede)
-
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
 
     # Desglose por sede (solo cuando no se filtra una sede específica)
     breakdown = []
@@ -815,8 +823,19 @@ def reportes_superadmin_pdf(request):
     else:
         fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
 
+    # Obtener sedes del centro médico del superadmin
+    user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro, status=True).order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.none()
+    mis_sede_ids = list(sedes.values_list('id_sede', flat=True))
+
     if id_sede:
         id_sede = int(id_sede)
+        if id_sede not in mis_sede_ids:
+            id_sede = None
 
     # Metricas
     datos_atencion = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, id_sede)
@@ -825,7 +844,6 @@ def reportes_superadmin_pdf(request):
     datos_pacientes = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, id_sede)
     datos_doctores = ReportesService.reporte_doctores(id_sede)
 
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
     sede_obj = None
     if id_sede:
         sede_obj = get_object_or_404(Sede, pk=id_sede)

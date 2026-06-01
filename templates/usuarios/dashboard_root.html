@@ -6,156 +6,307 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Root - Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%); }
-        .stat-card { transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-3px); }
-        .btn-primary { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); }
-        .btn-primary:hover { opacity: 0.9; }
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+        }
+        .nav-item {
+            transition: all 0.2s;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .nav-item.active {
+            background: rgba(255,255,255,0.15);
+            border-left: 3px solid #60a5fa;
+        }
+        .sidebar-gradient {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-slate-50 min-h-screen">
 
-<!-- Topbar -->
-<nav class="bg-white shadow-sm border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg,#1a1a2e,#0f3460)">
-                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/></svg>
-            </div>
-            <span class="text-xl font-bold text-gray-900">Healthy Life</span>
-            <span class="text-gray-300">|</span>
-            <span class="text-sm font-medium text-gray-600">Panel Root</span>
+<!-- Sidebar -->
+<aside class="sidebar-gradient fixed left-0 top-0 h-full w-64 text-white z-40 hidden lg:block">
+    <div class="p-6 flex items-center gap-3 border-b border-white/10">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <i data-lucide="heart-pulse" class="w-6 h-6 text-white"></i>
         </div>
-        <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-600">👋 {{ root_user.username }}</span>
-            <a href="{% url 'logout_root' %}" class="text-sm text-red-600 hover:text-red-700 font-medium transition-colors">Cerrar sesión</a>
-        </div>
-    </div>
-</nav>
-
-<div class="max-w-7xl mx-auto px-4 py-8">
-
-    <!-- Mensajes -->
-    {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="border rounded-lg p-3 text-sm font-medium
-            {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
-            {% else %}bg-green-50 border-green-200 text-green-800{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Header -->
-    <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Panel de Administración Root</h1>
-            <p class="text-gray-500 mt-1">Gestiona centros médicos y super administradores</p>
-        </div>
-        <div class="flex gap-3">
-            <a href="{% url 'registrar_centro_medico' %}" class="btn-primary inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium text-sm shadow-md">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Centro Médico
-            </a>
-            <a href="{% url 'registrar_superadmin' %}" class="bg-indigo-600 hover:bg-indigo-700 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium text-sm shadow-md transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                Super Admin
-            </a>
+            <h1 class="font-bold text-lg tracking-tight">Healthy Life</h1>
+            <p class="text-xs text-slate-400">Panel Root</p>
         </div>
     </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p class="text-gray-500 text-sm">Centros Médicos</p>
-            <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_centros }}</p>
-        </div>
-        <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p class="text-gray-500 text-sm">Super Admins</p>
-            <p class="text-3xl font-bold text-indigo-600 mt-1">{{ total_superadmins }}</p>
-        </div>
-        <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p class="text-gray-500 text-sm">Sedes</p>
-            <p class="text-3xl font-bold text-green-600 mt-1">{{ total_sedes }}</p>
-        </div>
-        <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <p class="text-gray-500 text-sm">Gerentes</p>
-            <p class="text-3xl font-bold text-blue-600 mt-1">{{ total_gerentes }}</p>
-        </div>
+    <nav class="p-4 space-y-1">
+        <a href="{% url 'dashboard_root' %}" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            Dashboard
+        </a>
+        <a href="{% url 'registrar_centro_medico' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="building-2" class="w-5 h-5"></i>
+            Centros Médicos
+        </a>
+        <a href="{% url 'registrar_superadmin' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+            Super Admins
+        </a>
+    </nav>
+
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+        <a href="{% url 'logout_root' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-300 hover:bg-red-500/10 transition-colors">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+            Cerrar Sesión
+        </a>
     </div>
+</aside>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <!-- Tabla Centros Médicos -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-gray-900">Centros Médicos</h2>
-                <a href="{% url 'registrar_centro_medico' %}" class="text-sm text-blue-600 hover:underline">+ Nuevo</a>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-100">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nombre</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">RIF</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        {% for cm in centros %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ cm.nombre_cm }}</td>
-                            <td class="px-5 py-3 text-sm text-gray-600">{{ cm.rif_cm|default:"—" }}</td>
-                            <td class="px-5 py-3">
-                                {% if cm.status %}
-                                <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">Activo</span>
-                                {% else %}
-                                <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full">Inactivo</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="3" class="px-5 py-6 text-center text-gray-400 text-sm">Sin centros médicos registrados</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<!-- Mobile Header -->
+<div class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <i data-lucide="heart-pulse" class="w-5 h-5 text-white"></i>
         </div>
-
-        <!-- Tabla Super Admins -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-gray-900">Super Admins</h2>
-                <a href="{% url 'registrar_superadmin' %}" class="text-sm text-blue-600 hover:underline">+ Nuevo</a>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-100">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nombre</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Correo</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Centro</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        {% for sa in superadmins %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ sa }}</td>
-                            <td class="px-5 py-3 text-sm text-gray-600">{{ sa.id_user_superadmin.correo|default:"—" }}</td>
-                            <td class="px-5 py-3 text-sm text-gray-600">{{ sa.id_sede.id_cm|default:"—" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="3" class="px-5 py-6 text-center text-gray-400 text-sm">Sin super admins registrados</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
+        <span class="font-bold text-gray-900">Healthy Life</span>
     </div>
+    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">Salir</a>
 </div>
+
+<!-- Main Content -->
+<main class="lg:ml-64 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                    <p class="text-sm text-slate-500 mb-1">Bienvenido de vuelta, {{ root_user.username }}</p>
+                    <h1 class="text-3xl font-bold text-gray-900">Panel de Administración Root</h1>
+                    <p class="text-gray-500 mt-1">Gestión global de centros médicos y super administradores</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{% url 'registrar_centro_medico' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Centro Médico
+                    </a>
+                    <a href="{% url 'registrar_superadmin' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        Super Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 p-4 rounded-xl border {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
+                <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                <p class="text-sm font-medium">{{ message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-8 -mt-8 opacity-60"></div>
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mb-4">
+                        <i data-lucide="building-2" class="w-5 h-5 text-blue-600"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm font-medium">Centros Médicos</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_centros }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-full -mr-8 -mt-8 opacity-60"></div>
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center mb-4">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-purple-600"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm font-medium">Super Admins</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_superadmins }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -mr-8 -mt-8 opacity-60"></div>
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mb-4">
+                        <i data-lucide="map-pin" class="w-5 h-5 text-emerald-600"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm font-medium">Sedes</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_sedes }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full -mr-8 -mt-8 opacity-60"></div>
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
+                        <i data-lucide="users" class="w-5 h-5 text-amber-600"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm font-medium">Gerentes</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_gerentes }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Grid -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+            <!-- Centros Médicos -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <i data-lucide="building-2" class="w-4 h-4 text-blue-600"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold text-gray-900">Centros Médicos</h2>
+                        <span class="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">{{ total_centros }}</span>
+                    </div>
+                    <a href="{% url 'registrar_centro_medico' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Nuevo
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">RIF</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for cm in centros %}
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                            <i data-lucide="building" class="w-4 h-4 text-blue-600"></i>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-900">{{ cm.nombre_cm }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600 font-mono">{{ cm.rif_cm|default:"—" }}</td>
+                                <td class="px-6 py-4">
+                                    {% if cm.status %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        Activo
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                        Inactivo
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                                            <i data-lucide="building-2" class="w-6 h-6 text-gray-400"></i>
+                                        </div>
+                                        <p class="text-gray-500 text-sm">Sin centros médicos registrados</p>
+                                        <a href="{% url 'registrar_centro_medico' %}" class="text-sm text-blue-600 font-medium hover:underline">Registrar el primero</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Super Admins -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold text-gray-900">Super Admins</h2>
+                        <span class="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">{{ total_superadmins }}</span>
+                    </div>
+                    <a href="{% url 'registrar_superadmin' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Nuevo
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Correo</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Centro</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for sa in superadmins %}
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                                            {{ sa.nombre_1|first }}{{ sa.apellido_1|first }}
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-900">{{ sa }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">{{ sa.id_user_superadmin.correo|default:"—" }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600">{{ sa.id_sede.id_cm|default:"—" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                                            <i data-lucide="shield-check" class="w-6 h-6 text-gray-400"></i>
+                                        </div>
+                                        <p class="text-gray-500 text-sm">Sin super admins registrados</p>
+                                        <a href="{% url 'registrar_superadmin' %}" class="text-sm text-purple-600 font-medium hover:underline">Registrar el primero</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<script>
+    lucide.createIcons();
+</script>
 </body>
 </html>

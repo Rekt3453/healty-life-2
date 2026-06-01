@@ -3,7 +3,7 @@ Configuración de correo electrónico para Healthy Life
 Sistema de envío de correos de confirmación de registro
 """
 
-import os, ssl, smtplib
+import os, ssl, smtplib, time
 from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -21,8 +21,10 @@ except ImportError:
 SMTP_HOST_IP   = os.environ.get('EMAIL_HOST',     'smtp.gmail.com')
 SMTP_HOST_NAME = os.environ.get('EMAIL_HOST',     'smtp.gmail.com')
 SMTP_PORT      = int(os.environ.get('EMAIL_PORT', '587'))
+SMTP_SSL_PORT  = int(os.environ.get('EMAIL_SSL_PORT', '465'))
 SMTP_USER      = os.environ.get('EMAIL_HOST_USER',     '')
 SMTP_PASS      = os.environ.get('EMAIL_HOST_PASSWORD', '')
+SMTP_TIMEOUT   = int(os.environ.get('EMAIL_TIMEOUT', '120'))
 
 # ── DESTINATARIOS EN COPIA ───────────────────────────────────────────
 CC_ADDR  = ""  # Correo en copia visible (opcional)
@@ -47,6 +49,7 @@ Nos complace informarte que tu cuenta ha sido creada exitosamente. Estamos emoci
 👤 Nombre de Usuario: {username}
 📧 Correo Electrónico: {email}
 🆔 Cédula: {cedula}
+🏥 Centro Médico asignado: {centro_medico}
 📅 Fecha de Registro: {fecha_registro}
 
 
@@ -88,6 +91,58 @@ Este es un correo automático, por favor no respondas a este mensaje.
 Si tienes preguntas, contáctanos a través de nuestros canales de soporte.
 """
 
+def _conectar_y_enviar(msg, destinatario):
+    """
+    Helper robusto para enviar correos vía SMTP.
+    Intenta SSL directo (puerto 465) primero; si falla usa STARTTLS (puerto 587).
+    Incluye reintentos y manejo detallado de errores.
+    """
+    if not SMTP_USER or not SMTP_PASS:
+        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        return False
+
+    # Estrategias: (host, puerto, usar_ssl_directo)
+    estrategias = [
+        (SMTP_HOST_IP, SMTP_SSL_PORT, True),   # SSL directo (Gmail = 465)
+        (SMTP_HOST_IP, SMTP_PORT, False),      # STARTTLS (Gmail = 587)
+    ]
+
+    errores = []
+    for host, puerto, usar_ssl in estrategias:
+        for intento in range(1, 3):
+            try:
+                print(f"SMTP: Intentando {host}:{puerto} (SSL={usar_ssl}) - intento {intento}/2")
+                if usar_ssl:
+                    context = ssl.create_default_context()
+                    server = smtplib.SMTP_SSL(host, puerto, timeout=SMTP_TIMEOUT, context=context)
+                    if SMTP_HOST_NAME:
+                        server._host = SMTP_HOST_NAME
+                    server.login(SMTP_USER, SMTP_PASS)
+                    server.send_message(msg)
+                    server.quit()
+                else:
+                    context = ssl.create_default_context()
+                    server = smtplib.SMTP(host, puerto, timeout=SMTP_TIMEOUT)
+                    if SMTP_HOST_NAME:
+                        server._host = SMTP_HOST_NAME
+                    server.starttls(context=context)
+                    server.login(SMTP_USER, SMTP_PASS)
+                    server.send_message(msg)
+                    server.quit()
+
+                print(f"OK: Correo enviado a {destinatario}")
+                return True
+
+            except Exception as exc:
+                err_msg = f"{host}:{puerto} SSL={usar_ssl} intento {intento}: {exc}"
+                print(f"WARN: {err_msg}")
+                errores.append(err_msg)
+                time.sleep(1)
+
+    print(f"ERROR: No se pudo enviar correo a {destinatario}. Errores:\n  - " + "\n  - ".join(errores))
+    return False
+
+
 def enviar_correo_confirmacion(datos_paciente):
     """
     Envía correo de confirmación a un nuevo paciente después del registro exitoso
@@ -100,18 +155,16 @@ def enviar_correo_confirmacion(datos_paciente):
             - segundo_apellido: Segundo apellido (opcional)
             - email: Correo electrónico
             - username: Nombre de usuario
-            - password: Contraseña
+            - password: Contraseña (ignorado, no se envía)
             - cedula: Cédula de identidad
             - fecha_registro: Fecha de registro (opcional)
     
     Returns:
         bool: True si el correo se envió exitosamente, False en caso contrario
     """
-    
-    # Verificar que las credenciales estén configuradas
     if not SMTP_USER or not SMTP_PASS:
         print("❌ ERROR: Las credenciales de correo no están configuradas")
-        print("Por favor, configura SMTP_USER y SMTP_PASS en email_config.py")
+        print("Por favor, configura EMAIL_HOST_USER y EMAIL_HOST_PASSWORD en el archivo .env")
         return False
     
     # Construir nombre completo
@@ -132,8 +185,8 @@ def enviar_correo_confirmacion(datos_paciente):
         'site_url': SITE_URL,
         'username': datos_paciente.get('username', ''),
         'email': datos_paciente.get('email', ''),
-        'password': datos_paciente.get('password', ''),
         'cedula': datos_paciente.get('cedula', ''),
+        'centro_medico': datos_paciente.get('centro_medico', 'Nuestro Centro Médico'),
         'fecha_registro': fecha_registro
     }
     
@@ -148,23 +201,7 @@ def enviar_correo_confirmacion(datos_paciente):
     msg["Subject"] = SUBJECT
     msg.attach(MIMEText(TEMPLATE.format(**template_data), "plain"))
     
-    # Enviar correo
-    try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP(SMTP_HOST_IP, SMTP_PORT, timeout=60) as server:
-            # Ajusta _host para que la verificación TLS use el nombre del certificado
-            if SMTP_HOST_NAME:
-                server._host = SMTP_HOST_NAME
-            server.starttls(context=context)
-            server.login(SMTP_USER, SMTP_PASS)
-            
-            server.send_message(msg)
-            print(f"OK: Correo de confirmacion enviado a {datos_paciente.get('email')}")
-            return True
-            
-    except Exception as e:
-        print(f"ERROR: Error al enviar correo a {datos_paciente.get('email')}: {str(e)}")
-        return False
+    return _conectar_y_enviar(msg, datos_paciente.get('email', ''))
 
 TEMPLATE_DOCTOR = """\
 Estimado(a) Dr./Dra. {nombre_completo},
@@ -177,7 +214,6 @@ Tu cuenta de médico ha sido creada exitosamente por el área administrativa.
 
 👤 Usuario: {username}
 📧 Correo Electrónico: {email}
-🔐 Contraseña: {password}
 
 ⚠️ **IMPORTANTE:** Por seguridad, te recomendamos cambiar tu contraseña después de tu primer inicio de sesión.
 
@@ -234,7 +270,6 @@ def enviar_correo_doctor(datos_doctor):
         'login_url':  f"{SITE_URL}/login/medico/",
         'username':   datos_doctor.get('username', ''),
         'email':      datos_doctor.get('email', ''),
-        'password':   datos_doctor.get('password', ''),
     }
 
     msg = MIMEMultipart()
@@ -245,19 +280,7 @@ def enviar_correo_doctor(datos_doctor):
         msg["Cc"] = CC_ADDR
     msg.attach(MIMEText(TEMPLATE_DOCTOR.format(**template_data), "plain"))
 
-    try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP(SMTP_HOST_IP, SMTP_PORT, timeout=60) as server:
-            if SMTP_HOST_NAME:
-                server._host = SMTP_HOST_NAME
-            server.starttls(context=context)
-            server.login(SMTP_USER, SMTP_PASS)
-            server.send_message(msg)
-            print(f"OK: Correo de bienvenida médico enviado a {datos_doctor.get('email')}")
-            return True
-    except Exception as e:
-        print(f"ERROR: No se pudo enviar correo al médico: {e}")
-        return False
+    return _conectar_y_enviar(msg, datos_doctor.get('email', ''))
 
 
 TEMPLATE_RECEPCIONISTA = """\
@@ -271,7 +294,6 @@ Tu cuenta de recepcionista ha sido creada exitosamente por el área administrati
 
 👤 Usuario: {username}
 📧 Correo Electrónico: {email}
-🔐 Contraseña: {password}
 
 ⚠️ **IMPORTANTE:** Por seguridad, te recomendamos cambiar tu contraseña después de tu primer inicio de sesión.
 
@@ -327,7 +349,6 @@ def enviar_correo_recepcionista(datos_recepcionista):
         'login_url':  f"{SITE_URL}/login/recepcionista/",
         'username':   datos_recepcionista.get('username', ''),
         'email':      datos_recepcionista.get('email', ''),
-        'password':   datos_recepcionista.get('password', ''),
     }
 
     msg = MIMEMultipart()
@@ -338,22 +359,10 @@ def enviar_correo_recepcionista(datos_recepcionista):
         msg["Cc"] = CC_ADDR
     msg.attach(MIMEText(TEMPLATE_RECEPCIONISTA.format(**template_data), "plain"))
 
-    try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP(SMTP_HOST_IP, SMTP_PORT, timeout=60) as server:
-            if SMTP_HOST_NAME:
-                server._host = SMTP_HOST_NAME
-            server.starttls(context=context)
-            server.login(SMTP_USER, SMTP_PASS)
-            server.send_message(msg)
-            print(f"OK: Correo de bienvenida recepcionista enviado a {datos_recepcionista.get('email')}")
-            return True
-    except Exception as e:
-        print(f"ERROR: No se pudo enviar correo a la recepcionista: {e}")
-        return False
+    return _conectar_y_enviar(msg, datos_recepcionista.get('email', ''))
 
 
-def enviar_correo_confirmacion_simple(primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, 
+def enviar_correo_confirmacion_simple(primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
                                      email, username, password, cedula):
     """
     Función simplificada para enviar correo de confirmación con parámetros individuales
@@ -368,5 +377,89 @@ def enviar_correo_confirmacion_simple(primer_nombre, segundo_nombre, primer_apel
         'password': password,
         'cedula': cedula
     }
-    
+
     return enviar_correo_confirmacion(datos_paciente)
+
+
+TEMPLATE_SUPERADMIN = """\
+Estimado(a) {nombre_completo},
+
+¡Bienvenido(a) a {site_name}! 🏥✨
+
+Tu cuenta de Super Administrador ha sido creada exitosamente. Ahora puedes gestionar tu centro médico y sus sedes.
+
+📋 **Datos de tu cuenta:**
+
+👤 Usuario: {username}
+📧 Correo Electrónico: {email}
+🔑 Contraseña: {password}
+🏥 Centro Médico: {centro_medico}
+
+⚠️ **IMPORTANTE:** Por seguridad, te recomendamos cambiar tu contraseña después de tu primer inicio de sesión.
+
+🚀 **Accede a tu panel de Super Admin aquí:**
+
+{login_url}
+
+Una vez que inicies sesión, podrás:
+
+✅ Gestionar tu centro médico y sedes
+✅ Administrar médicos, recepcionistas y pacientes
+✅ Ver reportes y estadísticas
+✅ Configurar horarios y servicios
+
+📞 **¿Necesitas ayuda?**
+
+Contáctanos a través de los canales de soporte de {site_name}.
+
+¡Bienvenido(a) al equipo directivo! 💚
+
+🏥 **{site_name} - Tu Salud, Nuestra Prioridad** 🌟
+
+---
+Este es un correo automático, por favor no respondas a este mensaje.
+"""
+
+def enviar_correo_superadmin(datos_superadmin):
+    """
+    Envía correo de bienvenida a un nuevo Super Admin registrado.
+    Incluye la contraseña para que pueda iniciar sesión.
+
+    Args:
+        datos_superadmin (dict):
+            - primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
+            - email, username, password, centro_medico
+    Returns:
+        bool
+    """
+    if not SMTP_USER or not SMTP_PASS:
+        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        return False
+
+    nombre_completo = datos_superadmin.get('primer_nombre', '')
+    if datos_superadmin.get('segundo_nombre'):
+        nombre_completo += ' ' + datos_superadmin['segundo_nombre']
+    nombre_completo += ' ' + datos_superadmin.get('primer_apellido', '')
+    if datos_superadmin.get('segundo_apellido'):
+        nombre_completo += ' ' + datos_superadmin['segundo_apellido']
+
+    template_data = {
+        'nombre_completo': nombre_completo.strip(),
+        'site_name':  SITE_NAME,
+        'site_url':   SITE_URL,
+        'login_url':  f"{SITE_URL}/login/superadmin/",
+        'username':   datos_superadmin.get('username', ''),
+        'email':      datos_superadmin.get('email', ''),
+        'password':   datos_superadmin.get('password', ''),
+        'centro_medico': datos_superadmin.get('centro_medico', 'Nuestro Centro Médico'),
+    }
+
+    msg = MIMEMultipart()
+    msg["From"]    = SMTP_USER
+    msg["To"]      = datos_superadmin.get('email', '')
+    msg["Subject"] = f"🏥 Bienvenido(a) a {SITE_NAME} - Credenciales de Super Admin"
+    if CC_ADDR:
+        msg["Cc"] = CC_ADDR
+    msg.attach(MIMEText(TEMPLATE_SUPERADMIN.format(**template_data), "plain"))
+
+    return _conectar_y_enviar(msg, datos_superadmin.get('email', ''))

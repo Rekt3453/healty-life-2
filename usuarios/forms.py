@@ -3,10 +3,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator, EmailValidator, MinLengthValidator
 from datetime import date, timedelta
 from .models import (
-    UserPaciente, UserDoctor, UserRecepcionista, UserAdmin,
-    PacienteDatosPersonales, Doctor, Recepcionista, Administrador,
+    UserPaciente, UserDoctor, UserRecepcionista, UserAdmin, UserSuperAdmin,
+    PacienteDatosPersonales, Doctor, Recepcionista, Administrador, Superadmin,
     DireccionPaciente, DireccionDoctor, DireccionRecepcionista, DireccionAdmin,
-    Sede, Estado, Municipio, Ciudad, Parroquia, PacienteEspecial
+    Sede, Estado, Municipio, Ciudad, Parroquia, PacienteEspecial, CentroMedico
 )
 from citas.models import EspecialidadDoctor, Consultorio, Horario
 
@@ -160,13 +160,13 @@ class RegistroPacienteForm(forms.Form):
     )
     
     cedula = forms.CharField(
-        max_length=9, min_length=7, required=True,
+        max_length=8, min_length=7, required=True,
         label="Cédula de Identidad",
         validators=[
             RegexValidator(r'^\d+$', 'Solo números'),
             MinLengthValidator(7, 'Mínimo 7 dígitos'),
         ],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678', 'data-validate': 'cedula', 'maxlength': '9'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678', 'data-validate': 'cedula', 'maxlength': '8'})
     )
     
     sexo = forms.ChoiceField(
@@ -1984,3 +1984,218 @@ class HistorialMedicoForm(forms.Form):
         label='Enfermedades',
         widget=forms.CheckboxSelectMultiple(),
     )
+
+
+class RegistroSuperAdminForm(forms.Form):
+    """Formulario de registro de Super Admin con validaciones estrictas."""
+
+    # ── CREDENCIALES ──
+    username = forms.CharField(
+        max_length=30,
+        min_length=3,
+        required=True,
+        label="Nombre de Usuario",
+        validators=[
+            RegexValidator(r'^[a-zA-Z0-9_]+$', 'Solo letras, números y guiones bajos'),
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'usuario_ejemplo',
+            'maxlength': '30',
+        })
+    )
+
+    correo = forms.EmailField(
+        max_length=100,
+        required=True,
+        label="Correo Electrónico",
+        validators=[EmailValidator(message='Ingrese un correo electrónico válido')],
+        widget=forms.EmailInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'ejemplo@gmail.com',
+            'maxlength': '100',
+        })
+    )
+
+    password = forms.CharField(
+        required=True,
+        label="Contraseña",
+        min_length=8,
+        max_length=30,
+        validators=[
+            RegexValidator(
+                r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:''",.<>/?\\|`~]).{8,30}$',
+                'Debe contener al menos 1 mayúscula, 1 número, 1 carácter especial y tener entre 8 y 30 caracteres'
+            ),
+        ],
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'Mínimo 8 caracteres',
+            'maxlength': '30',
+        })
+    )
+
+    password_confirm = forms.CharField(
+        required=True,
+        label="Confirmar Contraseña",
+        min_length=8,
+        max_length=30,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'Repite la contraseña',
+            'maxlength': '30',
+        })
+    )
+
+    # ── DATOS PERSONALES ──
+    nombre_1 = forms.CharField(
+        max_length=30,
+        required=True,
+        label="Primer Nombre",
+        validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras permitidas')],
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'Juan',
+            'maxlength': '30',
+        })
+    )
+
+    nombre_2 = forms.CharField(
+        max_length=30,
+        required=False,
+        label="Segundo Nombre",
+        validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras permitidas')],
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'José',
+            'maxlength': '30',
+        })
+    )
+
+    apellido_1 = forms.CharField(
+        max_length=30,
+        required=True,
+        label="Primer Apellido",
+        validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras permitidas')],
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'Pérez',
+            'maxlength': '30',
+        })
+    )
+
+    apellido_2 = forms.CharField(
+        max_length=30,
+        required=False,
+        label="Segundo Apellido",
+        validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras permitidas')],
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': 'Gómez',
+            'maxlength': '30',
+        })
+    )
+
+    tipo_cedula = forms.ChoiceField(
+        choices=[('V', 'V'), ('E', 'E'), ('J', 'J')],
+        required=True,
+        label="Tipo de Cédula",
+        widget=forms.Select(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm bg-white',
+        })
+    )
+
+    cedula = forms.CharField(
+        max_length=8,
+        min_length=7,
+        required=True,
+        label="Cédula",
+        validators=[
+            RegexValidator(r'^\d+$', 'Solo números'),
+            MinLengthValidator(7, 'Mínimo 7 dígitos'),
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': '12345678',
+            'maxlength': '8',
+        })
+    )
+
+    sexo = forms.ChoiceField(
+        choices=[
+            ('', '--- Seleccione ---'),
+            ('M', 'Masculino'),
+            ('F', 'Femenino'),
+            ('NB', 'No Binario'),
+            ('O', 'Otro'),
+            ('PN', 'Prefiero no decir'),
+        ],
+        required=False,
+        label="Sexo",
+        widget=forms.Select(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm bg-white',
+        })
+    )
+
+    fecha_nacimiento = forms.DateField(
+        required=False,
+        label="Fecha de Nacimiento",
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+        })
+    )
+
+    telefono = forms.CharField(
+        max_length=11,
+        min_length=11,
+        required=False,
+        label="Teléfono",
+        validators=[
+            RegexValidator(r'^0\d{10}$', 'Debe comenzar con 0 y tener 11 dígitos (ej: 04241234567)'),
+            MinLengthValidator(11, 'Debe tener 11 dígitos'),
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
+            'placeholder': '04241234567',
+            'maxlength': '11',
+        })
+    )
+
+    id_cm = forms.ModelChoiceField(
+        queryset=CentroMedico.objects.filter(status=True).order_by('nombre_cm'),
+        required=True,
+        label="Centro Médico",
+        empty_label="--- Seleccionar ---",
+        widget=forms.Select(attrs={
+            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm bg-white',
+        })
+    )
+
+    def clean_password_confirm(self):
+        pwd1 = self.cleaned_data.get('password')
+        pwd2 = self.cleaned_data.get('password_confirm')
+        if pwd1 and pwd2 and pwd1 != pwd2:
+            raise ValidationError('Las contraseñas no coinciden.')
+        return pwd2
+
+    def clean_fecha_nacimiento(self):
+        fecha = self.cleaned_data.get('fecha_nacimiento')
+        if fecha:
+            hoy = date.today()
+            edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+            if edad < 18:
+                raise ValidationError('Debes tener al menos 18 años.')
+        return fecha
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if UserSuperAdmin.objects.filter(username__iexact=username).exists():
+            raise ValidationError('Este nombre de usuario ya está en uso.')
+        return username
+
+    def clean_cedula(self):
+        cedula = self.cleaned_data.get('cedula')
+        if Superadmin.objects.filter(cedula=cedula).exists():
+            raise ValidationError('Esta cédula ya está registrada.')
+        return cedula

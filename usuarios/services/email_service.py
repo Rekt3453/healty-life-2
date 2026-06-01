@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger('usuarios.email')
 
 
-def send_welcome_email(user, datos_paciente, password_plana):
+def send_welcome_email(user, datos_paciente, password_plana, centro_medico_nombre=None):
     """
     Envía el correo de bienvenida a un paciente recién registrado.
     El fallo es silencioso (no interrumpe el flujo de registro).
@@ -16,7 +16,8 @@ def send_welcome_email(user, datos_paciente, password_plana):
     Args:
         user:            Instancia de UserPaciente.
         datos_paciente:  Instancia de PacienteDatosPersonales (puede ser None).
-        password_plana:  Contraseña en texto plano para incluir en el correo.
+        password_plana:  Contraseña en texto plano (no se incluye en el correo).
+        centro_medico_nombre: Nombre del centro médico asignado.
     """
     from usuarios.email_config import enviar_correo_confirmacion
     try:
@@ -27,8 +28,8 @@ def send_welcome_email(user, datos_paciente, password_plana):
             'segundo_apellido': datos_paciente.apellido_2 if datos_paciente else '',
             'email':    user.email,
             'username': user.username,
-            'password': password_plana,
             'cedula':   datos_paciente.cedula if datos_paciente else '',
+            'centro_medico': centro_medico_nombre or 'Nuestro Centro Médico',
         })
         logger.info('Correo de bienvenida enviado a %s', user.email)
     except Exception as exc:

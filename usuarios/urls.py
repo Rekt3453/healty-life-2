@@ -83,6 +83,7 @@ urlpatterns = [
     path('ajax/municipios/', views.cargar_municipios, name='cargar_municipios'),
     path('ajax/ciudades/', views.cargar_ciudades, name='cargar_ciudades'),
     path('ajax/parroquias/', views.cargar_parroquias, name='cargar_parroquias'),
+    path('ajax/sedes/', views.ajax_sedes_por_cm, name='ajax_sedes_por_cm'),
     
     # Recuperación de contraseña
     path('recuperar-password/', views.recuperar_password, name='recuperar_password'),
