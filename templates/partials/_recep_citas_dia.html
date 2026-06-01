@@ -26,7 +26,7 @@
             </thead>
             <tbody id="dailyAppointmentsBody">
                 {% for cita in citas_hoy_list %}
-                <tr class="border-b hover:bg-gray-50 transition-colors" style="border-color:var(--border);" data-row-id="{{ cita.id_citas }}">
+                <tr class="border-b hover:bg-gray-50 transition-colors" style="border-color:var(--border);" data-row-id="{{ cita.id_citas }}" data-confirm-url="{% url 'confirmar_pago' cita.id_citas %}" data-reject-url="{% url 'rechazar_cita' cita.id_citas %}" data-cancel-url="{% url 'cancelar_cita_secretaria' cita.id_citas %}">
                     <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">{{ cita.fecha_consulta|time:"H:i" }}</td>
                     <td class="px-6 py-4" style="color:var(--text-primary);">{{ cita.id_paciente|default:"—" }}</td>
                     <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>

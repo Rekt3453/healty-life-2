@@ -1716,8 +1716,8 @@ def toggle_especialidad_status(request, id_especialidad):
 
 
 def editar_especialidad(request, id_especialidad):
-    """Permite al gerente editar el nombre y la clasificación de una especialidad existente.
-    No permite cambiar la sede ni el estado (el toggle ya lo cubre)."""
+    """Permite al gerente editar el nombre, clasificación y estado de una especialidad existente.
+    No permite cambiar la sede."""
     user, sede = _get_gerente_sede(request)
     if not user:
         messages.error(request, 'Acceso denegado.')
@@ -1729,6 +1729,7 @@ def editar_especialidad(request, id_especialidad):
     if request.method == 'POST':
         tipo = request.POST.get('tipo_especialidad', '').strip()
         clasificacion = request.POST.get('clasificacion_especialidad', '').strip()
+        status = request.POST.get('status', '') == '1'
         valores_validos = [c[0] for c in CLASIFICACION_ESPECIALIDAD_CHOICES]
         errores = []
         if not tipo:
@@ -1748,7 +1749,8 @@ def editar_especialidad(request, id_especialidad):
                 try:
                     especialidad.tipo_especialidad = tipo
                     especialidad.clasificacion_especialidad = clasificacion
-                    especialidad.save(update_fields=['tipo_especialidad', 'clasificacion_especialidad'])
+                    especialidad.status = status
+                    especialidad.save(update_fields=['tipo_especialidad', 'clasificacion_especialidad', 'status'])
                     messages.success(request, f'Especialidad "{tipo}" actualizada correctamente.')
                     return redirect('lista_especialidades')
                 except Exception as e:

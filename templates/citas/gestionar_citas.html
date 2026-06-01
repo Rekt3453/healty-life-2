@@ -4,381 +4,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestionar Citas - Healthy Life</title>
+    <title>Gestión de Citas - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
     <style>
-        .dashboard-header {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .table-row:hover {
-            background-color: #f9fafb;
-        }
-        
-        .btn-action {
-            transition: all 0.3s ease;
-        }
-        
-        .btn-action:hover {
-            transform: translateY(-1px);
-        }
-        
-        .floating-shapes {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-        }
-        
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            animation: float 8s ease-in-out infinite;
-        }
-        
-        .shape:nth-child(1) {
-            width: 100px;
-            height: 100px;
-            left: 5%;
-            animation-delay: 0s;
-        }
-        
-        .shape:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            right: 10%;
-            animation-delay: 3s;
-        }
-        
-        .shape:nth-child(3) {
-            width: 80px;
-            height: 80px;
-            left: 80%;
-            animation-delay: 6s;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-30px) rotate(180deg);
-            }
-        }
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .badge-pendiente{background:#FEF3C7;color:#D97706;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-confirmada{background:#D1FAE5;color:#059669;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-cancelada{background:#FEE2E2;color:#DC2626;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-completada{background:#DBEAFE;color:#2563EB;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-pago{background:#FED7AA;color:#EA580C;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;color:var(--text-secondary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid transparent;cursor:pointer;transition:all .15s ease;}
+        .btn-ghost:hover{background:rgba(0,0,0,.04);color:var(--text-primary);}
+        .btn-success{background:#059669;color:#fff;border-color:#059669;}
+        .btn-success:hover{background:#047857;}
+        .btn-danger{background:#DC2626;color:#fff;border-color:#DC2626;}
+        .btn-danger:hover{background:#B91C1C;}
+        .btn-orange{background:#F97316;color:#fff;border-color:#F97316;}
+        .input-modern{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;}
+        .input-modern:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        .select-modern{width:100%;padding:10px 30px 10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:16px;}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        .tab-btn{padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--text-secondary);transition:all .15s ease;}
+        .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+        .tab-panel{display:none;}
+        .tab-panel.active{display:block;}
+        .card-mobile{display:none;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fadeIn .3s ease;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
+        @media(max-width:768px){.table-desktop{display:none;}.card-mobile{display:block;}}
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="dashboard-header relative text-white">
-        <div class="floating-shapes">
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
-        </div>
-        
-        <div class="relative z-10">
-            <nav class="container mx-auto px-4 py-6">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-                        </svg>
-                        <span class="text-2xl font-bold">Healthy Life</span>
-                    </div>
-                    
-                    <div class="flex items-center space-x-6">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium">{{ user.first_name|default:user.username }}</p>
-                                <p class="text-xs text-green-100">Recepcionista</p>
-                            </div>
-                        </div>
-                        
-                        <a href="{% url 'dashboard_recepcionista' %}" class="text-white hover:text-green-100 transition-colors flex items-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                            </svg>
-                            <span>Volver al Dashboard</span>
-                        </a>
-                    </div>
-                </div>
-            </nav>
-            
-            <!-- Hero Section -->
-            <div class="container mx-auto px-4 py-12">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold mb-4">Gestión de Citas</h1>
-                    <p class="text-xl text-green-100">Revisa y aprueba las solicitudes de citas pendientes.</p>
-                </div>
+<body class="min-h-screen">
+
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
+        </a>
+    </div>
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_recepcionista' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <a href="{% url 'gestionar_citas' %}" class="sidebar-link active">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Citas
+        </a>
+        <a href="{% url 'facturas_recepcionista' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Facturación
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Pacientes
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Horarios
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Reportes
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Cerrar sesión
+        </a>
+    </div>
+</aside>
+
+<div class="dashboard-main">
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menú">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <span class="mx-2">/</span>
+                    <a href="{% url 'dashboard_recepcionista' %}" class="hover:underline">Dashboard</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">Gestionar</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Gestión de Citas</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Administra todas las citas del sistema</p>
             </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'solicitar_cita' %}" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Nueva cita
+            </a>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- Mensajes -->
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
         {% if messages %}
-            <div class="mb-6 space-y-3">
-                {% for message in messages %}
-                    <div class="alert {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %} border rounded-lg p-4 flex items-center space-x-3">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            {% if message.tags == 'error' %}
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                            {% elif message.tags == 'success' %}
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            {% else %}
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                            {% endif %}
-                        </svg>
-                        <span class="text-sm font-medium">{{ message }}</span>
-                    </div>
-                {% endfor %}
+        <div class="mb-4 space-y-3 fade-in">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                {% if message.tags == 'error' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'success' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% else %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{% endif %}
+                {{ message }}
             </div>
+            {% endfor %}
+        </div>
         {% endif %}
 
-        <!-- ── Sección 1: Solicitudes nuevas ── -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-900">Solicitudes Nuevas</h2>
-                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
-                    {{ citas_solicitud.count }} solicitudes
-                </span>
+        <!-- KPIs -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 fade-in">
+            <div class="dashboard-card p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium" style="color:var(--text-secondary);">Total citas</p>
+                    <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ total|default:"0" }}</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(0,112,243,.1);color:var(--accent);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
             </div>
+            <div class="dashboard-card p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium" style="color:var(--text-secondary);">Solicitudes</p>
+                    <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ citas_solicitud.count|default:"0" }}</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(217,119,6,.1);color:#D97706;">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div class="dashboard-card p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium" style="color:var(--text-secondary);">Pagos por confirmar</p>
+                    <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ citas_pago.count|default:"0" }}</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(234,88,12,.1);color:#EA580C;">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div class="dashboard-card p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium" style="color:var(--text-secondary);">Aceptadas</p>
+                    <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ citas_aceptadas.count|default:"0" }}</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(5,150,105,.1);color:#059669;">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+        </div>
 
-            {% if citas_solicitud %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paciente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sede</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha / Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Médico</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Banco Emisor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Referencia</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datos Titular</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+        <!-- Filtros -->
+        <div class="dashboard-card p-5 fade-in">
+            <div class="flex flex-col md:flex-row md:items-end gap-3">
+                <div class="relative flex-1">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="filterSearch" type="text" placeholder="Buscar paciente, medico o especialidad..." class="input-modern pl-10" oninput="applyFilters()">
+                </div>
+                <div class="w-full md:w-44">
+                    <select id="filterEstado" class="select-modern" onchange="applyFilters()">
+                        <option value="">Todos los estados</option>
+                        <option value="solicitada">Pendiente</option>
+                        <option value="confirmada">Confirmada</option>
+                        <option value="completada">Completada</option>
+                        <option value="cancelada">Cancelada</option>
+                        <option value="rechazada">Rechazada</option>
+                    </select>
+                </div>
+                <button onclick="clearFilters()" class="btn-secondary">Limpiar filtros</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 fade-in">
+            <button onclick="switchTab('solicitud')" id="tab-solicitud" class="tab-btn active">Solicitudes nuevas</button>
+            <button onclick="switchTab('pago')" id="tab-pago" class="tab-btn">Pagos por confirmar</button>
+            <button onclick="switchTab('aceptadas')" id="tab-aceptadas" class="tab-btn">Citas aceptadas</button>
+        </div>
+
+        <!-- Solicitudes -->
+        <div id="panel-solicitud" class="dashboard-card overflow-hidden fade-in tab-panel active">
+            <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+                <div>
+                    <h2 class="text-base font-bold" style="color:var(--text-primary);">Solicitudes nuevas</h2>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_solicitud.count|default:"0" }} solicitudes pendientes</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto table-desktop">
+                <table class="w-full text-left text-sm" data-tab="solicitud">
+                    <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
+                        <th class="px-6 py-3 font-medium">ID</th>
+                        <th class="px-6 py-3 font-medium">Paciente</th>
+                        <th class="px-6 py-3 font-medium">Sede</th>
+                        <th class="px-6 py-3 font-medium">Fecha / Hora</th>
+                        <th class="px-6 py-3 font-medium">Medico</th>
+                        <th class="px-6 py-3 font-medium">Estado</th>
+                        <th class="px-6 py-3 font-medium text-right">Acciones</th>
+                    </tr></thead>
+                    <tbody>
                         {% for cita in citas_solicitud %}
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_doctor|default:"<span class='text-gray-400 italic'>No asignado</span>" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.reserva_pago.banco_emisor|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.reserva_pago.referencia|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-700">
-                                {% if cita.reserva_pago %}
-                                    <p>C.I: {{ cita.reserva_pago.cedula }}</p>
-                                    <p>Tlf: {{ cita.reserva_pago.telefono }}</p>
-                                {% else %}—{% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <tr class="border-b hover:bg-gray-50 transition-colors cita-row" style="border-color:var(--border);" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                            <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">#{{ cita.id_citas }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-primary);">{{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
+                            <td class="px-6 py-4"><span class="badge-pendiente">Pendiente</span></td>
+                            <td class="px-6 py-4 text-right">
                                 {% if cita.id_doctor %}
-                                <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="inline">
+                                <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="inline" onsubmit="return confirm('Confirmar pago y aceptar esta cita?')">
                                     {% csrf_token %}
-                                    <button type="submit" onclick="return confirm('¿Confirmar pago y aceptar esta cita?')"
-                                            class="btn-action px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200">
-                                        Confirmar y Aceptar
-                                    </button>
+                                    <button type="submit" class="btn-success text-xs px-3 py-1.5 mr-1">Confirmar</button>
                                 </form>
                                 {% endif %}
-                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline">
+                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline" onsubmit="return confirm('Rechazar esta cita?')">
                                     {% csrf_token %}
-                                    <button type="submit" onclick="return confirm('¿Rechazar esta cita?')"
-                                            class="btn-action px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200">
-                                        Rechazar
-                                    </button>
+                                    <button type="submit" class="btn-danger text-xs px-3 py-1.5">Rechazar</button>
                                 </form>
                             </td>
                         </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">No hay solicitudes nuevas.</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            {% else %}
-            <div class="px-6 py-10 text-center text-gray-400">
-                <p class="text-sm">No hay solicitudes nuevas.</p>
+            <div class="card-mobile p-4 space-y-4">
+                {% for cita in citas_solicitud %}
+                <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
+                        <span class="badge-pendiente">Pendiente</span>
+                    </div>
+                    <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }} · {{ cita.id_sede.nombre_sede|default:"—" }}</p>
+                    <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"No asignado" }}</p>
+                    <div class="flex gap-2">
+                        {% if cita.id_doctor %}
+                        <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Confirmar pago y aceptar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-success w-full text-xs py-1.5">Confirmar</button></form>
+                        {% endif %}
+                        <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Rechazar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-danger w-full text-xs py-1.5">Rechazar</button></form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">No hay solicitudes nuevas.</p>
+                {% endfor %}
             </div>
-            {% endif %}
         </div>
 
-        <!-- ── Sección 2: Pagos por confirmar ── -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-900">Pagos por Confirmar</h2>
-                <span class="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
-                    {{ citas_pago.count }} en revisión
-                </span>
+        <!-- Pagos -->
+        <div id="panel-pago" class="dashboard-card overflow-hidden fade-in tab-panel">
+            <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+                <div>
+                    <h2 class="text-base font-bold" style="color:var(--text-primary);">Pagos por confirmar</h2>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_pago.count|default:"0" }} en revision</p>
+                </div>
             </div>
-
-            {% if citas_pago %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paciente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método Pago</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Referencia</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Cita</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Médico</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+            <div class="overflow-x-auto table-desktop">
+                <table class="w-full text-left text-sm" data-tab="pago">
+                    <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
+                        <th class="px-6 py-3 font-medium">ID</th>
+                        <th class="px-6 py-3 font-medium">Paciente</th>
+                        <th class="px-6 py-3 font-medium">Metodo Pago</th>
+                        <th class="px-6 py-3 font-medium">Referencia</th>
+                        <th class="px-6 py-3 font-medium">Monto</th>
+                        <th class="px-6 py-3 font-medium">Fecha Cita</th>
+                        <th class="px-6 py-3 font-medium">Medico</th>
+                        <th class="px-6 py-3 font-medium text-right">Acciones</th>
+                    </tr></thead>
+                    <tbody>
                         {% for cita in citas_pago %}
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_pago_cita.metodo_pago|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_pago_cita.referencia_pago|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                {% if cita.id_pago_cita.monto_pagar %}
-                                    $ {{ cita.id_pago_cita.monto_pagar }}
-                                {% else %}—{% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_doctor|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="inline">
-                                    {% csrf_token %}
-                                    <button type="submit" onclick="return confirm('¿Confirmar pago y activar cita?')"
-                                            class="btn-action px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200">
-                                        Confirmar Pago
-                                    </button>
-                                </form>
-                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline">
-                                    {% csrf_token %}
-                                    <button type="submit" onclick="return confirm('¿Rechazar esta cita?')"
-                                            class="btn-action px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200">
-                                        Rechazar
-                                    </button>
-                                </form>
+                        <tr class="border-b hover:bg-gray-50 transition-colors cita-row" style="border-color:var(--border);" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                            <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">#{{ cita.id_citas }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-primary);">{{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_pago_cita.metodo_pago|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_pago_cita.referencia_pago|default:"—" }}</td>
+                            <td class="px-6 py-4 font-semibold" style="color:var(--text-primary);">{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}—{% endif %}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="inline" onsubmit="return confirm('Confirmar pago y activar cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-success text-xs px-3 py-1.5 mr-1">Confirmar Pago</button></form>
+                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline" onsubmit="return confirm('Rechazar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-danger text-xs px-3 py-1.5">Rechazar</button></form>
                             </td>
                         </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">No hay pagos pendientes de confirmacion.</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            {% else %}
-            <div class="px-6 py-10 text-center text-gray-400">
-                <p class="text-sm">No hay pagos pendientes de confirmación.</p>
+            <div class="card-mobile p-4 space-y-4">
+                {% for cita in citas_pago %}
+                <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
+                        <span class="badge-pago">Pago pendiente</span>
+                    </div>
+                    <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</p>
+                    <p class="text-xs mb-1" style="color:var(--text-secondary);">Metodo: {{ cita.id_pago_cita.metodo_pago|default:"—" }} · Ref: {{ cita.id_pago_cita.referencia_pago|default:"—" }}</p>
+                    <p class="text-xs mb-3 font-semibold" style="color:var(--text-primary);">Monto: {% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}—{% endif %}</p>
+                    <div class="flex gap-2">
+                        <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Confirmar pago y activar cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-success w-full text-xs py-1.5">Confirmar Pago</button></form>
+                        <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Rechazar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-danger w-full text-xs py-1.5">Rechazar</button></form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">No hay pagos pendientes de confirmacion.</p>
+                {% endfor %}
             </div>
-            {% endif %}
         </div>
 
-        <!-- ── Sección 3: Citas Aceptadas ── -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden mt-8">
-            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-900">Citas Aceptadas</h2>
-                <span class="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
-                    {{ citas_aceptadas.count }} aceptadas
-                </span>
+        <!-- Aceptadas -->
+        <div id="panel-aceptadas" class="dashboard-card overflow-hidden fade-in tab-panel">
+            <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+                <div>
+                    <h2 class="text-base font-bold" style="color:var(--text-primary);">Citas aceptadas</h2>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_aceptadas.count|default:"0" }} aceptadas</p>
+                </div>
             </div>
-
-            {% if citas_aceptadas %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paciente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sede</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha / Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Médico</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+            <div class="overflow-x-auto table-desktop">
+                <table class="w-full text-left text-sm" data-tab="aceptadas">
+                    <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
+                        <th class="px-6 py-3 font-medium">ID</th>
+                        <th class="px-6 py-3 font-medium">Paciente</th>
+                        <th class="px-6 py-3 font-medium">Sede</th>
+                        <th class="px-6 py-3 font-medium">Fecha / Hora</th>
+                        <th class="px-6 py-3 font-medium">Medico</th>
+                        <th class="px-6 py-3 font-medium">Estado</th>
+                        <th class="px-6 py-3 font-medium text-right">Acciones</th>
+                    </tr></thead>
+                    <tbody>
                         {% for cita in citas_aceptadas %}
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cita.id_citas }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ cita.id_doctor|default:"—" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                    {{ cita.get_estado_display }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" class="inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="motivo_cancelacion" value="Cancelada por recepcionista/gerente">
-                                    <button type="submit" onclick="return confirm('¿Cancelar esta cita?')"
-                                            class="btn-action px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200">
-                                        Cancelar
-                                    </button>
-                                </form>
+                        <tr class="border-b hover:bg-gray-50 transition-colors cita-row" style="border-color:var(--border);" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                            <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">#{{ cita.id_citas }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-primary);">{{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
+                            <td class="px-6 py-4"><span class="badge-confirmada">{{ cita.get_estado_display|default:"Confirmada" }}</span></td>
+                            <td class="px-6 py-4 text-right">
+                                <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" class="inline" onsubmit="return confirm('Cancelar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="Cancelada por recepcionista/gerente"><button type="submit" class="btn-danger text-xs px-3 py-1.5">Cancelar</button></form>
                             </td>
                         </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">No hay citas aceptadas.</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            {% else %}
-            <div class="px-6 py-10 text-center text-gray-400">
-                <p class="text-sm">No hay citas aceptadas.</p>
+            <div class="card-mobile p-4 space-y-4">
+                {% for cita in citas_aceptadas %}
+                <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
+                        <span class="badge-confirmada">{{ cita.get_estado_display|default:"Confirmada" }}</span>
+                    </div>
+                    <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }} · {{ cita.id_sede.nombre_sede|default:"—" }}</p>
+                    <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"No asignado" }}</p>
+                    <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" onsubmit="return confirm('Cancelar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="Cancelada por recepcionista/gerente"><button type="submit" class="btn-danger w-full text-xs py-1.5">Cancelar</button></form>
+                </div>
+                {% empty %}
+                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">No hay citas aceptadas.</p>
+                {% endfor %}
             </div>
-            {% endif %}
         </div>
     </main>
+</div>
 
-    <script>
-        // Animación de entrada
-        document.addEventListener('DOMContentLoaded', function() {
-            const table = document.querySelector('.bg-white');
-            table.style.opacity = '0';
-            table.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                table.style.transition = 'all 0.6s ease';
-                table.style.opacity = '1';
-                table.style.transform = 'translateY(0)';
-            }, 100);
-        });
-    </script>
+<script>
+function toggleSidebar(){
+    var s=document.getElementById('sidebar'), o=document.getElementById('sidebarOverlay');
+    if(s)s.classList.toggle('open'); if(o)o.classList.toggle('active');
+}
+function switchTab(id){
+    document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+    var panel=document.getElementById('panel-'+id);
+    var btn=document.getElementById('tab-'+id);
+    if(panel)panel.classList.add('active');
+    if(btn)btn.classList.add('active');
+    applyFilters();
+}
+function applyFilters(){
+    var q=document.getElementById('filterSearch').value.toLowerCase();
+    var e=document.getElementById('filterEstado').value;
+    var activePanel=document.querySelector('.tab-panel.active');
+    if(!activePanel)return;
+    activePanel.querySelectorAll('.cita-row').forEach(function(row){
+        var search=(row.getAttribute('data-search')||'').toLowerCase();
+        var estado=row.getAttribute('data-estado')||'';
+        var matchSearch=!q||search.indexOf(q)!==-1;
+        var matchEstado=!e||estado===e;
+        row.style.display=(matchSearch&&matchEstado)?'':'none';
+    });
+}
+function clearFilters(){
+    document.getElementById('filterSearch').value='';
+    document.getElementById('filterEstado').value='';
+    applyFilters();
+}
+</script>
+
 </body>
 </html>

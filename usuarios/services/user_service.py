@@ -349,10 +349,22 @@ def get_recepcionista_dashboard_context():
 
 def get_gerente_dashboard_context():
     """
-    Devuelve el contexto de estadísticas para el dashboard del gerente.
+    Devuelve el contexto de estadísticas reales para el dashboard del gerente.
     """
-    from citas.models import Cita
+    from datetime import date, timedelta
+    from django.db.models import Sum, Count, Q
+    from citas.models import Cita, PagoCita
     from usuarios.models import UserPaciente, UserDoctor, UserRecepcionista
+
+    hoy = date.today()
+    inicio_mes = hoy.replace(day=1)
+    # mes anterior
+    if hoy.month == 1:
+        inicio_mes_ant = hoy.replace(year=hoy.year - 1, month=12, day=1)
+        fin_mes_ant = hoy.replace(year=hoy.year - 1, month=12, day=31)
+    else:
+        inicio_mes_ant = hoy.replace(month=hoy.month - 1, day=1)
+        fin_mes_ant = (inicio_mes - timedelta(days=1))
 
     try:
         total_citas = Cita.objects.count()
@@ -366,11 +378,156 @@ def get_gerente_dashboard_context():
     except Exception:
         total_pacientes = total_medicos = total_recepcionistas = 0
 
+    # --- KPIs mensuales ---
+    try:
+        citas_mes = Cita.objects.filter(
+            fecha_consulta__date__gte=inicio_mes
+        ).count()
+    except Exception:
+        citas_mes = 0
+
+    try:
+        citas_mes_anterior = Cita.objects.filter(
+            fecha_consulta__date__gte=inicio_mes_ant,
+            fecha_consulta__date__lte=fin_mes_ant
+        ).count()
+    except Exception:
+        citas_mes_anterior = 0
+
+    try:
+        pacientes_mes = UserPaciente.objects.filter(
+            date_joined__date__gte=inicio_mes
+        ).count()
+    except Exception:
+        pacientes_mes = 0
+
+    try:
+        pacientes_mes_anterior = UserPaciente.objects.filter(
+            date_joined__date__gte=inicio_mes_ant,
+            date_joined__date__lte=fin_mes_ant
+        ).count()
+    except Exception:
+        pacientes_mes_anterior = 0
+
+    try:
+        ingresos_mes = PagoCita.objects.filter(
+            fecha_pago__date__gte=inicio_mes,
+            estado_pago=Cita.ESTADO_PAGADA_ADELANTO
+        ).aggregate(total=Sum('monto_pagar'))['total'] or 0
+    except Exception:
+        ingresos_mes = 0
+
+    try:
+        ingresos_mes_anterior = PagoCita.objects.filter(
+            fecha_pago__date__gte=inicio_mes_ant,
+            fecha_pago__date__lte=fin_mes_ant,
+            estado_pago=Cita.ESTADO_PAGADA_ADELANTO
+        ).aggregate(total=Sum('monto_pagar'))['total'] or 0
+    except Exception:
+        ingresos_mes_anterior = 0
+
+    # --- Citas por estado ---
+    estados_interes = {
+        'pendientes': [Cita.ESTADO_SOLICITADA, Cita.ESTADO_PAGO_PENDIENTE],
+        'aprobadas': [Cita.ESTADO_APROBADA, Cita.ESTADO_CONFIRMADA],
+        'canceladas': [Cita.ESTADO_CANCELADA],
+        'completadas': [Cita.ESTADO_ATENDIDA],
+    }
+    citas_por_estado = {}
+    for nombre, lista_estados in estados_interes.items():
+        try:
+            citas_por_estado[nombre] = Cita.objects.filter(estado__in=lista_estados).count()
+        except Exception:
+            citas_por_estado[nombre] = 0
+
+    total_estados = sum(citas_por_estado.values())
+    porcentajes = {}
+    for k in citas_por_estado:
+        porcentajes[k] = round((citas_por_estado[k] / total_estados * 100), 1) if total_estados > 0 else 0
+
+    # --- Citas por especialidad (para gráfico) ---
+    citas_especialidad_labels = []
+    citas_especialidad_data = []
+    try:
+        from citas.models import Especialidad
+        qs = Cita.objects.exclude(id_especialidades__isnull=True).values(
+            'id_especialidades__nombre'
+        ).annotate(cnt=Count('id_citas')).order_by('-cnt')[:6]
+        for item in qs:
+            citas_especialidad_labels.append(item['id_especialidades__nombre'] or 'Sin nombre')
+            citas_especialidad_data.append(item['cnt'])
+    except Exception:
+        pass
+
+    # --- Ingresos últimos 6 meses (para gráfico) ---
+    ingresos_labels = []
+    ingresos_data = []
+    try:
+        for i in range(5, -1, -1):
+            mes_ref = (hoy.replace(day=1) - timedelta(days=1))
+            if i > 0:
+                for _ in range(i):
+                    mes_ref = mes_ref.replace(day=1) - timedelta(days=1)
+            mes_ref = mes_ref.replace(day=1)
+            fin_mes = (mes_ref + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            total = PagoCita.objects.filter(
+                fecha_pago__date__gte=mes_ref,
+                fecha_pago__date__lte=fin_mes,
+                estado_pago=Cita.ESTADO_PAGADA_ADELANTO
+            ).aggregate(total=Sum('monto_pagar'))['total'] or 0
+            meses_nombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+            ingresos_labels.append(meses_nombres[mes_ref.month - 1])
+            ingresos_data.append(float(total))
+    except Exception:
+        pass
+
+    # --- Actividades recientes (últimas 10 citas) ---
+    actividades = []
+    try:
+        recientes = Cita.objects.select_related(
+            'id_paciente', 'id_doctor', 'id_especialidades'
+        ).order_by('-fecha_emision')[:10]
+        for c in recientes:
+            pac = getattr(c.id_paciente, 'nombre_completo', str(c.id_paciente)) if c.id_paciente else 'Desconocido'
+            doc = getattr(c.id_doctor, 'nombre_completo', str(c.id_doctor)) if c.id_doctor else 'Sin médico'
+            esp = getattr(c.id_especialidades, 'nombre', '') if c.id_especialidades else ''
+            fecha_str = c.fecha_emision.strftime('%d/%m/%Y %H:%M') if c.fecha_emision else ''
+            actividades.append({
+                'fecha': fecha_str,
+                'usuario': pac,
+                'accion': c.get_estado_display() or 'Cita',
+                'detalle': f'{esp} - {doc}' if esp else doc,
+                'estado': c.estado or '',
+            })
+    except Exception:
+        pass
+
+    def var_pct(actual, anterior):
+        if anterior and anterior > 0:
+            return round(((actual - anterior) / anterior) * 100, 1)
+        return 0
+
     return {
-        'total_citas':         total_citas,
-        'total_pacientes':     total_pacientes,
-        'total_medicos':       total_medicos,
+        'total_citas':          total_citas,
+        'total_pacientes':      total_pacientes,
+        'total_medicos':        total_medicos,
         'total_recepcionistas': total_recepcionistas,
+        'citas_mes':            citas_mes,
+        'citas_mes_anterior':   citas_mes_anterior,
+        'citas_mes_var':        var_pct(citas_mes, citas_mes_anterior),
+        'pacientes_mes':        pacientes_mes,
+        'pacientes_mes_anterior': pacientes_mes_anterior,
+        'pacientes_mes_var':    var_pct(pacientes_mes, pacientes_mes_anterior),
+        'ingresos_mes':         float(ingresos_mes),
+        'ingresos_mes_anterior': float(ingresos_mes_anterior),
+        'ingresos_mes_var':     var_pct(float(ingresos_mes), float(ingresos_mes_anterior)),
+        'citas_por_estado':     citas_por_estado,
+        'porcentajes':          porcentajes,
+        'citas_especialidad_labels': citas_especialidad_labels,
+        'citas_especialidad_data': citas_especialidad_data,
+        'ingresos_labels':      ingresos_labels,
+        'ingresos_data':        ingresos_data,
+        'actividades':          actividades,
     }
 
 

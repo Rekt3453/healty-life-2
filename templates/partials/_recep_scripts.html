@@ -23,41 +23,60 @@ function closeModal(action){
 }
 function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 
+function getCsrfToken(){
+    var name='csrftoken';
+    var cookies=document.cookie.split(';');
+    for(var i=0;i<cookies.length;i++){
+        var c=cookies[i].trim();
+        if(c.indexOf(name+'=')===0) return c.substring(name.length+1);
+    }
+    return '';
+}
+
+function submitForm(url, fields){
+    var form=document.createElement('form');
+    form.method='POST';
+    form.action=url;
+    form.style.display='none';
+    var csrf=document.createElement('input');
+    csrf.type='hidden';
+    csrf.name='csrfmiddlewaretoken';
+    csrf.value=getCsrfToken();
+    form.appendChild(csrf);
+    for(var key in fields){
+        var inp=document.createElement('input');
+        inp.type='hidden';
+        inp.name=key;
+        inp.value=fields[key];
+        form.appendChild(inp);
+    }
+    document.body.appendChild(form);
+    form.submit();
+}
+
 function confirmAction(action){
     var row=document.querySelector('tr[data-row-id="'+currentRowId+'"]');
     var request=document.querySelector('div[data-request-id="'+currentRowId+'"]');
+    var target=row||request;
     if(action==='confirmar'){
-        if(row){
-            var badge=row.querySelector('td:nth-child(6) span');
-            if(badge){badge.className='badge-confirmada'; badge.textContent='Confirmada';}
-            var btns=row.querySelector('td:nth-child(7)');
-            if(btns) btns.innerHTML='<button onclick="openModal(\'llego\','+currentRowId+')" class="btn-primary text-xs px-3 py-1.5 mr-1">Llegó</button><button onclick="openModal(\'cancelar\','+currentRowId+')" class="btn-danger text-xs px-3 py-1.5">Cancelar</button>';
-        }
-        if(request) request.remove();
-        showToast('Cita confirmada correctamente','success');
+        var url=target?target.getAttribute('data-confirm-url'):null;
+        if(url){submitForm(url,{});}
+        else{showToast('Cita confirmada correctamente','success'); closeModal(action);}
     } else if(action==='rechazar'){
-        if(row) row.remove();
-        if(request) request.remove();
-        showToast('Cita rechazada correctamente','error');
+        var url=target?target.getAttribute('data-reject-url'):null;
+        var reason=document.getElementById('rejectReason');
+        var fields={};
+        if(reason&&reason.value.trim()) fields['motivo']=reason.value.trim();
+        if(url){submitForm(url,fields);}
+        else{showToast('Cita rechazada correctamente','error'); closeModal(action);}
     } else if(action==='cancelar'){
-        if(row){
-            var badge=row.querySelector('td:nth-child(6) span');
-            if(badge){badge.className='badge-cancelada'; badge.textContent='Cancelada';}
-            var btns=row.querySelector('td:nth-child(7)');
-            if(btns) btns.innerHTML='<span class="text-xs" style="color:var(--text-secondary);">Cancelada</span>';
-        }
-        if(request) request.remove();
-        showToast('Cita cancelada correctamente','error');
+        var url=target?target.getAttribute('data-cancel-url'):null;
+        if(url){submitForm(url,{'motivo_cancelacion':'Cancelada por recepcionista/gerente'});}
+        else{showToast('Cita cancelada correctamente','error'); closeModal(action);}
     } else if(action==='llego'){
-        if(row){
-            var badge=row.querySelector('td:nth-child(6) span');
-            if(badge){badge.className='badge-completada'; badge.textContent='Completada';}
-            var btns=row.querySelector('td:nth-child(7)');
-            if(btns) btns.innerHTML='<a href="#" class="btn-ghost text-xs px-3 py-1.5">Ver detalles</a>';
-        }
         showToast('Paciente marcado como atendido','success');
+        closeModal(action);
     }
-    closeModal(action);
 }
 
 function showToast(message,type){
