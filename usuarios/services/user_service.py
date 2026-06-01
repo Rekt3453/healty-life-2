@@ -416,10 +416,10 @@ def get_gerente_dashboard_context():
     try:
         from citas.models import Especialidad
         qs = Cita.objects.exclude(id_especialidades__isnull=True).values(
-            'id_especialidades__nombre'
+            'id_especialidades__tipo_especialidad'
         ).annotate(cnt=Count('id_citas')).order_by('-cnt')[:6]
         for item in qs:
-            citas_especialidad_labels.append(item['id_especialidades__nombre'] or 'Sin nombre')
+            citas_especialidad_labels.append(item['id_especialidades__tipo_especialidad'] or 'Sin nombre')
             citas_especialidad_data.append(item['cnt'])
     except Exception:
         pass
