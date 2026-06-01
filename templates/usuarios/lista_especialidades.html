@@ -4,137 +4,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Especialidades - Healthy Life</title>
+    <title>Gestion de Especialidades - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
     <style>
-        body { background: #f1f5f9; }
-        .page-header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,.07); }
-        .badge-active   { background: #dcfce7; color: #166534; }
-        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .btn-danger{background:#DC2626;color:#fff;border-color:#DC2626;}
+        .btn-danger:hover{background:#B91C1C;}
+        .btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;color:var(--text-secondary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid transparent;cursor:pointer;transition:all .15s ease;}
+        .btn-ghost:hover{background:rgba(0,0,0,.04);color:var(--text-primary);}
+        .input-modern{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;}
+        .input-modern:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        .textarea-modern{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;resize:vertical;min-height:80px;}
+        .textarea-modern:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        .badge-activo{background:#D1FAE5;color:#059669;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-inactivo{background:#E2E8F0;color:#64748B;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .modal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:16px;}
+        .modal-overlay.active{display:flex;}
+        .modal-card{background:#fff;border-radius:16px;padding:24px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+        .toast-container{position:fixed;top:20px;right:20px;z-index:70;display:flex;flex-direction:column;gap:10px;}
+        .toast{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.12);border-left:4px solid var(--accent);transform:translateX(120%);transition:transform .4s cubic-bezier(0.175,0.885,0.32,1.275);max-width:340px;}
+        .toast.show{transform:translateX(0);}
+        .toast-success{border-left-color:#059669;}
+        .toast-error{border-left-color:#DC2626;}
+        .grid-especialidades{display:grid;grid-template-columns:repeat(1,1fr);gap:16px;}
+        @media(min-width:640px){.grid-especialidades{grid-template-columns:repeat(2,1fr);}}
+        @media(min-width:1024px){.grid-especialidades{grid-template-columns:repeat(3,1fr);}}
+        @media(min-width:1280px){.grid-especialidades{grid-template-columns:repeat(4,1fr);}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fadeIn .4s ease both;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<!-- Header -->
-<div class="page-header text-white py-6 px-6 mb-8">
-    <div class="max-w-5xl mx-auto flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold">Especialidades</h1>
-            <p class="text-green-100 text-sm mt-1">Sede: {{ sede }}</p>
-        </div>
-        <div class="flex items-center space-x-3">
-            <a href="{% url 'crear_especialidad' %}"
-               class="bg-white text-green-700 hover:bg-green-50 text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Agregar Especialidad
-            </a>
-            <a href="{% url 'dashboard_gerente' %}"
-               class="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                <span>Dashboard</span>
-            </a>
-        </div>
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
+        </a>
     </div>
-</div>
-
-<div class="max-w-5xl mx-auto px-6 pb-12">
-
-    <!-- Mensajes -->
-    {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg p-4 text-sm font-medium
-            {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
-            {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
-            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_gerente' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <a href="{% url 'lista_personal' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Personal
+        </a>
+        <a href="{% url 'lista_especialidades' %}" class="sidebar-link active">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            Especialidades
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Sedes
+        </a>
+        <a href="{% url 'lista_horarios' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Horarios
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Reportes
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Cerrar sesion
+        </a>
     </div>
-    {% endif %}
+</aside>
 
-    <div class="card p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-semibold text-gray-800">
-                Especialidades registradas
-                <span class="ml-2 text-sm font-normal text-gray-500">({{ especialidades.count }})</span>
-            </h2>
-            <a href="{% url 'crear_especialidad' %}"
-               class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Agregar
-            </a>
+<div class="dashboard-main">
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">Especialidades</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Gestion de Especialidades</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Administra las especialidades medicas disponibles en la clinica</p>
+            </div>
         </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'dashboard_gerente' %}" class="btn-secondary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
+            <button onclick="openModal('modalCrear')" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Nueva especialidad
+            </button>
+        </div>
+    </header>
 
-        {% if especialidades %}
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
-                    <tr>
-                        <th class="px-4 py-3 rounded-tl-lg">Especialidad</th>
-                        <th class="px-4 py-3">Clasificación</th>
-                        <th class="px-4 py-3">Estado</th>
-                        <th class="px-4 py-3 rounded-tr-lg text-right">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for esp in especialidades %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3 font-medium text-gray-900">{{ esp.tipo_especialidad }}</td>
-                        <td class="px-4 py-3">
-                            {% if esp.clasificacion_especialidad %}
-                            <span class="text-xs font-semibold px-2 py-1 rounded-full
-                                {% if esp.clasificacion_especialidad == 'Pediatría' %}bg-blue-100 text-blue-700
-                                {% elif esp.clasificacion_especialidad == 'Adultos' %}bg-purple-100 text-purple-700
-                                {% else %}bg-gray-100 text-gray-700{% endif %}">
-                                {{ esp.clasificacion_especialidad }}
-                            </span>
-                            {% else %}
-                            <span class="text-xs text-gray-400 italic">Sin clasificar</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            {% if esp.status %}
-                            <span class="badge-active text-xs font-semibold px-2 py-1 rounded-full">Activa</span>
-                            {% else %}
-                            <span class="badge-inactive text-xs font-semibold px-2 py-1 rounded-full">Inactiva</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3 text-right space-x-2">
-                            <a href="{% url 'editar_especialidad' esp.id_especialidad %}"
-                               class="text-xs font-semibold px-3 py-1.5 rounded-lg transition
-                                      bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
-                                Editar
-                            </a>
-                            <a href="{% url 'toggle_especialidad_status' esp.id_especialidad %}"
-                               onclick="return confirm('¿Confirmas cambiar el estado de esta especialidad?')"
-                               class="text-xs font-semibold px-3 py-1.5 rounded-lg transition
-                               {% if esp.status %}bg-red-100 text-red-700 hover:bg-red-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %}">
-                                {% if esp.status %}Desactivar{% else %}Activar{% endif %}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-12 text-gray-500">
-            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <p class="font-medium">No hay especialidades registradas</p>
-            <p class="text-sm mt-1">Crea la primera especialidad para esta sede.</p>
-            <a href="{% url 'crear_especialidad' %}"
-               class="mt-4 inline-block bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Agregar Especialidad
-            </a>
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        {% if messages %}
+        <div class="mb-4 space-y-3 fade-in">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                {% if message.tags == 'error' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'success' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% else %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
+
+        <!-- Buscador -->
+        <div class="dashboard-card p-4 fade-in">
+            <div class="relative max-w-md">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="searchEspecialidades" placeholder="Buscar especialidad..." class="input-modern pl-10" oninput="filterCards()">
+            </div>
+        </div>
+
+        <!-- Grid especialidades -->
+        <div class="grid-especialidades fade-in" id="gridEspecialidades">
+            {% for esp in especialidades %}
+            <div class="dashboard-card p-5 esp-card" data-search="{{ esp.tipo_especialidad|default:''|lower }} {{ esp.clasificacion_especialidad|default:''|lower }}">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(0,112,243,.1);color:var(--accent);">
+                        {% if 'cardio' in esp.tipo_especialidad|lower %}🫀
+                        {% elif 'pediat' in esp.tipo_especialidad|lower %}👶
+                        {% elif 'derma' in esp.tipo_especialidad|lower %}🩹
+                        {% elif 'odon' in esp.tipo_especialidad|lower %}🦷
+                        {% elif 'gine' in esp.tipo_especialidad|lower %}🤰
+                        {% elif 'trauma' in esp.tipo_especialidad|lower %}🦴
+                        {% elif 'neuro' in esp.tipo_especialidad|lower %}🧠
+                        {% elif 'oftal' in esp.tipo_especialidad|lower %}👁️
+                        {% elif 'orto' in esp.tipo_especialidad|lower %}🦵
+                        {% else %}🩺{% endif %}
+                    </div>
+                    {% if esp.status %}
+                    <span class="badge-activo">Activo</span>
+                    {% else %}
+                    <span class="badge-inactivo">Inactivo</span>
+                    {% endif %}
+                </div>
+                <h3 class="text-base font-bold mb-1" style="color:var(--text-primary);">{{ esp.tipo_especialidad|default:"Sin nombre" }}</h3>
+                <p class="text-xs mb-3" style="color:var(--text-secondary);">
+                    {% if esp.clasificacion_especialidad %}{{ esp.clasificacion_especialidad }}{% else %}Sin clasificacion{% endif %}
+                </p>
+                <div class="flex gap-2">
+                    <a href="{% url 'editar_especialidad' esp.id_especialidad %}" class="btn-ghost flex-1 text-xs py-1.5" title="Editar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Editar
+                    </a>
+                    <a href="{% url 'toggle_especialidad_status' esp.id_especialidad %}" class="btn-ghost flex-1 text-xs py-1.5 {% if esp.status %}text-red-600{% else %}text-green-600{% endif %}" title="{% if esp.status %}Desactivar{% else %}Activar{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        {% if esp.status %}Desact.{% else %}Activar{% endif %}
+                    </a>
+                    <button onclick="confirmDelete('{{ esp.tipo_especialidad|default:'Especialidad'|escapejs }}', {{ esp.id_especialidad }})" class="btn-ghost text-xs py-1.5 text-red-500" title="Eliminar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="lg:col-span-3 dashboard-card p-12 text-center fade-in">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style="background:rgba(0,112,243,.1);color:var(--accent);">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                </div>
+                <h3 class="text-lg font-semibold mb-1" style="color:var(--text-primary);">No hay especialidades</h3>
+                <p class="text-sm mb-4" style="color:var(--text-secondary);">Crea la primera especialidad para esta sede.</p>
+                <button onclick="openModal('modalCrear')" class="btn-primary">+ Nueva especialidad</button>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+<!-- Modal Crear -->
+<div id="modalCrear" class="modal-overlay" onclick="if(event.target===this)closeModal('modalCrear')">
+    <div class="modal-card">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold" style="color:var(--text-primary);">Nueva especialidad</h3>
+            <button onclick="closeModal('modalCrear')" class="p-1 rounded-lg hover:bg-gray-100" style="color:var(--text-secondary);">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form method="post" action="{% url 'crear_especialidad' %}">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Nombre</label>
+                    <input type="text" name="tipo_especialidad" required class="input-modern" placeholder="Ej. Cardiologia">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Clasificacion</label>
+                    <input type="text" name="clasificacion_especialidad" class="input-modern" placeholder="Ej. Adultos, Pediatria, General">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeModal('modalCrear')" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
     </div>
 </div>
+
+<!-- Modal Confirmar Eliminar -->
+<div id="modalEliminar" class="modal-overlay" onclick="if(event.target===this)closeModal('modalEliminar')">
+    <div class="modal-card">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#FEE2E2;color:#DC2626;">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold" style="color:var(--text-primary);">Eliminar especialidad</h3>
+        </div>
+        <p class="text-sm mb-1" style="color:var(--text-secondary);">Eliminar <strong id="delNombre" style="color:var(--text-primary);">—</strong>?</p>
+        <p class="text-xs mb-6" style="color:var(--text-secondary);">Esta accion no se puede deshacer. Las citas existentes no se veran afectadas, pero no se podra asignar esta especialidad a nuevos medicos o citas.</p>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeModal('modalEliminar')" class="btn-secondary">Cancelar</button>
+            <form id="formEliminar" method="post" action="#">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary btn-danger">Eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script>
+function toggleSidebar(){
+    var s=document.getElementById('sidebar'), o=document.getElementById('sidebarOverlay');
+    if(s)s.classList.toggle('open'); if(o)o.classList.toggle('active');
+}
+function openModal(id){
+    var m=document.getElementById(id);
+    if(m){m.classList.add('active'); document.body.style.overflow='hidden';}
+}
+function closeModal(id){
+    var m=document.getElementById(id);
+    if(m){m.classList.remove('active'); document.body.style.overflow='';}
+}
+function filterCards(){
+    var q=document.getElementById('searchEspecialidades').value.toLowerCase();
+    document.querySelectorAll('.esp-card').forEach(function(card){
+        var search=(card.getAttribute('data-search')||'');
+        card.style.display=(!q||search.indexOf(q)!==-1)?'':'none';
+    });
+}
+function confirmDelete(nombre, id){
+    document.getElementById('delNombre').textContent=nombre;
+    var form=document.getElementById('formEliminar');
+    // Simular accion: en produccion apuntaria a una URL real de eliminacion
+    form.action='/dashboard/gerente/especialidades/'+id+'/eliminar/';
+    openModal('modalEliminar');
+}
+function showToast(message,type){
+    var container=document.getElementById('toastContainer');
+    if(!container)return;
+    var toast=document.createElement('div');
+    toast.className='toast toast-'+type;
+    var icon=type==='success'
+        ?'<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        :'<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+    toast.innerHTML=icon+'<span class="text-sm font-medium" style="color:var(--text-primary);">'+message+'</span>';
+    container.appendChild(toast);
+    requestAnimationFrame(function(){toast.classList.add('show');});
+    setTimeout(function(){toast.classList.remove('show');setTimeout(function(){toast.remove();},400);},3000);
+}
+</script>
 
 </body>
 </html>
