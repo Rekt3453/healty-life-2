@@ -245,7 +245,7 @@
                                                 data-ref="{{ pago.referencia_pago|default:'—' }}"
                                             >Ver detalle</button>
                                             {% if factura %}
-                                                <button type="button" class="btn-ghost btn-descargar-pdf" data-id="{{ cita.id_citas }}"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF</button>
+                                                <a href="{% url 'factura_pdf' factura.id_factura %}" class="btn-ghost"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF</a>
                                             {% endif %}
                                         {% endif %}
                                         {% if cita.estado == 'aprobada' %}

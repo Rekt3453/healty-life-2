@@ -4,95 +4,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuevo Horario - Healthy Life</title>
+    <title>Crear Horario - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
     <style>
-        body { background: #f1f5f9; }
-        .page-header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
-        .card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,.07); }
-        .form-input {
-            width: 100%; padding: 0.6rem 0.9rem; border: 1px solid #d1d5db;
-            border-radius: 0.5rem; font-size: 0.9rem; transition: border-color .2s;
-        }
-        .form-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.15); }
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:10px 20px;border-radius:10px;font-size:.875rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:10px 20px;border-radius:10px;font-size:.875rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;text-decoration:none;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .form-input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-primary);font-size:.875rem;outline:none;transition:all .15s ease;}
+        .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.1);}
+        .form-label{display:block;font-size:.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;}
+        .field-error{color:#DC2626;font-size:.75rem;margin-top:4px;}
+        .section-title{font-size:.9rem;font-weight:600;color:var(--text-primary);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+        .toast{position:fixed;bottom:24px;right:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.15);padding:16px 20px;display:none;align-items:center;gap:12px;z-index:70;min-width:280px;}
+        .toast.active{display:flex;animation:slideUp .3s ease;}
+        @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fadeIn .4s ease both;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<!-- Header -->
-<div class="page-header text-white py-6 px-6 mb-8">
-    <div class="max-w-2xl mx-auto flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold">Nuevo Horario</h1>
-            <p class="text-indigo-200 text-sm mt-1">Sede: {{ sede }}</p>
-        </div>
-        <a href="{% url 'lista_horarios' %}"
-           class="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
-            <span>Volver</span>
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
         </a>
     </div>
-</div>
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_gerente' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <a href="{% url 'lista_personal' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Personal
+        </a>
+        <a href="{% url 'lista_especialidades' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            Especialidades
+        </a>
+        <a href="{% url 'lista_horarios' %}" class="sidebar-link active">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Horarios
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Reportes
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Cerrar sesion
+        </a>
+    </div>
+</aside>
 
-<div class="max-w-2xl mx-auto px-6 pb-12">
+<div class="dashboard-main">
 
-    <!-- Mensajes -->
-    {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg p-4 text-sm font-medium
-            {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
-            {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
-            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-            {{ message }}
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <span class="mx-2">/</span>
+                    <a href="{% url 'lista_horarios' %}" class="hover:underline">Horarios</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">Crear horario</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Crear nuevo horario</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Define un rango horario para atencion medica</p>
+            </div>
         </div>
-        {% endfor %}
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-medium hidden sm:block" style="color:var(--text-secondary);">{% now 'j F Y' %}</span>
+            <a href="{% url 'lista_horarios' %}" class="btn-secondary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Volver a horarios
+            </a>
+        </div>
+    </header>
+
+    <main class="p-6 max-w-2xl mx-auto">
+        {% if messages %}
+        <div class="mb-6 space-y-3 fade-in">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                {% if message.tags == 'error' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'success' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% else %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="dashboard-card p-6 md:p-8 fade-in" style="animation-delay:.05s;">
+            <form method="post" novalidate id="horarioForm">
+                {% csrf_token %}
+
+                <!-- Campos basicos -->
+                <div class="mb-6">
+                    <h3 class="section-title">Rango horario</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="form-label">Hora de inicio <span style="color:#DC2626;">*</span></label>
+                            <input type="time" name="hora_inicio" id="hora_inicio" class="form-input" required value="{{ request.POST.hora_inicio|default:'' }}">
+                        </div>
+                        <div>
+                            <label class="form-label">Hora de fin <span style="color:#DC2626;">*</span></label>
+                            <input type="time" name="hora_fin" id="hora_fin" class="form-input" required value="{{ request.POST.hora_fin|default:'' }}">
+                        </div>
+                    </div>
+                    <p class="field-error hidden" id="timeError">La hora de inicio debe ser anterior a la hora de fin.</p>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-4" style="border-top:1px solid var(--border);">
+                    <button type="submit" class="btn-primary flex-1 justify-center" onclick="return validarFormulario()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Crear horario
+                    </button>
+                    <a href="{% url 'lista_horarios' %}" class="btn-secondary flex-1 justify-center">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast">
+    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
     </div>
-    {% endif %}
-
-    <div class="card p-8">
-        <p class="text-gray-600 text-sm mb-6">
-            Define el rango horario disponible. Los doctores podrán ser asignados a estos turnos al registrarlos.
-        </p>
-
-        <form method="post" novalidate>
-            {% csrf_token %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label for="hora_inicio" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Hora de Inicio <span class="text-red-500">*</span>
-                    </label>
-                    <input type="time" id="hora_inicio" name="hora_inicio"
-                           class="form-input"
-                           required
-                           value="{{ request.POST.hora_inicio|default:'' }}">
-                </div>
-                <div>
-                    <label for="hora_fin" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Hora de Fin <span class="text-red-500">*</span>
-                    </label>
-                    <input type="time" id="hora_fin" name="hora_fin"
-                           class="form-input"
-                           required
-                           value="{{ request.POST.hora_fin|default:'' }}">
-                </div>
-            </div>
-
-            <div class="flex items-center space-x-3">
-                <button type="submit"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition">
-                    Guardar Horario
-                </button>
-                <a href="{% url 'lista_horarios' %}"
-                   class="text-gray-600 hover:text-gray-800 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:border-gray-400 transition">
-                    Cancelar
-                </a>
-            </div>
-        </form>
+    <div>
+        <p class="text-sm font-semibold" style="color:var(--text-primary);" id="toastTitle">Exito</p>
+        <p class="text-xs" style="color:var(--text-secondary);" id="toastMsg">Horario creado correctamente.</p>
     </div>
 </div>
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+
+function validarFormulario(){
+    var inicio=document.getElementById('hora_inicio').value;
+    var fin=document.getElementById('hora_fin').value;
+    var error=document.getElementById('timeError');
+    if(inicio && fin && inicio >= fin){
+        error.classList.remove('hidden');
+        return false;
+    }
+    error.classList.add('hidden');
+    return true;
+}
+
+function showToast(titulo,mensaje,tipo){
+    var toast=document.getElementById('toast');
+    var tTitle=document.getElementById('toastTitle');
+    var tMsg=document.getElementById('toastMsg');
+    if(!toast) return;
+    tTitle.textContent=titulo;
+    tMsg.textContent=mensaje;
+    var icon=toast.querySelector('.w-8');
+    if(icon){
+        icon.className='w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 '+
+            (tipo==='error'?'bg-red-100 text-red-600':'bg-green-100 text-green-600');
+    }
+    toast.classList.add('active');
+    setTimeout(function(){toast.classList.remove('active');},4000);
+}
+
+// Si hay mensaje de exito del backend, mostrar toast
+(function(){
+    var msgs=document.querySelectorAll('[data-toast]');
+    if(msgs.length) showToast('Exito',msgs[0].textContent,'success');
+})();
+</script>
 
 </body>
 </html>

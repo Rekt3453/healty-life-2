@@ -220,8 +220,13 @@
                     <input type="text" name="tipo_especialidad" required class="input-modern" placeholder="Ej. Cardiologia">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Clasificacion</label>
-                    <input type="text" name="clasificacion_especialidad" class="input-modern" placeholder="Ej. Adultos, Pediatria, General">
+                    <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Clasificacion <span style="color:#DC2626;">*</span></label>
+                    <select name="clasificacion_especialidad" required class="input-modern">
+                        <option value="">Selecciona una clasificacion</option>
+                        <option value="Pediatria">Pediatria</option>
+                        <option value="Adultos">Adultos</option>
+                        <option value="General">General</option>
+                    </select>
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">

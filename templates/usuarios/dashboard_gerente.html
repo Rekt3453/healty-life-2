@@ -74,10 +74,6 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
             Especialidades
         </a>
-        <a href="{% url 'lista_horarios' %}" class="sidebar-link">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Horarios
-        </a>
         <a href="#" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Reportes
@@ -109,10 +105,10 @@
         </div>
         <div class="flex items-center gap-3">
             <span class="text-xs font-medium hidden sm:block" style="color:var(--text-secondary);">{% now "l, j \\d\\e F \\d\\e Y" %}</span>
-            <button class="btn-secondary" onclick="alert('Generando reporte...')">
+            <a href="{% url 'reporte_gerente_pdf' %}" class="btn-secondary">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Generar reporte
-            </button>
+            </a>
         </div>
     </header>
 
@@ -224,12 +220,6 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <span class="text-sm font-semibold" style="color:var(--text-primary);">Horarios Globales</span>
-                    </a>
-                    <a href="{% url 'registrar_doctor' %}" class="flex items-center gap-3 p-3 rounded-xl border hover:border-blue-300 transition-colors" style="border-color:var(--border);background:var(--card-bg);">
-                        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(139,92,246,.1);color:#8B5CF6;">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                        </div>
-                        <span class="text-sm font-semibold" style="color:var(--text-primary);">Registrar Doctor</span>
                     </a>
                 </div>
             </div>

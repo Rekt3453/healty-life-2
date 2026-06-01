@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .forms import RegistroPacienteForm, RegistroStaffForm, RegistrarPacienteEspecialForm, EditarPacienteEspecialForm, HistorialMedicoForm
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin, UserSuperAdmin,
@@ -974,8 +974,10 @@ def lista_personal(request):
             'sede': sede,
         })
     except Exception as e:
+        import traceback
         print(f"Error en lista_personal: {e}")
-        messages.error(request, 'Error al cargar la lista de personal')
+        traceback.print_exc()
+        messages.error(request, f'Error al cargar la lista de personal: {str(e)}')
         return redirect('dashboard_gerente')
 
 
@@ -1782,6 +1784,167 @@ def editar_especialidad(request, id_especialidad):
         'especialidad': especialidad,
         'clasificacion_choices': CLASIFICACION_ESPECIALIDAD_CHOICES,
     })
+
+
+def eliminar_especialidad(request, id_especialidad):
+    """Elimina una especialidad de la sede del gerente."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    especialidad = Especialidad.objects.filter(pk=id_especialidad, id_sede=sede).first()
+    if not especialidad:
+        messages.error(request, 'Especialidad no encontrada o no pertenece a tu sede.')
+    else:
+        try:
+            tipo = especialidad.tipo_especialidad
+            especialidad.delete()
+            messages.success(request, f'Especialidad "{tipo}" eliminada correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar la especialidad: {e}')
+    return redirect('lista_especialidades')
+
+
+def reporte_gerente_pdf(request):
+    """Genera y descarga un PDF con reportes del mes actual para la sede del gerente."""
+    from io import BytesIO
+    from datetime import date, timedelta
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from citas.reportes import ReportesService
+
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+
+    hoy = date.today()
+    inicio_mes = hoy.replace(day=1)
+    fin_mes = hoy
+
+    id_sede = sede.id_sede if sede else None
+    nombre_sede = sede.nombre_sede if sede else 'Sede'
+
+    # Obtener datos de los 4 reportes
+    datos_atencion = ReportesService.reporte_diario_atencion(inicio_mes, fin_mes, id_sede)
+    datos_caja = ReportesService.reporte_caja(inicio_mes, fin_mes, id_sede)
+    datos_balance = ReportesService.reporte_balance(inicio_mes, fin_mes, id_sede)
+    datos_pagos = ReportesService.reporte_pagos_medicos(inicio_mes, fin_mes, id_sede)
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=2*cm, leftMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'],
+                                   fontSize=18, textColor=colors.HexColor('#0070F3'),
+                                   spaceAfter=6, alignment=1)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                    fontSize=10, textColor=colors.grey,
+                                    spaceAfter=20, alignment=1)
+    section_style = ParagraphStyle('Section', parent=styles['Heading2'],
+                                   fontSize=13, textColor=colors.HexColor('#1E293B'),
+                                   spaceAfter=10, spaceBefore=16)
+    normal_style = styles['Normal']
+    normal_style.fontSize = 9
+
+    elements = []
+
+    # Titulo
+    elements.append(Paragraph('Healthy Life - Reporte Gerencial', title_style))
+    elements.append(Paragraph(f'Sede: {nombre_sede} | Periodo: {inicio_mes.strftime("%d/%m/%Y")} - {fin_mes.strftime("%d/%m/%Y")}', subtitle_style))
+    elements.append(Spacer(1, 0.3*cm))
+
+    def build_table(data, col_widths, header_color=colors.HexColor('#0070F3')):
+        t = Table(data, colWidths=col_widths)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), header_color),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F7F9FC')),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        return t
+
+    # 1. Reporte diario de atencion
+    elements.append(Paragraph('1. Reporte diario de atencion', section_style))
+    data_atencion = [
+        ['Total citas', 'Atendidas', 'Canceladas', 'No asistio', 'En proceso', '% Atencion'],
+        [str(datos_atencion['total_citas']), str(datos_atencion['atendidas']),
+         str(datos_atencion['canceladas']), str(datos_atencion['no_asistio']),
+         str(datos_atencion['en_proceso']), f"{datos_atencion['porcentaje_atencion']}%"]
+    ]
+    elements.append(build_table(data_atencion, [2.5*cm]*6))
+    elements.append(Spacer(1, 0.2*cm))
+
+    # 2. Reporte de caja
+    elements.append(Paragraph('2. Reporte de caja', section_style))
+    data_caja = [
+        ['Concepto', 'Cantidad', 'Monto'],
+        ['Ingresos por citas', str(datos_caja['ingresos_citas']['cantidad']), f"${datos_caja['ingresos_citas']['total']}"],
+        ['Ingresos adicionales', str(datos_caja['ingresos_adicionales']['cantidad']), f"${datos_caja['ingresos_adicionales']['total']}"],
+        ['Egresos', str(datos_caja['egresos']['cantidad']), f"${datos_caja['egresos']['total']}"],
+    ]
+    elements.append(build_table(data_caja, [6*cm, 3*cm, 3*cm]))
+    elements.append(Paragraph(f"<b>Total ingresos:</b> ${datos_caja['total_ingresos']}  |  <b>Total egresos:</b> ${datos_caja['total_egresos']}  |  <b>Balance:</b> ${datos_caja['balance']}", normal_style))
+    elements.append(Spacer(1, 0.2*cm))
+
+    # 3. Reporte de balance
+    elements.append(Paragraph('3. Reporte de balance', section_style))
+    data_balance = [
+        ['Concepto', 'Cantidad', 'Monto'],
+        ['Facturas emitidas', str(datos_balance['facturacion']['cantidad']), f"${datos_balance['facturacion']['total']}"],
+        ['Facturas pagadas', str(datos_balance['facturas_pagadas']['cantidad']), f"${datos_balance['facturas_pagadas']['total']}"],
+        ['Facturas pendientes', str(datos_balance['facturas_pendientes']['cantidad']), f"${datos_balance['facturas_pendientes']['total']}"],
+        ['Egresos', str(datos_balance['egresos']['cantidad']), f"${datos_balance['egresos']['total']}"],
+    ]
+    elements.append(build_table(data_balance, [6*cm, 3*cm, 3*cm]))
+    elements.append(Paragraph(f"<b>Ingresos netos:</b> ${datos_balance['ingresos_netos']}  |  <b>Egresos netos:</b> ${datos_balance['egresos_netos']}  |  <b>Balance neto:</b> ${datos_balance['balance_neto']}", normal_style))
+    elements.append(Spacer(1, 0.2*cm))
+
+    # 4. Reporte de pagos a medicos
+    elements.append(Paragraph('4. Pagos a medicos por consultas atendidas', section_style))
+    if datos_pagos['por_medico']:
+        data_medicos = [['Medico', 'Consultas', 'Total honorarios', 'Pagado', 'Pendiente']]
+        for m in datos_pagos['por_medico']:
+            nombre = f"{m.get('nombre_doctor', '')} {m.get('apellido_doctor', '')}".strip() or 'Medico'
+            data_medicos.append([
+                nombre,
+                str(m['cantidad_consultas']),
+                f"${m['total_honorarios']}",
+                f"${m['total_pagado']}",
+                f"${m['total_pendiente']}"
+            ])
+        # Fila de totales
+        tot = datos_pagos['totales']
+        data_medicos.append([
+            'TOTAL', str(tot['cantidad_consultas']),
+            f"${tot['total_honorarios']}",
+            f"${tot['total_pagado']}",
+            f"${tot['total_pendiente']}"
+        ])
+        elements.append(build_table(data_medicos, [5*cm, 2.5*cm, 3*cm, 3*cm, 3*cm]))
+    else:
+        elements.append(Paragraph('No hay registros de honorarios en el periodo.', normal_style))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"reporte_gerente_{hoy.strftime('%Y%m%d')}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write(pdf)
+    return response
 
 
 # ==================== GESTIÓN DE HORARIOS (GERENTE) ====================

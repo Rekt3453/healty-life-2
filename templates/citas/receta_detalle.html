@@ -188,10 +188,10 @@ Volver a la cita
 </div>
 {% endif %}
 
-<!-- Medicamentos / Tratamiento -->
+<!-- Tratamiento -->
 {% if receta.id_Recipe_tratamiento and receta.id_Recipe_tratamiento.tratamiento_necesario %}
 <div class="mb-6">
-<p class="section-title">Medicamentos recetados</p>
+<p class="section-title">Tratamiento / Medicamentos</p>
 <div class="card" style="border:1px solid #F1F5F9;box-shadow:none;">
 <div class="p-4">
 <div class="flex items-start gap-3">
@@ -210,7 +210,7 @@ Volver a la cita
 <!-- Medicamentos especiales -->
 {% if receta.id_Recipe_medicamentos_especiales and receta.id_Recipe_medicamentos_especiales.medicamentos_especiales %}
 <div class="mb-6">
-<p class="section-title">Medicamentos especiales (controlados)</p>
+<p class="section-title">Medicamentos especiales / Controlados</p>
 <div class="section-box" style="border-color:#FEF3C7;background:#FFFBEB;">
 <div class="flex items-start gap-3">
 <div class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0">
@@ -225,7 +225,7 @@ Volver a la cita
 <!-- Estudios -->
 {% if receta.id_Recipe_estudios and receta.id_Recipe_estudios.estudios_realizar %}
 <div class="mb-6">
-<p class="section-title">Estudios / Exámenes indicados</p>
+<p class="section-title">Estudios y exámenes</p>
 <div class="section-box">
 <p class="text-sm leading-relaxed" style="color:#1E293B;">{{ receta.id_Recipe_estudios.estudios_realizar|linebreaks }}</p>
 </div>
@@ -235,7 +235,7 @@ Volver a la cita
 <!-- Órdenes médicas -->
 {% if receta.id_Recipes_ordenes_medicas and receta.id_Recipes_ordenes_medicas.ordenes_medicas %}
 <div class="mb-6">
-<p class="section-title">Órdenes médicas</p>
+<p class="section-title">Órdenes médicas y observaciones</p>
 <div class="section-box">
 <p class="text-sm leading-relaxed" style="color:#1E293B;">{{ receta.id_Recipes_ordenes_medicas.ordenes_medicas|linebreaks }}</p>
 </div>
@@ -305,10 +305,10 @@ Volver a la cita
 Esta receta tiene validez de 30 días a partir de su emisión. Para uso exclusivo del paciente identificado.
 </p>
 <div class="flex items-center gap-2">
-<button type="button" onclick="alert('Descarga de PDF en desarrollo.')" class="btn-secondary text-sm">
+<a href="{% url 'receta_pdf' cita.id_citas %}" class="btn-secondary text-sm">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
 Descargar PDF
-</button>
+</a>
 </div>
 </div>
 

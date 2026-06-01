@@ -306,6 +306,9 @@ Volver a mis citas
 </div>
 </div>
 </div>
+<div class="mt-4 flex items-center justify-end">
+<a href="{% url 'receta_pdf' cita.id_citas %}" class="btn-primary"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Descargar receta PDF</a>
+</div>
 </div>
 {% endif %}
 
@@ -342,9 +345,8 @@ Volver a mis citas
 <button type="button" onclick="openModal('modalCancelar')" class="btn-danger">Cancelar cita</button>
 <a href="{% url 'solicitar_cita' %}" class="btn-secondary">Reprogramar cita</a>
 {% elif cita.estado == 'atendida' %}
-<a href="{% url 'ver_receta' cita.id_citas %}" class="btn-secondary">Ver receta</a>
 <a href="{% url 'historial_medico' %}" class="btn-secondary">Ver historial médico</a>
-<a href="{% url 'solicitar_cita' %}" class="btn-primary">Agendar nueva cita</a>
+<a href="{% url 'solicitar_cita' %}" class="btn-secondary">Agendar nueva cita</a>
 {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' %}
 {% if cita.motivo_cancelacion %}
 <div class="p-3 rounded-xl mb-2" style="background:#FEF2F2;">

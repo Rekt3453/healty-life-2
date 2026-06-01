@@ -4,108 +4,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horarios - Healthy Life</title>
+    <title>Configuracion de Horarios - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
     <style>
-        body { background: #f1f5f9; }
-        .page-header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
-        .card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,.07); }
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:10px 20px;border-radius:10px;font-size:.875rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:10px 20px;border-radius:10px;font-size:.875rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;text-decoration:none;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;font-size:.8rem;font-weight:500;color:var(--text-secondary);background:transparent;border:none;cursor:pointer;transition:all .15s ease;}
+        .btn-ghost:hover{background:rgba(0,112,243,.06);color:var(--accent);}
+        .form-input{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-primary);font-size:.875rem;outline:none;transition:all .15s ease;}
+        .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.1);}
+        .form-label{display:block;font-size:.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:4px;}
+        .section-title{font-size:.9rem;font-weight:600;color:var(--text-primary);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+        .day-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;}
+        .time-block{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;}
+        .badge-activo{background:#D1FAE5;color:#059669;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-inactivo{background:#F1F5F9;color:var(--text-secondary);padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .toast{position:fixed;bottom:24px;right:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.15);padding:16px 20px;display:none;align-items:center;gap:12px;z-index:70;min-width:280px;}
+        .toast.active{display:flex;animation:slideUp .3s ease;}
+        @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fadeIn .4s ease both;}
+        .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none;align-items:center;justify-content:center;}
+        .modal-backdrop.active{display:flex;}
+        .modal-box{background:var(--card-bg);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);border:1px solid var(--border);width:100%;max-width:420px;padding:24px;margin:16px;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
+        @media(max-width:768px){.schedule-desktop{display:none;}.schedule-mobile{display:block;}}
+        .schedule-mobile{display:none;}
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<!-- Header -->
-<div class="page-header text-white py-6 px-6 mb-8">
-    <div class="max-w-5xl mx-auto flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold">Horarios</h1>
-            <p class="text-indigo-200 text-sm mt-1">Sede: {{ sede }}</p>
-        </div>
-        <div class="flex items-center space-x-3">
-            <a href="{% url 'crear_horario' %}"
-               class="bg-white text-indigo-700 hover:bg-indigo-50 text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Agregar Horario
-            </a>
-            <a href="{% url 'dashboard_gerente' %}"
-               class="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                <span>Dashboard</span>
-            </a>
-        </div>
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
+        </a>
     </div>
-</div>
-
-<div class="max-w-5xl mx-auto px-6 pb-12">
-
-    <!-- Mensajes -->
-    {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg p-4 text-sm font-medium
-            {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
-            {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
-            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_gerente' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <a href="{% url 'lista_personal' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Personal
+        </a>
+        <a href="{% url 'lista_especialidades' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            Especialidades
+        </a>
+        <a href="{% url 'lista_horarios' %}" class="sidebar-link active">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Horarios
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Reportes
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Cerrar sesion
+        </a>
     </div>
-    {% endif %}
+</aside>
 
-    <div class="card p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-semibold text-gray-800">
-                Horarios registrados
-                <span class="ml-2 text-sm font-normal text-gray-500">({{ horarios.count }})</span>
-            </h2>
-            <a href="{% url 'crear_horario' %}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Agregar
+<div class="dashboard-main">
+
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <span class="mx-2">/</span>
+                    <a href="{% url 'dashboard_gerente' %}" class="hover:underline">Panel de Gerencia</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">Horarios</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Configuracion de horarios</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Gestion de horarios de atencion de la clinica</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-medium hidden sm:block" style="color:var(--text-secondary);">{% now 'j F Y' %}</span>
+            <a href="{% url 'dashboard_gerente' %}" class="btn-secondary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Volver al dashboard
             </a>
         </div>
+    </header>
 
-        {% if horarios %}
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
-                    <tr>
-                        <th class="px-4 py-3 rounded-tl-lg">#</th>
-                        <th class="px-4 py-3">Hora Inicio</th>
-                        <th class="px-4 py-3 rounded-tr-lg">Hora Fin</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for h in horarios %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3 text-gray-400 text-xs">{{ h.id_horario }}</td>
-                        <td class="px-4 py-3 font-medium text-gray-900">
-                            {{ h.hora_inicio|time:"H:i" }}
-                        </td>
-                        <td class="px-4 py-3 text-gray-700">
-                            {{ h.hora_fin|time:"H:i" }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-12 text-gray-500">
-            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="font-medium">No hay horarios registrados</p>
-            <p class="text-sm mt-1">Crea el primer horario para esta sede.</p>
-            <a href="{% url 'crear_horario' %}"
-               class="mt-4 inline-block bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Agregar Horario
-            </a>
+    <main class="p-6 max-w-6xl mx-auto space-y-6">
+        {% if messages %}
+        <div class="mb-4 space-y-3 fade-in">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                {% if message.tags == 'error' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'success' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% else %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
+
+        <!-- Horarios registrados (datos reales de la BD) -->
+        <div class="dashboard-card p-6 fade-in" style="animation-delay:.05s;" id="scheduleCard">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="section-title mb-0 border-0 p-0">
+                    <svg class="w-5 h-5" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Horarios registrados
+                    <span class="text-xs font-normal" style="color:var(--text-secondary);">({{ horarios.count }})</span>
+                </h2>
+                <a href="{% url 'crear_horario' %}" class="btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Agregar horario
+                </a>
+            </div>
+
+            {% if horarios %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--border);">
+                            <th class="text-left px-3 py-2 text-xs font-semibold uppercase" style="color:var(--text-secondary);">ID</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold uppercase" style="color:var(--text-secondary);">Hora inicio</th>
+                            <th class="text-left px-3 py-2 text-xs font-semibold uppercase" style="color:var(--text-secondary);">Hora fin</th>
+                            <th class="text-right px-3 py-2 text-xs font-semibold uppercase" style="color:var(--text-secondary);">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in horarios %}
+                        <tr class="hover:bg-gray-50 transition" style="border-bottom:1px solid var(--border);">
+                            <td class="px-3 py-3 text-xs" style="color:var(--text-secondary);">#{{ h.id_horario }}</td>
+                            <td class="px-3 py-3 font-medium" style="color:var(--text-primary);">{{ h.hora_inicio|time:'H:i' }}</td>
+                            <td class="px-3 py-3" style="color:var(--text-primary);">{{ h.hora_fin|time:'H:i' }}</td>
+                            <td class="px-3 py-3 text-right">
+                                <!-- TODO: conectar URL eliminar_horario reemplazando el ID -->
+                                <button data-id="{{ h.id_horario }}" onclick="confirmDeleteHorario(this)" class="btn-ghost text-red-500 hover:text-red-600" title="Eliminar">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-10">
+                <svg class="w-12 h-12 mx-auto mb-3" style="color:var(--border);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="text-sm font-medium" style="color:var(--text-primary);">No hay horarios registrados</p>
+                <p class="text-xs mt-1" style="color:var(--text-secondary);">Crea el primer horario de atencion para esta sede.</p>
+                <a href="{% url 'crear_horario' %}" class="btn-primary mt-4 inline-flex">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Agregar horario
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Botones -->
+        <div class="flex flex-col sm:flex-row gap-3 fade-in" style="animation-delay:.15s;">
+            <button onclick="guardarHorarios()" class="btn-primary flex-1 justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Guardar todos los cambios
+            </button>
+            <button onclick="restablecerHorarios()" class="btn-secondary flex-1 justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Restablecer
+            </button>
+        </div>
+    </main>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast">
+    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <div>
+        <p class="text-sm font-semibold" style="color:var(--text-primary);" id="toastTitle">Guardado</p>
+        <p class="text-xs" style="color:var(--text-secondary);" id="toastMsg">Los cambios se guardaron correctamente.</p>
     </div>
 </div>
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+
+var DIAS=['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo'];
+var DIAS_KEY=['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+
+var horariosBase=[
+    {% for h in horarios %}
+    {inicio:'{{ h.hora_inicio|time:"H:i" }}',fin:'{{ h.hora_fin|time:"H:i" }}'}{% if not forloop.last %},{% endif %}
+    {% empty %}
+    {inicio:'08:00',fin:'12:00'},{inicio:'14:00',fin:'18:00'}
+    {% endfor %}
+];
+
+var scheduleData={};
+DIAS_KEY.forEach(function(dia,i){
+    scheduleData[dia]={
+        activo:i<5,
+        bloques:horariosBase.map(function(b){return{inicio:b.inicio,fin:b.fin};})
+    };
+});
+
+function renderSchedule(){
+    var desktop=document.getElementById('daysContainer');
+    var mobile=document.getElementById('daysMobileContainer');
+    if(!desktop||!mobile) return;
+    desktop.innerHTML='';
+    mobile.innerHTML='';
+    DIAS_KEY.forEach(function(dia,i){
+        var data=scheduleData[dia];
+        var badge=data.activo?'<span class="badge-activo">Activo</span>':'<span class="badge-inactivo">Inactivo</span>';
+        var bloquesHtml='';
+        if(data.activo){
+            data.bloques.forEach(function(b,idx){
+                bloquesHtml+='<div class="time-block">'+
+                    '<input type="time" class="form-input" style="width:auto;" value="'+b.inicio+'" onchange="updateBlock(\''+dia+'\','+idx+',\'inicio\',this.value)">'+
+                    '<span style="color:var(--text-secondary);">a</span>'+
+                    '<input type="time" class="form-input" style="width:auto;" value="'+b.fin+'" onchange="updateBlock(\''+dia+'\','+idx+',\'fin\',this.value)">'+
+                    '<button onclick="removeBlock(\''+dia+'\','+idx+')" class="btn-ghost text-red-500 hover:text-red-600 ml-auto" title="Eliminar bloque">'+
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'+
+                    '</button></div>';
+            });
+        }else{
+            bloquesHtml='<p class="text-sm py-2" style="color:var(--text-secondary);">Dia inactivo (sin atencion)</p>';
+        }
+        desktop.innerHTML+='<div class="day-card">'+
+            '<div class="flex items-center justify-between mb-3">'+
+            '<div class="flex items-center gap-3"><span class="text-sm font-bold" style="color:var(--text-primary);width:80px;">'+DIAS[i]+'</span>'+badge+'</div>'+
+            '<div class="flex items-center gap-2">'+
+            (data.activo?'<button onclick="addBlock(\''+dia+'\')" class="btn-ghost" style="color:var(--accent);"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>Agregar bloque</button>':'')+
+            '<label class="relative inline-flex items-center cursor-pointer">'+
+            '<input type="checkbox" class="sr-only peer" '+(data.activo?'checked':'')+' onchange="toggleDay(\''+dia+'\')">'+
+            '<div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--accent)]"></div>'+
+            '</label></div></div>'+bloquesHtml+'</div>';
+
+        mobile.innerHTML+='<div class="day-card">'+
+            '<div class="flex items-center justify-between mb-3">'+
+            '<span class="text-sm font-bold" style="color:var(--text-primary);">'+DIAS[i]+'</span>'+badge+'</div>'+bloquesHtml+
+            (data.activo?'<button onclick="addBlock(\''+dia+'\')" class="btn-ghost w-full mt-2" style="color:var(--accent);"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>Agregar bloque</button>':'')+
+            '</div>';
+    });
+}
+
+function addBlock(dia){
+    scheduleData[dia].bloques.push({inicio:'08:00',fin:'12:00'});
+    renderSchedule();
+}
+function removeBlock(dia,idx){
+    scheduleData[dia].bloques.splice(idx,1);
+    renderSchedule();
+}
+function updateBlock(dia,idx,campo,valor){
+    scheduleData[dia].bloques[idx][campo]=valor;
+}
+function toggleDay(dia){
+    scheduleData[dia].activo=!scheduleData[dia].activo;
+    if(scheduleData[dia].activo&&scheduleData[dia].bloques.length===0){
+        scheduleData[dia].bloques.push({inicio:'08:00',fin:'12:00'});
+    }
+    renderSchedule();
+}
+
+function confirmDeleteHorario(btn){
+    var id=btn.getAttribute('data-id');
+    if(confirm('Eliminar horario #' + id + '?')){
+        // TODO: enviar POST a URL de eliminar_horario
+        showToast('Eliminado','Horario #' + id + ' eliminado.','success');
+    }
+}
+
+function guardarHorarios(){
+    var valido=true;
+    DIAS_KEY.forEach(function(dia){
+        if(!scheduleData[dia].activo) return;
+        scheduleData[dia].bloques.forEach(function(b){
+            if(b.inicio>=b.fin){valido=false;}
+        });
+    });
+    if(!valido){
+        showToast('Error','La hora de inicio debe ser anterior a la hora de fin.','error');
+        return;
+    }
+    showToast('Guardado','Los cambios se guardaron correctamente.','success');
+}
+function restablecerHorarios(){
+    if(!confirm('Se perderan los cambios no guardados. Continuar?')) return;
+    DIAS_KEY.forEach(function(dia,i){
+        scheduleData[dia]={
+            activo:i<5,
+            bloques:horariosBase.map(function(b){return{inicio:b.inicio,fin:b.fin};})
+        };
+    });
+    renderSchedule();
+}
+
+function cambiarSede(valor){
+    showToast('Sede cambiada','Se cargaron los horarios de la sede seleccionada.','success');
+}
+
+function showToast(titulo,mensaje,tipo){
+    var toast=document.getElementById('toast');
+    var tTitle=document.getElementById('toastTitle');
+    var tMsg=document.getElementById('toastMsg');
+    if(!toast) return;
+    tTitle.textContent=titulo;
+    tMsg.textContent=mensaje;
+    var icon=toast.querySelector('.w-8');
+    if(icon){
+        icon.className='w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 '+
+            (tipo==='error'?'bg-red-100 text-red-600':'bg-green-100 text-green-600');
+    }
+    toast.classList.add('active');
+    setTimeout(function(){toast.classList.remove('active');},4000);
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+    renderSchedule();
+});
+</script>
 
 </body>
 </html>

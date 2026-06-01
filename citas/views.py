@@ -971,7 +971,12 @@ def detalle_cita(request, cita_id):
         consulta = cita.consulta_medica
     except ConsultaMedica.DoesNotExist:
         pass
-    return render(request, 'citas/detalle_cita.html', {'cita': cita, 'consulta': consulta})
+    receta = Recipe.objects.filter(id_cita=cita).select_related(
+        'id_Recipe_diagnostico', 'id_Recipe_tratamiento',
+        'id_Recipe_reposo', 'id_Recipe_medicamentos_especiales',
+        'id_Recipe_estudios', 'id_Recipes_ordenes_medicas',
+    ).first()
+    return render(request, 'citas/detalle_cita.html', {'cita': cita, 'consulta': consulta, 'receta': receta})
 
 
 @login_required(login_url='/login/paciente/')
@@ -1211,44 +1216,6 @@ def realizar_receta(request, cita_id):
         'cita':         cita,
         'paciente':     paciente,
         'datos_medico': datos_medico,
-    })
-
-
-@login_required
-def ver_receta(request, cita_id):
-    """Muestra la receta médica en modo solo lectura para una cita dada.
-    Si no existe receta, muestra estado vacío amigable en lugar de 404."""
-    cita = get_object_or_404(
-        Cita.objects.select_related('id_doctor', 'id_paciente', 'id_sede', 'id_especialidades'),
-        id_citas=cita_id,
-    )
-    receta = (
-        Recipe.objects.select_related(
-            'id_cita', 'id_doctor', 'id_paciente', 'id_sede',
-            'id_Recipe_diagnostico', 'id_Recipe_tratamiento',
-            'id_Recipe_reposo', 'id_Recipe_medicamentos_especiales',
-            'id_Recipe_estudios', 'id_Recipes_ordenes_medicas',
-        )
-        .filter(id_cita__id_citas=cita_id)
-        .first()
-    )
-    # Fallback: si la receta no guardó paciente/doctor, usamos los de la cita
-    paciente = receta.id_paciente if receta and receta.id_paciente else cita.id_paciente
-    doctor   = receta.id_doctor   if receta and receta.id_doctor   else cita.id_doctor
-    sede     = receta.id_sede     if receta and receta.id_sede     else cita.id_sede
-    # Especialidad: la receta puede no tenerla; usamos la de la cita o buscamos por ID del doctor
-    especialidad = cita.id_especialidades
-    if not especialidad and doctor and doctor.id_especialidad_doctor:
-        especialidad = Especialidad.objects.filter(
-            id_especialidad=doctor.id_especialidad_doctor
-        ).first()
-    return render(request, 'citas/receta_detalle.html', {
-        'receta': receta,
-        'cita': cita,
-        'paciente': paciente,
-        'doctor': doctor,
-        'sede': sede,
-        'especialidad': especialidad,
     })
 
 
@@ -1497,64 +1464,415 @@ def detalle_factura(request, cita_id):
 
 @login_required(login_url='/login/')
 def factura_pdf(request, factura_id):
-    """Genera y descarga la factura en PDF usando ReportLab."""
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
+    """Genera y descarga la factura en PDF con formato profesional y datos reales."""
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4, letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
+    from usuarios.models import PacienteDatosPersonales
 
     factura = get_object_or_404(Factura, pk=factura_id)
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="factura-{factura.numero}.pdf"'
+    # Verificar propiedad si el usuario es paciente
+    if hasattr(request.user, 'id_user_paciente'):
+        paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=request.user).first()
+        if paciente and factura.id_cita.id_paciente != paciente:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden('No tienes permiso para descargar esta factura.')
 
-    p = canvas.Canvas(response, pagesize=A4)
-    width, height = A4
+    # Datos reales
+    cita = factura.id_cita
+    pago = factura.id_pago_cita
+    sede = cita.id_sede
+    cm_obj = sede.id_cm if sede else None
+    paciente = cita.id_paciente
+    doctor = cita.id_doctor
 
-    # Header verde
-    p.setFillColorRGB(0.18, 0.49, 0.20)
-    p.rect(0, height - 80, width, 80, fill=True, stroke=False)
-    p.setFillColorRGB(1, 1, 1)
-    p.setFont('Helvetica-Bold', 22)
-    p.drawString(50, height - 48, 'FACTURA')
-    p.setFont('Helvetica', 12)
-    p.drawString(50, height - 66, str(factura.numero))
+    # Servicios solicitados en la cita
+    from citas.models import CitaServicioSolicitado
+    servicios_qs = CitaServicioSolicitado.objects.filter(id_cita=cita)
+    if not servicios_qs.exists():
+        # Si no hay servicios, crear uno por defecto con la descripcion de la factura
+        servicios_qs = [{
+            'id': '-',
+            'descripcion': factura.descripcion or 'Consulta medica',
+            'doctor': str(doctor) if doctor else 'N/A',
+            'iva': 'General (16%)',
+            'precio': factura.total
+        }]
+    else:
+        servicios = []
+        for s in servicios_qs:
+            servicios.append({
+                'id': str(s.id_cita_servicio),
+                'descripcion': s.nombre_servicio or (str(s.id_servicio_medico) if s.id_servicio_medico else 'Servicio'),
+                'doctor': str(doctor) if doctor else 'N/A',
+                'iva': 'General (16%)',
+                'precio': s.precio_estimado
+            })
+        servicios_qs = servicios
 
-    # Datos
-    p.setFillColorRGB(0, 0, 0)
-    y = height - 115
-    lineas = [
-        ('Fecha de emisión:', factura.fecha_emision.strftime('%d/%m/%Y %H:%M')),
-        ('Paciente:',        str(factura.id_cita.id_paciente)),
-        ('Médico:',          str(factura.id_cita.id_doctor)),
-        ('Servicio:',        factura.descripcion),
+    # Direccion formateada
+    direccion_sede = ''
+    if sede and sede.id_direccion:
+        d = sede.id_direccion
+        partes = []
+        if d.direccion: partes.append(d.direccion)
+        if d.id_ciudad: partes.append(str(d.id_ciudad))
+        if d.id_municipio: partes.append(str(d.id_municipio))
+        if d.id_estado: partes.append(str(d.id_estado))
+        direccion_sede = ', '.join(partes)
+
+    # Totales
+    monto_abonado = pago.monto_pagar if pago else Decimal('0.00')
+    saldo_restante = factura.total - monto_abonado if monto_abonado else factura.total
+    base_imponible = factura.total - factura.impuesto if factura.impuesto else factura.subtotal
+    monto_exento = Decimal('0.00')  # No hay campo separado; todo es base imponible por defecto
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=1.5*cm, leftMargin=1.5*cm,
+                            topMargin=1.5*cm, bottomMargin=1.5*cm)
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'],
+                                 fontSize=20, textColor=colors.HexColor('#0070F3'),
+                                 spaceAfter=4, alignment=1, fontName='Helvetica-Bold')
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                    fontSize=9, textColor=colors.HexColor('#64748B'),
+                                    spaceAfter=12, alignment=1)
+    section_style = ParagraphStyle('Section', parent=styles['Heading2'],
+                                   fontSize=11, textColor=colors.HexColor('#1E293B'),
+                                   spaceAfter=6, spaceBefore=12, fontName='Helvetica-Bold')
+    label_style = ParagraphStyle('Label', parent=styles['Normal'],
+                                 fontSize=9, textColor=colors.HexColor('#64748B'),
+                                 spaceAfter=2)
+    value_style = ParagraphStyle('Value', parent=styles['Normal'],
+                                 fontSize=9, textColor=colors.HexColor('#1E293B'),
+                                 spaceAfter=4)
+    normal_style = styles['Normal']
+    normal_style.fontSize = 9
+
+    elements = []
+
+    # ========== ENCABEZADO CLINICA ==========
+    elements.append(Paragraph(str(cm_obj.nombre_cm).upper() if cm_obj else 'CENTRO MEDICO HEALTHY LIFE, C.A.', title_style))
+    rif_text = f"RIF: {cm_obj.rif_cm}" if cm_obj and cm_obj.rif_cm else 'RIF: J-123456789'
+    elements.append(Paragraph(rif_text, subtitle_style))
+
+    # Info sede en tabla
+    sede_data = [
+        [Paragraph(f"<b>Sede:</b> {sede.nombre_sede if sede else 'Principal'}", normal_style),
+         Paragraph(f"<b>Telefono:</b> {sede.telefono if sede else '—'}", normal_style)],
+        [Paragraph(f"<b>Direccion:</b> {direccion_sede or '—'}", normal_style), '']
     ]
-    for etiqueta, valor in lineas:
-        p.setFont('Helvetica-Bold', 11)
-        p.drawString(50, y, etiqueta)
-        p.setFont('Helvetica', 11)
-        p.drawString(200, y, valor)
-        y -= 22
+    sede_table = Table(sede_data, colWidths=[8*cm, 8*cm])
+    sede_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+    ]))
+    elements.append(sede_table)
+    elements.append(Spacer(1, 0.3*cm))
+    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#E2E8F0')))
+    elements.append(Spacer(1, 0.3*cm))
 
-    # Montos
-    y -= 15
-    p.setFont('Helvetica-Bold', 11)
-    p.drawString(50, y, 'Subtotal:');  p.setFont('Helvetica', 11); p.drawString(200, y, str(factura.subtotal)); y -= 20
-    p.setFont('Helvetica-Bold', 11)
-    p.drawString(50, y, 'Impuesto:'); p.setFont('Helvetica', 11); p.drawString(200, y, str(factura.impuesto)); y -= 20
-    p.setFont('Helvetica-Bold', 14)
-    p.drawString(50, y, 'TOTAL:');    p.drawString(200, y, str(factura.total))
+    # ========== DATOS PACIENTE + DOCUMENTO (2 columnas) ==========
+    col1_data = [
+        [Paragraph('<b>DATOS DEL PACIENTE</b>', section_style)],
+        [Paragraph(f"<b>Cedula/RIF:</b> {paciente.cedula if paciente and hasattr(paciente, 'cedula') else '—'}", normal_style)],
+        [Paragraph(f"<b>Nombre:</b> {str(paciente) if paciente else '—'}", normal_style)],
+        [Paragraph('<b>Tipo paciente:</b> Regular', normal_style)],
+    ]
 
-    # Sello ANULADA
+    col2_data = [
+        [Paragraph('<b>DOCUMENTO DE PAGO</b>', section_style)],
+        [Paragraph(f"<b>Tipo:</b> COMPROBANTE DE PAGO", normal_style)],
+        [Paragraph(f"<b>Nº Factura:</b> {factura.numero}", normal_style)],
+        [Paragraph(f"<b>ID Cita:</b> {cita.id_citas}", normal_style)],
+        [Paragraph(f"<b>Fecha:</b> {factura.fecha_emision.strftime('%d/%m/%Y')}", normal_style)],
+        [Paragraph(f"<b>Hora:</b> {factura.fecha_emision.strftime('%H:%M')}", normal_style)],
+    ]
+
+    doc_table = Table([[Table(col1_data, colWidths=[8*cm]), Table(col2_data, colWidths=[8*cm])]],
+                      colWidths=[8*cm, 8*cm])
+    doc_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    elements.append(doc_table)
+    elements.append(Spacer(1, 0.3*cm))
+
+    # ========== SERVICIOS PRESTADOS ==========
+    elements.append(Paragraph('<b>SERVICIOS PRESTADOS</b>', section_style))
+    serv_data = [['ID', 'Descripcion', 'Doctor', 'Tipo IVA', 'Precio unitario']]
+    for s in servicios_qs:
+        serv_data.append([
+            s['id'], s['descripcion'], s['doctor'], s['iva'], f"${s['precio']}"
+        ])
+    serv_table = Table(serv_data, colWidths=[1.5*cm, 7*cm, 3*cm, 2.5*cm, 2.5*cm])
+    serv_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0070F3')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (1, 1), (1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F7F9FC')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    elements.append(serv_table)
+    elements.append(Spacer(1, 0.3*cm))
+
+    # ========== TOTALES (2 columnas: totales + detalles pago) ==========
+    totales_data = [
+        [Paragraph('<b>TOTALES DE LA TRANSACCION</b>', section_style)],
+        [Paragraph(f"<b>Monto exento:</b> ${monto_exento}", normal_style)],
+        [Paragraph(f"<b>Base imponible IVA:</b> ${base_imponible}", normal_style)],
+        [Paragraph(f"<b>Monto IVA (16%):</b> ${factura.impuesto}", normal_style)],
+        [Paragraph(f"<b>Total a pagar:</b> ${factura.total}", ParagraphStyle('Total', parent=normal_style, fontSize=11, textColor=colors.HexColor('#1E293B'), fontName='Helvetica-Bold'))],
+        [Paragraph(f"<b>Abonado (adelanto):</b> ${monto_abonado}", normal_style)],
+        [Paragraph(f"<b>Saldo restante:</b> ${saldo_restante}", normal_style)],
+        [Paragraph(f"<b>Cantidad de servicios:</b> {len(servicios_qs)}", normal_style)],
+    ]
+
+    metodo = pago.metodo_pago if pago else '—'
+    ref = pago.referencia_pago if pago else '—'
+    pago_data = [
+        [Paragraph('<b>DETALLES DEL PAGO</b>', section_style)],
+        [Paragraph(f"<b>Metodo de pago:</b> {metodo}", normal_style)],
+        [Paragraph(f"<b>Banco origen:</b> Banco de Venezuela", normal_style)],
+        [Paragraph(f"<b>Referencia:</b> {ref}", normal_style)],
+    ]
+
+    totales_table = Table([[Table(totales_data, colWidths=[8*cm]), Table(pago_data, colWidths=[8*cm])]],
+                          colWidths=[8*cm, 8*cm])
+    totales_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    elements.append(totales_table)
+    elements.append(Spacer(1, 0.5*cm))
+
+    # ========== ESTADO Y FOOTER ==========
+    estado_color = {
+        'pagada': colors.HexColor('#059669'),
+        'emitida': colors.HexColor('#0070F3'),
+        'anulada': colors.HexColor('#DC2626'),
+    }.get(factura.estado, colors.HexColor('#64748B'))
+    elements.append(Paragraph(f"<b>ESTADO:</b> {factura.get_estado_display().upper()}",
+                              ParagraphStyle('Estado', parent=normal_style, fontSize=12, textColor=estado_color, fontName='Helvetica-Bold')))
+
     if factura.estado == 'anulada':
-        p.saveState()
-        p.setFillColorRGB(0.8, 0, 0)
-        p.setFont('Helvetica-Bold', 48)
-        p.translate(width / 2, height / 2)
-        p.rotate(35)
-        p.drawCentredString(0, 0, 'ANULADA')
-        p.restoreState()
+        elements.append(Spacer(1, 0.5*cm))
+        elements.append(Paragraph('*** DOCUMENTO ANULADO ***',
+                                  ParagraphStyle('Anulada', parent=normal_style, fontSize=24, textColor=colors.HexColor('#DC2626'),
+                                                 alignment=1, fontName='Helvetica-Bold')))
 
-    p.showPage()
-    p.save()
+    elements.append(Spacer(1, 1*cm))
+    elements.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#E2E8F0')))
+    elements.append(Paragraph('Healthy Life - Clinica medica | Gracias por confiar en nosotros',
+                              ParagraphStyle('Footer', parent=normal_style, fontSize=8, textColor=colors.HexColor('#94A3B8'), alignment=1)))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"factura-{factura.numero}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write(pdf)
+    return response
+
+
+@login_required
+def receta_pdf(request, cita_id):
+    """Genera y descarga la receta medica en PDF con datos reales."""
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
+    from citas.models import Recipe
+
+    cita = get_object_or_404(
+        Cita.objects.select_related('id_doctor', 'id_paciente', 'id_sede', 'id_especialidades'),
+        id_citas=cita_id,
+    )
+    receta = (
+        Recipe.objects.select_related(
+            'id_doctor', 'id_paciente', 'id_sede',
+            'id_Recipe_diagnostico', 'id_Recipe_tratamiento',
+            'id_Recipe_reposo', 'id_Recipe_medicamentos_especiales',
+            'id_Recipe_estudios', 'id_Recipes_ordenes_medicas',
+        )
+        .filter(id_cita__id_citas=cita_id)
+        .first()
+    )
+    consulta = None
+    try:
+        consulta = cita.consulta_medica
+    except ConsultaMedica.DoesNotExist:
+        pass
+    if not receta and not consulta:
+        messages.error(request, 'No hay receta disponible para descargar.')
+        return redirect('detalle_cita', cita_id=cita_id)
+
+    # Verificar propiedad si es paciente
+    if hasattr(request.user, 'id_user_paciente'):
+        paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=request.user).first()
+        if paciente and cita.id_paciente != paciente:
+            return HttpResponseForbidden('No tienes permiso para descargar esta receta.')
+
+    paciente = (receta.id_paciente if receta else None) or cita.id_paciente
+    doctor = (receta.id_doctor if receta else None) or cita.id_doctor
+    sede = (receta.id_sede if receta else None) or cita.id_sede
+    especialidad = cita.id_especialidades
+    if not especialidad and doctor and doctor.id_especialidad_doctor:
+        especialidad = Especialidad.objects.filter(id_especialidad=doctor.id_especialidad_doctor).first()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=2*cm, leftMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'],
+                                   fontSize=20, textColor=colors.HexColor('#0070F3'),
+                                   spaceAfter=4, alignment=1, fontName='Helvetica-Bold')
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                    fontSize=9, textColor=colors.HexColor('#64748B'),
+                                    spaceAfter=12, alignment=1)
+    section_style = ParagraphStyle('Section', parent=styles['Heading2'],
+                                   fontSize=11, textColor=colors.HexColor('#1E293B'),
+                                   spaceAfter=6, spaceBefore=12, fontName='Helvetica-Bold')
+    normal_style = styles['Normal']
+    normal_style.fontSize = 9
+
+    elements = []
+
+    # Header
+    elements.append(Paragraph('HEALTHY LIFE - RECETA MEDICA', title_style))
+    elements.append(Paragraph(f"Sede: {sede.nombre_sede if sede else 'Principal'}", subtitle_style))
+    elements.append(Spacer(1, 0.2*cm))
+    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#E2E8F0')))
+    elements.append(Spacer(1, 0.3*cm))
+
+    # Paciente + Doctor (2 columnas)
+    col1 = [
+        [Paragraph('<b>PACIENTE</b>', section_style)],
+        [Paragraph(f"<b>Nombre:</b> {str(paciente) if paciente else '—'}", normal_style)],
+        [Paragraph(f"<b>Cedula:</b> {paciente.cedula if paciente else '—'}", normal_style)],
+        [Paragraph(f"<b>Telefono:</b> {paciente.telefono if paciente else '—'}", normal_style)],
+    ]
+    fecha_emision = None
+    if receta and receta.fecha_emision:
+        fecha_emision = receta.fecha_emision
+    elif consulta and consulta.fecha_inicio:
+        fecha_emision = consulta.fecha_inicio
+
+    col2 = [
+        [Paragraph('<b>MEDICO</b>', section_style)],
+        [Paragraph(f"<b>Nombre:</b> {str(doctor) if doctor else '—'}", normal_style)],
+        [Paragraph(f"<b>Especialidad:</b> {especialidad.tipo_especialidad if especialidad else 'Medicina General'}", normal_style)],
+        [Paragraph(f"<b>Fecha:</b> {fecha_emision.strftime('%d/%m/%Y %H:%M') if fecha_emision else '—'}", normal_style)],
+    ]
+    elements.append(Table([[Table(col1, colWidths=[8*cm]), Table(col2, colWidths=[8*cm])]],
+                          colWidths=[8*cm, 8*cm],
+                          style=TableStyle([('VALIGN', (0,0), (-1,-1), 'TOP')])))
+    elements.append(Spacer(1, 0.3*cm))
+
+    def add_section(title, content, bg=colors.HexColor('#F7F9FC')):
+        if not content:
+            return
+        elements.append(Paragraph(f'<b>{title.upper()}</b>', section_style))
+        data = [[Paragraph(content.replace('\n', '<br/>'), normal_style)]]
+        t = Table(data, colWidths=[16*cm])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), bg),
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 0.2*cm))
+
+    # Secciones: usar Recipe preferentemente, ConsultaMedica como fallback
+    diag = None
+    if receta and receta.id_Recipe_diagnostico and receta.id_Recipe_diagnostico.diagnostico:
+        diag = receta.id_Recipe_diagnostico.diagnostico
+    elif consulta and consulta.diagnostico:
+        diag = consulta.diagnostico
+    if diag:
+        add_section('Diagnostico', diag)
+
+    trat = None
+    if receta and receta.id_Recipe_tratamiento and receta.id_Recipe_tratamiento.tratamiento_necesario:
+        trat = receta.id_Recipe_tratamiento.tratamiento_necesario
+    elif consulta and consulta.plan_tratamiento:
+        trat = consulta.plan_tratamiento
+    if trat:
+        add_section('Tratamiento / Medicamentos', trat)
+
+    meds = None
+    if receta and receta.id_Recipe_medicamentos_especiales and receta.id_Recipe_medicamentos_especiales.medicamentos_especiales:
+        meds = receta.id_Recipe_medicamentos_especiales.medicamentos_especiales
+    elif consulta and consulta.medicamentos:
+        meds = consulta.medicamentos
+    if meds:
+        add_section('Medicamentos especiales / Controlados', meds, bg=colors.HexColor('#FFFBEB'))
+
+    est = None
+    if receta and receta.id_Recipe_estudios and receta.id_Recipe_estudios.estudios_realizar:
+        est = receta.id_Recipe_estudios.estudios_realizar
+    elif consulta and consulta.estudios:
+        est = consulta.estudios
+    if est:
+        add_section('Estudios y examenes', est)
+
+    obs = None
+    if receta and receta.id_Recipes_ordenes_medicas and receta.id_Recipes_ordenes_medicas.ordenes_medicas:
+        obs = receta.id_Recipes_ordenes_medicas.ordenes_medicas
+    elif consulta and consulta.observaciones:
+        obs = consulta.observaciones
+    if obs:
+        add_section('Ordenes medicas y observaciones', obs)
+
+    rep = None
+    if receta and receta.id_Recipe_reposo and receta.id_Recipe_reposo.reposo:
+        rep = receta.id_Recipe_reposo.reposo
+    elif consulta and consulta.reposo:
+        rep = consulta.reposo
+    if rep:
+        add_section('Indicacion de reposo', rep, bg=colors.HexColor('#F0FDF4'))
+
+    # Footer
+    elements.append(Spacer(1, 0.5*cm))
+    elements.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#E2E8F0')))
+    elements.append(Paragraph('Healthy Life - Clinica medica | Esta receta tiene validez de 30 dias a partir de su emision.',
+                              ParagraphStyle('Footer', parent=normal_style, fontSize=8, textColor=colors.HexColor('#94A3B8'), alignment=1)))
+    id_firma = f'HL-{receta.id_recipes}-{fecha_emision.strftime("%Y%m%d%H%M%S")}' if receta and fecha_emision else f'HL-CITA-{cita_id}-{fecha_emision.strftime("%Y%m%d%H%M%S") if fecha_emision else ""}'
+    elements.append(Paragraph(f'ID de firma: {id_firma}',
+                              ParagraphStyle('Firma', parent=normal_style, fontSize=8, textColor=colors.HexColor('#64748B'), alignment=1)))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"receta-{receta.id_recipes if receta else cita_id}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write(pdf)
     return response
 
 

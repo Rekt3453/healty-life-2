@@ -4,217 +4,413 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal - Healthy Life</title>
+    <title>Gestion de Personal - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
     <style>
-        body { background: #f1f5f9; }
-        .page-header { background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%); }
-        .card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,.07); }
-        .badge-active   { background: #dcfce7; color: #166534; }
-        .badge-inactive { background: #fee2e2; color: #991b1b; }
-        .btn-edit { transition: all .2s; }
-        .btn-edit:hover { transform: translateY(-1px); }
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .badge-rol-medico{background:#DBEAFE;color:#2563EB;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-rol-recepcionista{background:#F3E8FF;color:#7C3AED;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-estado-activo{background:#D1FAE5;color:#059669;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-estado-inactivo{background:#FEE2E2;color:#DC2626;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .avatar{background:linear-gradient(135deg,rgba(0,112,243,.12),rgba(0,112,243,.06));color:var(--accent);}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fadeIn .4s ease both;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
+        @media(max-width:768px){.table-desktop{display:none;}.card-mobile{display:block;}}
+        .card-mobile{display:none;}
+        .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none;align-items:center;justify-content:center;}
+        .modal-backdrop.active{display:flex;}
+        .modal-box{background:var(--card-bg);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.15);border:1px solid var(--border);width:100%;max-width:420px;padding:24px;margin:16px;}
+        .dropdown-menu{position:absolute;right:0;top:100%;margin-top:4px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.08);min-width:180px;overflow:hidden;display:none;z-index:30;}
+        .dropdown-menu.active{display:block;}
+        .dropdown-item{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:.85rem;color:var(--text-primary);transition:background .15s;cursor:pointer;text-decoration:none;}
+        .dropdown-item:hover{background:rgba(0,112,243,.06);color:var(--accent);}
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<!-- Header -->
-<div class="page-header text-white py-6 px-6 mb-8">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold">Gestión de Personal</h1>
-            <p class="text-blue-200 text-sm mt-1">Sede: {{ sede }}</p>
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
+        </a>
+    </div>
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_gerente' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <a href="{% url 'lista_personal' %}" class="sidebar-link active">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Personal
+        </a>
+        <a href="{% url 'lista_especialidades' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            Especialidades
+        </a>
+        <a href="#" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Reportes
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Cerrar sesion
+        </a>
+    </div>
+</aside>
+
+<div class="dashboard-main">
+
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <span class="mx-2">/</span>
+                    <a href="{% url 'dashboard_gerente' %}" class="hover:underline">Panel de Gerencia</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">Personal</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Gestion de Personal</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Administra los profesionales y personal de la clinica</p>
+            </div>
         </div>
-        <div class="flex items-center space-x-3">
-            <a href="{% url 'registrar_doctor' %}"
-               class="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Registrar Doctor
-            </a>
-            <a href="{% url 'registrar_recepcionista' %}"
-               class="bg-blue-500 hover:bg-blue-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                + Registrar Recepcionista
-            </a>
-            <a href="{% url 'dashboard_gerente' %}"
-               class="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                <span>Dashboard</span>
-            </a>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-medium hidden sm:block" style="color:var(--text-secondary);">{% now "l, j \\d\\e F \\d\\e Y" %}</span>
+            <div class="relative">
+                <button class="btn-primary" onclick="toggleDropdown(event)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Agregar personal
+                </button>
+                <div id="addDropdown" class="dropdown-menu">
+                    <a href="{% url 'registrar_doctor' %}" class="dropdown-item">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Doctor
+                    </a>
+                    <a href="{% url 'registrar_recepcionista' %}" class="dropdown-item">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        Recepcionista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        {% if messages %}
+        <div class="mb-4 space-y-3 fade-in">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                {% if message.tags == 'error' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'success' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% else %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Busqueda y filtros -->
+        <div class="dashboard-card p-4 fade-in">
+            <div class="flex flex-col md:flex-row gap-3">
+                <div class="flex-1 relative">
+                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, email o telefono..." class="w-full pl-10 pr-4 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" style="border-color:var(--border);background:var(--card-bg);color:var(--text-primary);">
+                </div>
+                <select id="rolFilter" class="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-blue-500" style="border-color:var(--border);background:var(--card-bg);color:var(--text-primary);min-width:160px;">
+                    <option value="">Todos los roles</option>
+                    <option value="medico">Medico</option>
+                    <option value="recepcionista">Recepcionista</option>
+                </select>
+                <button onclick="clearFilters()" class="btn-secondary">Limpiar</button>
+            </div>
+        </div>
+
+        <!-- Tabla desktop -->
+        <div class="dashboard-card overflow-hidden fade-in table-desktop" style="animation-delay:.1s;">
+            <div class="overflow-x-auto">
+                <table class="min-w-full" id="staffTable">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--border);">
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Nombre</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Rol</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Contacto</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Especialidad</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Estado</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y" style="border-color:var(--border);">
+                        <!-- Doctores -->
+                        {% for doc in doctores %}
+                        <tr class="hover:bg-gray-50 transition staff-row" data-rol="medico" data-search="{{ doc.nombre_1|lower }} {{ doc.apellido_1|lower }} {{ doc.id_user_doctor.username|lower }} {{ doc.telefono|default:'' }}" style="border-color:var(--border);">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full avatar flex items-center justify-center font-bold text-sm flex-shrink-0">
+                                        {{ doc.nombre_1|first|upper }}{{ doc.apellido_1|first|upper }}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ doc.nombre_1 }} {{ doc.nombre_2|default:"" }} {{ doc.apellido_1 }} {{ doc.apellido_2|default:"" }}</p>
+                                        <p class="text-xs" style="color:var(--text-secondary);">{{ doc.id_user_doctor.username|default:"—" }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="badge-rol-medico">Medico</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <p class="text-sm" style="color:var(--text-primary);">{{ doc.id_user_doctor.email|default:"—" }}</p>
+                                <p class="text-xs" style="color:var(--text-secondary);">{{ doc.telefono|default:"—" }}</p>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color:var(--text-secondary);">
+                                {{ doc.especialidad_nombre|default:"—" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if doc.id_user_doctor.status %}
+                                <span class="badge-estado-activo">Activo</span>
+                                {% else %}
+                                <span class="badge-estado-inactivo">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'editar_doctor' doc.pk %}" class="p-2 rounded-lg hover:bg-blue-50 transition-colors" style="color:var(--accent);" title="Editar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    </a>
+                                    <button onclick="openDeleteModal('{{ doc.pk }}','{{ doc.nombre_1 }} {{ doc.apellido_1 }}','medico')" class="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-500" title="Eliminar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        <!-- Recepcionistas -->
+                        {% for rec in recepcionistas %}
+                        <tr class="hover:bg-gray-50 transition staff-row" data-rol="recepcionista" data-search="{{ rec.nombre_1|lower }} {{ rec.apellido_1|lower }} {{ rec.id_user_recepcionista.username|lower }} {{ rec.telefono|default:'' }}" style="border-color:var(--border);">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full avatar flex items-center justify-center font-bold text-sm flex-shrink-0">
+                                        {{ rec.nombre_1|first|upper }}{{ rec.apellido_1|first|upper }}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ rec.nombre_1 }} {{ rec.nombre_2|default:"" }} {{ rec.apellido_1 }} {{ rec.apellido_2|default:"" }}</p>
+                                        <p class="text-xs" style="color:var(--text-secondary);">{{ rec.id_user_recepcionista.username|default:"—" }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="badge-rol-recepcionista">Recepcionista</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <p class="text-sm" style="color:var(--text-primary);">{{ rec.id_user_recepcionista.email|default:"—" }}</p>
+                                <p class="text-xs" style="color:var(--text-secondary);">{{ rec.telefono|default:"—" }}</p>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color:var(--text-secondary);">—</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if rec.id_user_recepcionista.status %}
+                                <span class="badge-estado-activo">Activo</span>
+                                {% else %}
+                                <span class="badge-estado-inactivo">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'editar_recepcionista' rec.pk %}" class="p-2 rounded-lg hover:bg-blue-50 transition-colors" style="color:var(--accent);" title="Editar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    </a>
+                                    <button onclick="openDeleteModal('{{ rec.pk }}','{{ rec.nombre_1 }} {{ rec.apellido_1 }}','recepcionista')" class="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-500" title="Eliminar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not doctores and not recepcionistas %}
+                        <tr><td colspan="6" class="px-6 py-12 text-center text-sm" style="color:var(--text-secondary);">No hay personal registrado en esta sede.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Tarjetas mobile -->
+<div class="card-mobile space-y-3 fade-in" style="animation-delay:.15s;" id="mobileCards">
+    {% for doc in doctores %}
+    <div class="dashboard-card p-4 staff-row" data-rol="medico" data-search="{{ doc.nombre_1|lower }} {{ doc.apellido_1|lower }} {{ doc.id_user_doctor.username|lower }} {{ doc.telefono|default:'' }}">
+        <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full avatar flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    {{ doc.nombre_1|first|upper }}{{ doc.apellido_1|first|upper }}
+                </div>
+                <div>
+                    <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ doc.nombre_1 }} {{ doc.apellido_1 }}</p>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ doc.id_user_doctor.username|default:"—" }}</p>
+                </div>
+            </div>
+            <span class="badge-rol-medico">Medico</span>
+        </div>
+        <div class="space-y-1 mb-3">
+            <p class="text-xs" style="color:var(--text-secondary);"><span class="font-medium">Esp:</span> {{ doc.especialidad_nombre|default:"—" }}</p>
+            <p class="text-xs" style="color:var(--text-secondary);"><span class="font-medium">Tel:</span> {{ doc.telefono|default:"—" }}</p>
+        </div>
+        <div class="flex items-center justify-between">
+            {% if doc.id_user_doctor.status %}<span class="badge-estado-activo">Activo</span>{% else %}<span class="badge-estado-inactivo">Inactivo</span>{% endif %}
+            <div class="flex items-center gap-2">
+                <a href="{% url 'editar_doctor' doc.pk %}" class="p-2 rounded-lg hover:bg-blue-50 transition-colors" style="color:var(--accent);" title="Editar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </a>
+                <button onclick="openDeleteModal('{{ doc.pk }}','{{ doc.nombre_1 }} {{ doc.apellido_1 }}','medico')" class="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-500" title="Eliminar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% for rec in recepcionistas %}
+    <div class="dashboard-card p-4 staff-row" data-rol="recepcionista" data-search="{{ rec.nombre_1|lower }} {{ rec.apellido_1|lower }} {{ rec.id_user_recepcionista.username|lower }} {{ rec.telefono|default:'' }}">
+        <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full avatar flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    {{ rec.nombre_1|first|upper }}{{ rec.apellido_1|first|upper }}
+                </div>
+                <div>
+                    <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ rec.nombre_1 }} {{ rec.apellido_1 }}</p>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ rec.id_user_recepcionista.username|default:"—" }}</p>
+                </div>
+            </div>
+            <span class="badge-rol-recepcionista">Recepcionista</span>
+        </div>
+        <div class="space-y-1 mb-3">
+            <p class="text-xs" style="color:var(--text-secondary);"><span class="font-medium">Tel:</span> {{ rec.telefono|default:"—" }}</p>
+        </div>
+        <div class="flex items-center justify-between">
+            {% if rec.id_user_recepcionista.status %}<span class="badge-estado-activo">Activo</span>{% else %}<span class="badge-estado-inactivo">Inactivo</span>{% endif %}
+            <div class="flex items-center gap-2">
+                <a href="{% url 'editar_recepcionista' rec.pk %}" class="p-2 rounded-lg hover:bg-blue-50 transition-colors" style="color:var(--accent);" title="Editar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </a>
+                <button onclick="openDeleteModal('{{ rec.pk }}','{{ rec.nombre_1 }} {{ rec.apellido_1 }}','recepcionista')" class="p-2 rounded-lg hover:bg-red-50 transition-colors text-red-500" title="Eliminar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal eliminar -->
+<div id="deleteModal" class="modal-backdrop">
+    <div class="modal-box">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <div>
+                <h3 class="text-base font-bold" style="color:var(--text-primary);">Confirmar eliminacion</h3>
+                <p class="text-sm mt-0.5" style="color:var(--text-secondary);">Esta accion no se puede deshacer.</p>
+            </div>
+        </div>
+        <p class="text-sm mb-5" style="color:var(--text-primary);">¿Eliminar a <strong id="deleteTargetName"></strong>?</p>
+        <div class="flex items-center gap-3 justify-end">
+            <button onclick="closeDeleteModal()" class="btn-secondary">Cancelar</button>
+            <form id="deleteForm" method="post" action="#">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary" style="background:#DC2626;border-color:#DC2626;">Eliminar</button>
+            </form>
         </div>
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-6 pb-12">
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+function toggleDropdown(e){
+    e.stopPropagation();
+    document.getElementById('addDropdown').classList.toggle('active');
+}
+document.addEventListener('click',function(){
+    document.getElementById('addDropdown').classList.remove('active');
+});
 
-    <!-- Mensajes -->
-    {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg p-4 text-sm font-medium
-            {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
-            {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
-            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+// Filtros
+var searchInput=document.getElementById('searchInput');
+var rolFilter=document.getElementById('rolFilter');
+function applyFilters(){
+    var q=(searchInput.value||'').toLowerCase().trim();
+    var rol=rolFilter.value;
+    var rows=document.querySelectorAll('.staff-row');
+    rows.forEach(function(row){
+        var matchText=!q || (row.dataset.search||'').indexOf(q)!==-1;
+        var matchRol=!rol || row.dataset.rol===rol;
+        row.style.display=(matchText && matchRol)?'':'none';
+    });
+}
+searchInput.addEventListener('input',applyFilters);
+rolFilter.addEventListener('change',applyFilters);
+function clearFilters(){
+    searchInput.value='';
+    rolFilter.value='';
+    applyFilters();
+}
 
-    <!-- Doctores -->
-    <div class="card mb-8">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-800 flex items-center space-x-2">
-                <span class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
-                    </svg>
-                </span>
-                <span>Doctores</span>
-                <span class="ml-2 bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{{ doctores|length }}</span>
-            </h2>
-        </div>
-        {% if doctores %}
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-100">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre completo</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cédula</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Especialidad</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Teléfono</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-50">
-                    {% for doc in doctores %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-sm flex-shrink-0">
-                                    {{ doc.nombre_1|first|upper }}{{ doc.apellido_1|first|upper }}
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900">{{ doc.nombre_1 }} {{ doc.nombre_2|default:"" }} {{ doc.apellido_1 }} {{ doc.apellido_2|default:"" }}</p>
-                                    <p class="text-xs text-gray-400">{{ doc.id_user_doctor.username|default:"—" }}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {{ doc.tipo_cedula|default:"" }}-{{ doc.cedula|default:"—" }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {{ doc.especialidad_nombre|default:"—" }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ doc.telefono|default:"—" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            {% if doc.id_user_doctor.status %}
-                            <span class="badge-active text-xs font-semibold px-2.5 py-1 rounded-full">Activo</span>
-                            {% else %}
-                            <span class="badge-inactive text-xs font-semibold px-2.5 py-1 rounded-full">Inactivo</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <a href="{% url 'editar_doctor' doc.pk %}"
-                               class="btn-edit inline-flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                </svg>
-                                <span>Editar</span>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="px-6 py-12 text-center text-gray-400">
-            <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <p class="text-sm">No hay doctores registrados en esta sede.</p>
-            <a href="{% url 'registrar_doctor' %}" class="mt-3 inline-block text-green-600 hover:underline text-sm font-medium">Registrar el primero →</a>
-        </div>
-        {% endif %}
-    </div>
+// Modal
+function openDeleteModal(id,name,rol){
+    document.getElementById('deleteTargetName').textContent=name;
+    var form=document.getElementById('deleteForm');
+    // Ajustar action segun rol; dejar placeholder si no hay URL configurada
+    if(rol==='medico'){
+        form.action='#'; // TODO: conectar con URL eliminar_doctor reemplazando el ID
+    }else{
+        form.action='#'; // TODO: conectar con URL eliminar_recepcionista reemplazando el ID
+    }
+    document.getElementById('deleteModal').classList.add('active');
+}
+function closeDeleteModal(){
+    document.getElementById('deleteModal').classList.remove('active');
+}
+document.getElementById('deleteModal').addEventListener('click',function(e){
+    if(e.target===this) closeDeleteModal();
+});
 
-    <!-- Recepcionistas -->
-    <div class="card">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-800 flex items-center space-x-2">
-                <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                </span>
-                <span>Recepcionistas</span>
-                <span class="ml-2 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">{{ recepcionistas|length }}</span>
-            </h2>
-        </div>
-        {% if recepcionistas %}
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-100">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre completo</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cédula</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Teléfono</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-50">
-                    {% for rec in recepcionistas %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0">
-                                    {{ rec.nombre_1|first|upper }}{{ rec.apellido_1|first|upper }}
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900">{{ rec.nombre_1 }} {{ rec.nombre_2|default:"" }} {{ rec.apellido_1 }} {{ rec.apellido_2|default:"" }}</p>
-                                    <p class="text-xs text-gray-400">{{ rec.id_user_recepcionista.username|default:"—" }}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {{ rec.tipo_cedula|default:"" }}-{{ rec.cedula|default:"—" }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ rec.telefono|default:"—" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            {% if rec.id_user_recepcionista.status %}
-                            <span class="badge-active text-xs font-semibold px-2.5 py-1 rounded-full">Activo</span>
-                            {% else %}
-                            <span class="badge-inactive text-xs font-semibold px-2.5 py-1 rounded-full">Inactivo</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <a href="{% url 'editar_recepcionista' rec.pk %}"
-                               class="btn-edit inline-flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                </svg>
-                                <span>Editar</span>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="px-6 py-12 text-center text-gray-400">
-            <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <p class="text-sm">No hay recepcionistas registradas en esta sede.</p>
-            <a href="{% url 'registrar_recepcionista' %}" class="mt-3 inline-block text-blue-600 hover:underline text-sm font-medium">Registrar la primera →</a>
-        </div>
-        {% endif %}
-    </div>
+// Animacion
+(function(){
+    var cards=document.querySelectorAll('.fade-in');
+    cards.forEach(function(card,i){
+        card.style.animationDelay=(i*0.08)+'s';
+    });
+})();
+</script>
 
-</div>
 </body>
 </html>

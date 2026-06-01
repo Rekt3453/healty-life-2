@@ -41,6 +41,7 @@ urlpatterns = [
     path('perfil/doctor/', views.perfil_doctor, name='perfil_doctor'),
     path('dashboard/recepcionista/', views.dashboard_recepcionista, name='dashboard_recepcionista'),
     path('dashboard/gerente/', views.dashboard_gerente, name='dashboard_gerente'),
+    path('dashboard/gerente/reporte/pdf/', views.reporte_gerente_pdf, name='reporte_gerente_pdf'),
     path('dashboard/root/', views_root.dashboard_root, name='dashboard_root'),
     path('dashboard/super-admin/', views_superadmin.dashboard_superadmin, name='dashboard_superadmin'),
 
@@ -77,6 +78,7 @@ urlpatterns = [
     path('dashboard/gerente/especialidades/crear/', views.crear_especialidad, name='crear_especialidad'),
     path('dashboard/gerente/especialidades/<int:id_especialidad>/toggle/', views.toggle_especialidad_status, name='toggle_especialidad_status'),
     path('dashboard/gerente/especialidades/<int:id_especialidad>/editar/', views.editar_especialidad, name='editar_especialidad'),
+    path('dashboard/gerente/especialidades/<int:id_especialidad>/eliminar/', views.eliminar_especialidad, name='eliminar_especialidad'),
 
     # Horarios
     path('dashboard/gerente/horarios/', views.lista_horarios, name='lista_horarios'),

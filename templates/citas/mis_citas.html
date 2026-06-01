@@ -208,11 +208,6 @@
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                     Cancelar cita
                                 </button>
-                                {% elif cita.estado == 'atendida' %}
-                                <a href="{% url 'ver_receta' cita.id_citas %}" class="time-chip inline-flex items-center gap-1.5" style="border-color:rgba(16,185,129,0.2); background:rgba(16,185,129,0.04); color:#059669;">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    Ver receta
-                                </a>
                                 {% endif %}
                             </div>
                         </div>
