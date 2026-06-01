@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
@@ -16,6 +16,7 @@ from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio, ConsultaMedica, Factura,
     MovimientoCaja, HonorarioMedico, ServicioMedico, ConsultaServicio, CitaServicioSolicitado,
+    Recipe,
 )
 from .services import CitaService, FacturacionService
 from .reportes import ReportesService
@@ -887,15 +888,42 @@ def mis_facturas(request):
     paginator = Paginator(citas_qs, 10)
     page_obj  = paginator.get_page(request.GET.get('page', 1))
 
+    # Totales reales de facturas del paciente
+    total_facturas = 0
+    total_pagado = Decimal('0.00')
+    total_adeudado = Decimal('0.00')
+    facturas_pendientes = 0
+    if paciente:
+        citas_ids = list(citas_qs.values_list('id_citas', flat=True))
+        facturas_qs = Factura.objects.filter(id_cita__in=citas_ids)
+        total_facturas = facturas_qs.count()
+        total_pagado = (
+            facturas_qs.filter(estado=Factura.ESTADO_PAGADA)
+            .aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+        )
+        facturas_pendientes_qs = facturas_qs.exclude(
+            estado__in=[Factura.ESTADO_PAGADA, Factura.ESTADO_ANULADA]
+        )
+        total_adeudado = (
+            facturas_pendientes_qs.aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+        )
+        facturas_pendientes = facturas_pendientes_qs.count()
+        facturas_pagadas = facturas_qs.filter(estado=Factura.ESTADO_PAGADA).count()
+
     estados_choices = [
         ('pagado', 'Pagadas'),
         ('pendiente', 'Por pagar'),
         ('solicitada', 'En proceso'),
     ]
     return render(request, 'citas/mis_facturas.html', {
-        'page_obj':       page_obj,
-        'estados_choices': estados_choices,
-        'estado_actual':  estado_filtro,
+        'page_obj':            page_obj,
+        'estados_choices':     estados_choices,
+        'estado_actual':       estado_filtro,
+        'total_facturas':      total_facturas,
+        'total_pagado':        total_pagado,
+        'total_adeudado':      total_adeudado,
+        'facturas_pendientes': facturas_pendientes,
+        'facturas_pagadas':    facturas_pagadas,
     })
 
 
@@ -1158,6 +1186,44 @@ def realizar_receta(request, cita_id):
         'cita':         cita,
         'paciente':     paciente,
         'datos_medico': datos_medico,
+    })
+
+
+@login_required
+def ver_receta(request, cita_id):
+    """Muestra la receta médica en modo solo lectura para una cita dada.
+    Si no existe receta, muestra estado vacío amigable en lugar de 404."""
+    cita = get_object_or_404(
+        Cita.objects.select_related('id_doctor', 'id_paciente', 'id_sede', 'id_especialidades'),
+        id_citas=cita_id,
+    )
+    receta = (
+        Recipe.objects.select_related(
+            'id_cita', 'id_doctor', 'id_paciente', 'id_sede',
+            'id_Recipe_diagnostico', 'id_Recipe_tratamiento',
+            'id_Recipe_reposo', 'id_Recipe_medicamentos_especiales',
+            'id_Recipe_estudios', 'id_Recipes_ordenes_medicas',
+        )
+        .filter(id_cita__id_citas=cita_id)
+        .first()
+    )
+    # Fallback: si la receta no guardó paciente/doctor, usamos los de la cita
+    paciente = receta.id_paciente if receta and receta.id_paciente else cita.id_paciente
+    doctor   = receta.id_doctor   if receta and receta.id_doctor   else cita.id_doctor
+    sede     = receta.id_sede     if receta and receta.id_sede     else cita.id_sede
+    # Especialidad: la receta puede no tenerla; usamos la de la cita o buscamos por ID del doctor
+    especialidad = cita.id_especialidades
+    if not especialidad and doctor and doctor.id_especialidad_doctor:
+        especialidad = Especialidad.objects.filter(
+            id_especialidad=doctor.id_especialidad_doctor
+        ).first()
+    return render(request, 'citas/receta_detalle.html', {
+        'receta': receta,
+        'cita': cita,
+        'paciente': paciente,
+        'doctor': doctor,
+        'sede': sede,
+        'especialidad': especialidad,
     })
 
 

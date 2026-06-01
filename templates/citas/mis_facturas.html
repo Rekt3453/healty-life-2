@@ -133,18 +133,18 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div class="dashboard-card p-5">
                     <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Total adeudado</p>
-                    <p class="text-2xl font-extrabold mt-1" style="color:#DC2626;">$85.00</p>
-                    <p class="text-xs mt-1" style="color:#64748B;">2 facturas pendientes</p>
+                    <p class="text-2xl font-extrabold mt-1" style="color:#DC2626;">${{ total_adeudado|floatformat:2 }}</p>
+                    <p class="text-xs mt-1" style="color:#64748B;">{{ facturas_pendientes }} factura{{ facturas_pendientes|pluralize:"s" }} pendiente{{ facturas_pendientes|pluralize:"s" }}</p>
                 </div>
                 <div class="dashboard-card p-5">
-                    <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Total pagado (2025)</p>
-                    <p class="text-2xl font-extrabold mt-1" style="color:#059669;">$150.00</p>
-                    <p class="text-xs mt-1" style="color:#64748B;">3 facturas pagadas</p>
+                    <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Total pagado</p>
+                    <p class="text-2xl font-extrabold mt-1" style="color:#059669;">${{ total_pagado|floatformat:2 }}</p>
+                    <p class="text-xs mt-1" style="color:#64748B;">{{ facturas_pagadas }} factura{{ facturas_pagadas|pluralize:"s" }} pagada{{ facturas_pagadas|pluralize:"s" }}</p>
                 </div>
                 <div class="dashboard-card p-5">
                     <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Facturas totales</p>
-                    <p class="text-2xl font-extrabold mt-1" style="color:#1E293B;">5</p>
-                    <p class="text-xs mt-1" style="color:#64748B;">Últimos 12 meses</p>
+                    <p class="text-2xl font-extrabold mt-1" style="color:#1E293B;">{{ total_facturas }}</p>
+                    <p class="text-xs mt-1" style="color:#64748B;">Registradas en el sistema</p>
                 </div>
             </div>
 

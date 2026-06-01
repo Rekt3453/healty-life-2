@@ -69,7 +69,7 @@
             </a>
             <a href="{% url 'mis_facturas' %}" class="sidebar-nav-link">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
-                <span>Mis Recetas</span>
+                <span>Mis Facturas</span>
             </a>
             <a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -209,7 +209,7 @@
                                     Cancelar cita
                                 </button>
                                 {% elif cita.estado == 'atendida' %}
-                                <a href="#" class="time-chip inline-flex items-center gap-1.5" style="border-color:rgba(16,185,129,0.2); background:rgba(16,185,129,0.04); color:#059669;">
+                                <a href="{% url 'ver_receta' cita.id_citas %}" class="time-chip inline-flex items-center gap-1.5" style="border-color:rgba(16,185,129,0.2); background:rgba(16,185,129,0.04); color:#059669;">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     Ver receta
                                 </a>

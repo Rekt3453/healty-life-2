@@ -342,9 +342,7 @@ Volver a mis citas
 <button type="button" onclick="openModal('modalCancelar')" class="btn-danger">Cancelar cita</button>
 <a href="{% url 'solicitar_cita' %}" class="btn-secondary">Reprogramar cita</a>
 {% elif cita.estado == 'atendida' %}
-{% if consulta %}
-<button type="button" onclick="alert('Ver receta (simulado)')" class="btn-secondary">Ver receta</button>
-{% endif %}
+<a href="{% url 'ver_receta' cita.id_citas %}" class="btn-secondary">Ver receta</a>
 <a href="{% url 'historial_medico' %}" class="btn-secondary">Ver historial médico</a>
 <a href="{% url 'solicitar_cita' %}" class="btn-primary">Agendar nueva cita</a>
 {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' %}

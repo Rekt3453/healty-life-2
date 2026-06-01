@@ -60,7 +60,7 @@
             </a>
             <a href="{% url 'mis_facturas' %}" class="sidebar-nav-link">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
-                <span>Mis Recetas</span>
+                <span>Mis Facturas</span>
             </a>
             <a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -144,10 +144,6 @@
                             <a href="{% url 'detalle_cita' proxima_cita.id_citas %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 Ver Detalles
-                            </a>
-                            <a href="{% url 'mis_citas' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-white text-blue-700 hover:bg-blue-50 transition-colors shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                                Reprogramar
                             </a>
                             {% else %}
                             <a href="{% url 'solicitar_cita' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-white text-blue-700 hover:bg-blue-50 transition-colors shadow-sm">

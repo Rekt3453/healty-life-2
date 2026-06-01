@@ -22,11 +22,6 @@
         .sidebar-icon { width:20px; height:20px; flex-shrink:0; }
         .dashboard-card { background:#FFFFFF; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid rgba(0,0,0,0.04); transition:all .25s cubic-bezier(0.4,0,0.2,1); }
         .dashboard-card:hover { box-shadow:0 8px 24px rgba(0,0,0,0.08); }
-        .tab-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; border-radius:8px; font-size:0.85rem; font-weight:500; color:#64748B; cursor:pointer; border:none; background:transparent; transition:all .2s ease; white-space:nowrap; }
-        .tab-btn:hover { background:rgba(0,0,0,0.03); }
-        .tab-btn.active { color:#0070F3; background:rgba(0,112,243,0.06); }
-        .tab-panel { display:none; }
-        .tab-panel.active { display:block; }
         .input-modern { width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid #E2E8F0; font-size:0.9rem; color:#1E293B; background:#fff; transition:all .2s ease; outline:none; }
         .input-modern:focus { border-color:#0070F3; box-shadow:0 0 0 3px rgba(0,112,243,0.08); }
         .btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border-radius:10px; font-size:0.9rem; font-weight:600; color:#fff; background:#0070F3; border:none; cursor:pointer; transition:all .2s ease; }
@@ -81,7 +76,7 @@
             </a>
             <a href="{% url 'mis_facturas' %}" class="sidebar-nav-link">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
-                <span>Mis Recetas</span>
+                <span>Mis Facturas</span>
             </a>
             <a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -136,7 +131,7 @@
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="mb-6">
                 <h1 class="text-2xl font-extrabold tracking-tight" style="color:#1E293B;">Mi Historial Médico</h1>
-                <p class="text-sm font-medium mt-1" style="color:#64748B;">Consulta tus consultas, diagnósticos, recetas y documentos médicos</p>
+                <p class="text-sm font-medium mt-1" style="color:#64748B;">Consulta y actualiza tu información médica personal</p>
             </div>
 
             <!-- MENSAJES -->
@@ -148,32 +143,8 @@
             </div>
             {% endfor %}
 
-            <!-- TABS -->
-            <div class="flex gap-2 mb-6 overflow-x-auto pb-1">
-                <button onclick="switchTab('info')" id="tab-info" class="tab-btn active">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Información médica
-                </button>
-                <button onclick="switchTab('consultas')" id="tab-consultas" class="tab-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    Consultas
-                </button>
-                <button onclick="switchTab('diagnosticos')" id="tab-diagnosticos" class="tab-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    Diagnósticos
-                </button>
-                <button onclick="switchTab('recetas')" id="tab-recetas" class="tab-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                    Recetas
-                </button>
-                <button onclick="switchTab('documentos')" id="tab-documentos" class="tab-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Documentos
-                </button>
-            </div>
-
-            <!-- TAB 1: INFO MEDICA -->
-            <div id="panel-info" class="tab-panel active">
+            <!-- INFO MEDICA -->
+            <div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2">
                         <div class="dashboard-card p-6">
@@ -203,149 +174,8 @@
                     </div>
                 </div>
             </div>
-
-            <!-- TAB 2: CONSULTAS -->
-            <div id="panel-consultas" class="tab-panel">
-                <div class="dashboard-card p-6">
-                    <div class="flex items-center justify-between mb-5"><h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">Consultas pasadas</h2><select class="input-modern" style="width:auto;min-width:140px;"><option>2025</option><option>2024</option></select></div>
-                    <div class="space-y-4">
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(0,112,243,0.06);"><svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
-                                    <div><p class="text-sm font-semibold" style="color:#1E293B;">15 may 2025 — 09:30 AM</p><p class="text-xs" style="color:#64748B;">Dr. Carlos Méndez · Cardiología · Sede Centro</p><p class="text-xs mt-1" style="color:#94A3B8;">Motivo: Dolor torácico leve</p></div>
-                                </div>
-                                <div class="flex items-center gap-2"><span class="badge-green">Completada</span><button onclick="openModal('modal-consulta-1')" class="btn-ghost">Ver</button></div>
-                            </div>
-                        </div>
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(0,112,243,0.06);"><svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
-                                    <div><p class="text-sm font-semibold" style="color:#1E293B;">3 feb 2025 — 10:00 AM</p><p class="text-xs" style="color:#64748B;">Dra. Ana López · Medicina General · Sede Norte</p><p class="text-xs mt-1" style="color:#94A3B8;">Motivo: Control anual</p></div>
-                                </div>
-                                <div class="flex items-center gap-2"><span class="badge-green">Completada</span><button onclick="openModal('modal-consulta-2')" class="btn-ghost">Ver</button></div>
-                            </div>
-                        </div>
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(0,112,243,0.06);"><svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
-                                    <div><p class="text-sm font-semibold" style="color:#1E293B;">20 oct 2024 — 11:15 AM</p><p class="text-xs" style="color:#64748B;">Dr. Pedro Ruiz · Traumatología · Sede Centro</p><p class="text-xs mt-1" style="color:#94A3B8;">Motivo: Esguince de tobillo</p></div>
-                                </div>
-                                <div class="flex items-center gap-2"><span class="badge-green">Completada</span><button onclick="openModal('modal-consulta-3')" class="btn-ghost">Ver</button></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 3: DIAGNOSTICOS -->
-            <div id="panel-diagnosticos" class="tab-panel">
-                <div class="dashboard-card p-6">
-                    <h2 class="text-sm font-bold uppercase tracking-wide mb-5" style="color:#64748B;">Diagnósticos y tratamientos</h2>
-                    <div class="space-y-4">
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2"><span class="badge-blue">CIE-10: I10</span><span class="text-xs" style="color:#94A3B8;">15 may 2025</span></div>
-                                    <p class="text-sm font-semibold" style="color:#1E293B;">Hipertensión arterial esencial</p>
-                                    <p class="text-xs mt-1" style="color:#64748B;">Dr. Carlos Méndez · Cardiología</p>
-                                    <p class="text-xs mt-2" style="color:#1E293B;"><strong>Tratamiento:</strong> Enalapril 10mg cada 24h, dieta baja en sodio.</p>
-                                </div>
-                                <button onclick="alert('Receta: RX-2025-0342')" class="btn-ghost flex-shrink-0">Receta</button>
-                            </div>
-                        </div>
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2"><span class="badge-blue">CIE-10: M25.5</span><span class="text-xs" style="color:#94A3B8;">20 oct 2024</span></div>
-                                    <p class="text-sm font-semibold" style="color:#1E293B;">Esguince de ligamentos del tobillo</p>
-                                    <p class="text-xs mt-1" style="color:#64748B;">Dr. Pedro Ruiz · Traumatología</p>
-                                    <p class="text-xs mt-2" style="color:#1E293B;"><strong>Tratamiento:</strong> Inmovilización 2 semanas, Ibuprofeno 400mg c/8h.</p>
-                                </div>
-                                <button onclick="alert('Receta: RX-2024-0128')" class="btn-ghost flex-shrink-0">Receta</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 4: RECETAS -->
-            <div id="panel-recetas" class="tab-panel">
-                <div class="dashboard-card p-6">
-                    <h2 class="text-sm font-bold uppercase tracking-wide mb-5" style="color:#64748B;">Recetas médicas</h2>
-                    <div class="space-y-4">
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2"><span class="badge-gray">RX-2025-0342</span><span class="text-xs" style="color:#94A3B8;">15 may 2025</span></div>
-                                    <p class="text-xs" style="color:#64748B;">Dr. Carlos Méndez · Cardiología</p>
-                                    <ul class="mt-2 space-y-1"><li class="text-sm" style="color:#1E293B;">• Enalapril 10mg — 1 cada 24h (30 días)</li><li class="text-sm" style="color:#1E293B;">• Losartán 50mg — 1 cada 24h (30 días)</li></ul>
-                                    <p class="text-xs mt-2" style="color:#94A3B8;">Instrucciones: Tomar con el desayuno.</p>
-                                </div>
-                                <button onclick="alert('Descarga simulada: RX-2025-0342.pdf')" class="btn-ghost flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF</button>
-                            </div>
-                        </div>
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2"><span class="badge-gray">RX-2024-0128</span><span class="text-xs" style="color:#94A3B8;">20 oct 2024</span></div>
-                                    <p class="text-xs" style="color:#64748B;">Dr. Pedro Ruiz · Traumatología</p>
-                                    <ul class="mt-2 space-y-1"><li class="text-sm" style="color:#1E293B;">• Ibuprofeno 400mg — 1 c/8h (5 días)</li><li class="text-sm" style="color:#1E293B;">• Paracetamol 500mg — 1 c/6h (3 días)</li></ul>
-                                    <p class="text-xs mt-2" style="color:#94A3B8;">Instrucciones: Tomar después de comidas.</p>
-                                </div>
-                                <button onclick="alert('Descarga simulada: RX-2024-0128.pdf')" class="btn-ghost flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF</button>
-                            </div>
-                        </div>
-                        <div class="p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2"><span class="badge-gray">RX-2024-0091</span><span class="text-xs" style="color:#94A3B8;">3 feb 2025</span></div>
-                                    <p class="text-xs" style="color:#64748B;">Dra. Ana López · Medicina General</p>
-                                    <ul class="mt-2 space-y-1"><li class="text-sm" style="color:#1E293B;">• Vitamina D 2000 UI — 1 diaria (90 días)</li><li class="text-sm" style="color:#1E293B;">• Omeprazol 20mg — 1 en ayunas (14 días)</li></ul>
-                                    <p class="text-xs mt-2" style="color:#94A3B8;">Instrucciones: Laboratorio en 3 meses.</p>
-                                </div>
-                                <button onclick="alert('Descarga simulada: RX-2024-0091.pdf')" class="btn-ghost flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 5: DOCUMENTOS -->
-            <div id="panel-documentos" class="tab-panel">
-                <div class="dashboard-card p-6">
-                    <div class="flex items-center justify-between mb-5">
-                        <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">Documentos adjuntos</h2>
-                        <button type="button" onclick="document.getElementById('docUpload').click()" class="btn-primary"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>Subir</button>
-                        <input type="file" id="docUpload" class="hidden" accept=".pdf,.jpg,.png">
-                    </div>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(239,68,68,0.06);"><svg class="w-5 h-5" style="color:#DC2626;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></div>
-                                <div><p class="text-sm font-semibold" style="color:#1E293B;">Resultados_Lab_Mayo2025.pdf</p><p class="text-xs" style="color:#94A3B8;">PDF · 1.2 MB · 18 may 2025</p></div>
-                            </div>
-                            <button onclick="alert('Descarga simulada')" class="btn-ghost">Descargar</button>
-                        </div>
-                        <div class="flex items-center justify-between p-4 rounded-xl" style="background:#F8FAFC;border:1px solid #E2E8F0;">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(59,130,246,0.06);"><svg class="w-5 h-5" style="color:#3B82F6;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
-                                <div><p class="text-sm font-semibold" style="color:#1E293B;">Radiografia_Tobillo_2024.jpg</p><p class="text-xs" style="color:#94A3B8;">Imagen · 3.4 MB · 22 oct 2024</p></div>
-                            </div>
-                            <button onclick="alert('Descarga simulada')" class="btn-ghost">Descargar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
-
-    <!-- MODALES -->
-    <div id="modal-consulta-1" class="modal-overlay" onclick="if(event.target===this)closeModal(this.id)"><div class="modal-card"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold" style="color:#1E293B;">Detalle de consulta</h3><button onclick="closeModal('modal-consulta-1')" class="btn-ghost">✕</button></div><div class="space-y-3"><p class="text-sm" style="color:#64748B;"><strong>Fecha:</strong> 15 de mayo, 2025 — 09:30 AM</p><p class="text-sm" style="color:#64748B;"><strong>Médico:</strong> Dr. Carlos Méndez (Cardiología)</p><p class="text-sm" style="color:#64748B;"><strong>Sede:</strong> Sede Centro</p><p class="text-sm" style="color:#64748B;"><strong>Motivo:</strong> Dolor torácico leve y palpitaciones.</p><p class="text-sm" style="color:#64748B;"><strong>Notas:</strong> ECG normal. Control de presión.</p></div></div></div>
-    <div id="modal-consulta-2" class="modal-overlay" onclick="if(event.target===this)closeModal(this.id)"><div class="modal-card"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold" style="color:#1E293B;">Detalle de consulta</h3><button onclick="closeModal('modal-consulta-2')" class="btn-ghost">✕</button></div><div class="space-y-3"><p class="text-sm" style="color:#64748B;"><strong>Fecha:</strong> 3 de febrero, 2025 — 10:00 AM</p><p class="text-sm" style="color:#64748B;"><strong>Médico:</strong> Dra. Ana López (Medicina General)</p><p class="text-sm" style="color:#64748B;"><strong>Sede:</strong> Sede Norte</p><p class="text-sm" style="color:#64748B;"><strong>Motivo:</strong> Control anual.</p><p class="text-sm" style="color:#64748B;"><strong>Notas:</strong> Vitamina D baja, suplementar.</p></div></div></div>
-    <div id="modal-consulta-3" class="modal-overlay" onclick="if(event.target===this)closeModal(this.id)"><div class="modal-card"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold" style="color:#1E293B;">Detalle de consulta</h3><button onclick="closeModal('modal-consulta-3')" class="btn-ghost">✕</button></div><div class="space-y-3"><p class="text-sm" style="color:#64748B;"><strong>Fecha:</strong> 20 de octubre, 2024 — 11:15 AM</p><p class="text-sm" style="color:#64748B;"><strong>Médico:</strong> Dr. Pedro Ruiz (Traumatología)</p><p class="text-sm" style="color:#64748B;"><strong>Sede:</strong> Sede Centro</p><p class="text-sm" style="color:#64748B;"><strong>Motivo:</strong> Esguince de tobillo derecho.</p><p class="text-sm" style="color:#64748B;"><strong>Notas:</strong> Radiografía sin fractura. Yeso por 2 semanas.</p></div></div></div>
 
     <script>
         function toggleSidebar() {
@@ -369,13 +199,6 @@
                 document.getElementById('userMenuBtn').setAttribute('aria-expanded', 'false');
             }
         });
-
-        function switchTab(name) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById('tab-' + name).classList.add('active');
-            document.getElementById('panel-' + name).classList.add('active');
-        }
 
         function openModal(id) {
             document.getElementById(id).classList.add('active');
