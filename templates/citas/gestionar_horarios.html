@@ -155,10 +155,10 @@
                             {% for semana in calendario %}
                                 {% for celda in semana %}
                                     {% if celda %}
-                                        <div {% if not celda.es_pasado_o_hoy %}onclick="abrirModal('{{ celda.fecha_iso }}', {{ celda.mañana|yesno:'true,false' }}, {{ celda.tarde|yesno:'true,false' }})"{% endif %}
+                                        <div {% if not celda.es_pasado_o_hoy and not celda.es_hoy %}onclick="abrirModal('{{ celda.fecha_iso }}', {{ celda.mañana|yesno:'true,false' }}, {{ celda.tarde|yesno:'true,false' }})"{% endif %}
                                              class="relative rounded-lg border p-3 min-h-[90px] transition-all
-                                                {% if celda.es_pasado_o_hoy %}opacity-60 cursor-not-allowed bg-gray-300 border-gray-400{% else %}cursor-pointer hover:shadow-md{% endif %}
-                                                {% if not celda.es_pasado_o_hoy %}{% if celda.es_hoy %}bg-blue-100 border-blue-500 border-2{% elif celda.trabaja %}bg-green-100 border-green-300{% else %}bg-amber-50 border-amber-200{% endif %}{% endif %}">
+                                                {% if celda.es_pasado_o_hoy %}opacity-60 cursor-not-allowed bg-gray-300 border-gray-400{% elif celda.es_hoy %}bg-blue-100 border-blue-500 border-2 cursor-not-allowed{% else %}cursor-pointer hover:shadow-md{% endif %}
+                                                {% if not celda.es_pasado_o_hoy and not celda.es_hoy %}{% if celda.trabaja %}bg-green-100 border-green-300{% else %}bg-amber-50 border-amber-200{% endif %}{% endif %}">
                                             <div class="text-right">
                                                 <span class="inline-flex items-center justify-center w-7 h-7 text-sm font-medium rounded-full
                                                     {% if celda.es_hoy %}bg-blue-500 text-white{% else %}text-gray-700{% endif %}">

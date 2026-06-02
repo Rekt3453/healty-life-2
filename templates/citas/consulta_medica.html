@@ -163,10 +163,17 @@ Volver a mis citas
 <p class="text-gray-900">{{ cita.id_paciente.telefono|default:"+58 412-1234567" }}</p>
 <p class="text-gray-900 text-sm">{{ cita.id_paciente.email|default:"paciente@email.com" }}</p>
 </div>
+{% if alergias %}
 <div class="p-3 bg-red-50 border border-red-100 rounded-lg">
 <p class="text-xs font-medium text-red-700 uppercase tracking-wide">Alergias conocidas</p>
-<p class="text-red-900 text-sm font-medium mt-1">{{ cita.id_paciente.alergias|default:"Penicilina, Ibuprofeno" }}</p>
+<p class="text-red-900 text-sm font-medium mt-1">{% for a in alergias %}{{ a.alergias }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
 </div>
+{% else %}
+<div class="p-3 bg-gray-50 border border-gray-100 rounded-lg">
+<p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Alergias conocidas</p>
+<p class="text-gray-700 text-sm mt-1">Ninguna registrada</p>
+</div>
+{% endif %}
 <div>
 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Motivo de la consulta</p>
 <p class="text-gray-900 text-sm mt-1">{{ cita.motivo|default:"Dolor abdominal recurrente y náuseas." }}</p>
@@ -185,16 +192,31 @@ Volver a mis citas
 <svg id="icon-historial" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
 </button>
 <div id="historial" class="collapsible-content mt-4">
-<div class="space-y-3 text-sm">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
 <div class="p-3 bg-gray-50 rounded-lg">
-<p class="font-medium text-gray-900">15/05/2026 — Dr. Carlos Pérez</p>
-<p class="text-gray-600">Gastroenteritis aguda. Tratamiento con hidratación oral.</p>
+<p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Tipo de sangre</p>
+<p class="font-semibold text-gray-900">{{ tipo_sangre.tipo_sangre|default:"Sin registrar" }}</p>
 </div>
 <div class="p-3 bg-gray-50 rounded-lg">
-<p class="font-medium text-gray-900">02/02/2026 — Dra. Ana Ruiz</p>
-<p class="text-gray-600">Control de presión arterial. PA: 130/85. Sin cambios.</p>
+<p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Enfermedades crónicas</p>
+{% if enfermedades %}
+<ul class="list-disc list-inside text-gray-900 space-y-1">
+{% for e in enfermedades %}<li>{{ e.enfermedades }}</li>{% endfor %}
+</ul>
+{% else %}
+<p class="text-gray-600">Ninguna registrada</p>
+{% endif %}
 </div>
-<a href="#" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 mt-2">Ver historial completo<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
+<div class="p-3 bg-gray-50 rounded-lg md:col-span-2">
+<p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Alergias</p>
+{% if alergias %}
+<div class="flex flex-wrap gap-2">
+{% for a in alergias %}<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ a.alergias }}</span>{% endfor %}
+</div>
+{% else %}
+<p class="text-gray-600">Ninguna registrada</p>
+{% endif %}
+</div>
 </div>
 </div>
 </div>
@@ -314,7 +336,6 @@ Registro médico
 Recetas médicas
 </h3>
 <div class="flex items-center gap-3">
-<a href="#" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Ver recetas anteriores</a>
 <button type="button" onclick="addMedicamento()" class="btn-primary text-sm">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
 Agregar medicamento
@@ -324,15 +345,9 @@ Agregar medicamento
 <div id="medicamentos-list" class="space-y-3">
 <div class="text-sm text-gray-500 text-center py-4" id="empty-meds">No hay medicamentos agregados.</div>
 </div>
-<div class="mt-4 flex items-center gap-3">
-<button type="button" onclick="syncMedicamentosToTextarea()" class="text-sm text-blue-600 font-medium hover:text-blue-700">Sincronizar al resumen</button>
-<span class="text-gray-300">|</span>
-<button type="button" onclick="generateRecetaPDF()" class="text-sm text-gray-600 font-medium hover:text-gray-900">Generar receta PDF</button>
-</div>
 <div class="mt-4">
 <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Resumen de medicamentos (texto libre)</label>
 {{ form.medicamentos }}
-</div>
 </div>
 
 <!-- Acciones finales -->
@@ -432,10 +447,10 @@ const row = document.createElement('div');
 row.className = 'med-row p-3 bg-gray-50 rounded-lg border border-gray-100';
 row.dataset.index = medCount;
 row.innerHTML = `
-<div><label class="text-xs text-gray-500 block sm:hidden">Medicamento</label><input type="text" class="input-field" placeholder="Ej. Paracetamol" data-field="nombre"></div>
-<div><label class="text-xs text-gray-500 block sm:hidden">Dosis</label><input type="text" class="input-field" placeholder="500 mg" data-field="dosis"></div>
-<div><label class="text-xs text-gray-500 block sm:hidden">Frecuencia</label><input type="text" class="input-field" placeholder="Cada 8h" data-field="frecuencia"></div>
-<div><label class="text-xs text-gray-500 block sm:hidden">Duración</label><input type="text" class="input-field" placeholder="7 días" data-field="duracion"></div>
+<div><label class="text-xs text-gray-500 block sm:hidden">Medicamento</label><input type="text" class="input-field" placeholder="Ej. Paracetamol" data-field="nombre" maxlength="100" oninput="this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.\-/]/g, '').slice(0,100)"></div>
+<div><label class="text-xs text-gray-500 block sm:hidden">Dosis</label><input type="text" class="input-field" placeholder="500 mg" data-field="dosis" maxlength="100" oninput="this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.\-/]/g, '').slice(0,100)"></div>
+<div><label class="text-xs text-gray-500 block sm:hidden">Frecuencia</label><input type="text" class="input-field" placeholder="Cada 8h" data-field="frecuencia" maxlength="100" oninput="this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.\-/]/g, '').slice(0,100)"></div>
+<div><label class="text-xs text-gray-500 block sm:hidden">Duración</label><input type="text" class="input-field" placeholder="7 días" data-field="duracion" maxlength="100" oninput="this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.\-/]/g, '').slice(0,100)"></div>
 <div class="med-actions"><button type="button" onclick="removeMedicamento(this)" class="text-red-500 hover:text-red-700 text-sm font-medium" title="Eliminar">✕</button></div>
 `;
 medList.appendChild(row);

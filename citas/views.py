@@ -17,7 +17,7 @@ from .models import (
     Cita, PagoCita, Sede, Especialidad, Horario,
     ServicioEspecialidad, EspecialidadDoctor, Consultorio, ConsultaMedica, Factura,
     MovimientoCaja, HonorarioMedico, ServicioMedico, ConsultaServicio, CitaServicioSolicitado,
-    Recipe,
+    Recipe, HistorialMedicoPaciente,
 )
 from .services import CitaService, FacturacionService
 from .reportes import ReportesService
@@ -265,7 +265,8 @@ def citas_pendientes_medico(request):
         conteo_completadas = base_conteo.filter(
             estado=Cita.ESTADO_ATENDIDA
         ).count()
-        conteo_canceladas = base_conteo.filter(
+        conteo_canceladas = Cita.objects.filter(
+            id_doctor=datos_medico,
             estado__in=[Cita.ESTADO_CANCELADA, Cita.ESTADO_RECHAZADA, Cita.ESTADO_NO_ASISTIO]
         ).count()
 
@@ -416,7 +417,7 @@ def gestionar_horarios(request):
                     'tarde': disp.turno_tarde if disp else False,
                     'trabaja': (disp.turno_mañana or disp.turno_tarde) if disp else False,
                     'es_hoy': dia_fecha == hoy,
-                    'es_pasado_o_hoy': dia_fecha <= hoy,
+                    'es_pasado_o_hoy': dia_fecha < hoy,
                 })
         calendario_semanas.append(fila)
 
@@ -1311,6 +1312,31 @@ def iniciar_consulta(request, cita_id):
         messages.error(request, "No puedes iniciar consulta de una cita que no te pertenece.")
         return redirect('citas_pendientes_medico')
 
+    # Historial médico del paciente
+    paciente = cita.id_paciente
+    # Soporte para managed=False: la columna puede existir en BD aunque no esté declarada
+    paciente_especial = getattr(cita, 'id_paciente_especial', None)
+
+    historial = None
+    alergias = []
+    enfermedades = []
+    tipo_sangre = None
+
+    if paciente:
+        historial = HistorialMedicoPaciente.objects.filter(
+            id_paciente=paciente
+        ).select_related('id_tipo_sangre').first()
+
+    if not historial and paciente_especial:
+        historial = HistorialMedicoPaciente.objects.filter(
+            id_paciente_especial=paciente_especial
+        ).select_related('id_tipo_sangre').first()
+
+    if historial:
+        alergias = list(historial.alergias.all())
+        enfermedades = list(historial.enfermedades.all())
+        tipo_sangre = historial.id_tipo_sangre
+
     try:
         consulta, _ = CitaService.iniciar_consulta(request.user, cita)
     except PermissionError as e:
@@ -1376,6 +1402,11 @@ def iniciar_consulta(request, cita_id):
                 if total_servicios > 0:
                     _generar_o_actualizar_factura_consulta(cita, consulta, total_servicios)
 
+            # Guardar borrador: solo persistir, sin cerrar consulta
+            if request.POST.get('guardar_borrador') == '1':
+                messages.success(request, 'Borrador guardado correctamente.')
+                return redirect('iniciar_consulta', cita_id=cita_id)
+
             try:
                 CitaService.cerrar_consulta(request.user, cita)
                 registrar_evento(
@@ -1405,6 +1436,9 @@ def iniciar_consulta(request, cita_id):
         'servicios_doctor': servicios_doctor,
         'servicios_seleccionados': servicios_seleccionados,
         'preseleccion_paciente': preseleccion_paciente,
+        'alergias': alergias,
+        'enfermedades': enfermedades,
+        'tipo_sangre': tipo_sangre,
     })
 
 
