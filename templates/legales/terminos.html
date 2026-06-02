@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones — Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+</head>
+<body class="hl-redesign bg-gray-50">
+{% include 'partials/_header_public.html' %}
+
+<main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="hl-card p-8 md:p-10">
+        <h1 class="text-2xl font-bold mb-6" style="color: #1E293B;">Términos y Condiciones de Uso</h1>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">1. Aceptación de los términos</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Al acceder y utilizar los servicios de Healthy Life, usted acepta cumplir con estos términos y condiciones. Si no está de acuerdo, le solicitamos no utilizar nuestra plataforma.
+            </p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">2. Servicios ofrecidos</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Healthy Life ofrece una plataforma para la gestión de citas médicas, consulta de historiales y comunicación con el personal de salud. No sustituye la atención médica de emergencia; en caso de urgencia, acuda directamente a una sala de emergencias o llame a nuestros números de contacto.
+            </p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">3. Responsabilidades del usuario</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Usted es responsable de mantener la confidencialidad de su cuenta y contraseña. Debe proporcionar información veraz y actualizada. El uso indebido de la plataforma puede resultar en la suspensión de su acceso.
+            </p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">4. Cancelaciones y reprogramaciones</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Las citas pueden cancelarse o reprogramarse con al menos 24 horas de anticipación. El incumplimiento repetido puede generar restricciones en el sistema de agendamiento.
+            </p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">5. Limitación de responsabilidad</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Healthy Life no se hace responsable por fallas técnicas ajenas a nuestra operación, ni por decisiones médicas tomadas por terceros. La plataforma es una herramienta de apoyo a la gestión, no un servicio de diagnóstico.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">6. Modificaciones</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigor desde su publicación en esta página.
+            </p>
+        </section>
+
+        <p class="text-xs mt-8 pt-6 border-t" style="color: #94A3B8; border-color: #E2E8F0;">
+            Última actualización: junio 2026.
+        </p>
+    </div>
+</main>
+
+{% include 'partials/_footer.html' %}
+</body>
+</html>

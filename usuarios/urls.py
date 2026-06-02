@@ -114,4 +114,8 @@ urlpatterns = [
     path('ajax/validar-username/', views.validar_username, name='validar_username'),
     path('ajax/validar-email/', views.validar_email, name='validar_email'),
     path('ajax/validar-cedula/', views.validar_cedula, name='validar_cedula'),
+
+    # Legales
+    path('privacidad/', views.privacidad, name='privacidad'),
+    path('terminos/', views.terminos, name='terminos'),
 ]

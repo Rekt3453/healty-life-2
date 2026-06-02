@@ -2243,3 +2243,11 @@ def activar_cuenta(request, user_id, token):
         'user_id': user_id,
         'token': token,
     })
+
+
+def privacidad(request):
+    return render(request, 'legales/privacidad.html')
+
+
+def terminos(request):
+    return render(request, 'legales/terminos.html')
