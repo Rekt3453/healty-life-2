@@ -81,6 +81,7 @@ def solicitar_cita(request):
         'manana': (date.today() + timedelta(days=1)).isoformat(),
         'paciente': paciente,
         'menores': menores,
+        'especialidad_preseleccionada': request.GET.get('especialidad', ''),
     })
 
 

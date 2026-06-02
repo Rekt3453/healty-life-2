@@ -46,12 +46,17 @@ def home(request):
             'id_direccion__id_estado', 'id_direccion__id_ciudad'
         ))
     ).order_by('id_cm')
-    return render(request, 'home.html', {'centros': centros})
+    from citas.models import Especialidad
+    especialidades = Especialidad.objects.filter(status=True).order_by('tipo_especialidad')
+    return render(request, 'home.html', {'centros': centros, 'especialidades': especialidades})
 
 def login_rol(request, rol_esperado, template_name, dashboard_name):
+    from django.utils.http import url_has_allowed_host_and_scheme
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
+
     if request.user.is_authenticated:
-        return redirect(dashboard_name)
-    
+        return redirect(next_url if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None) else dashboard_name)
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -106,6 +111,8 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
                     request=request,
                 )
                 messages.success(request, f"Bienvenido {user.username}")
+                if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+                    return redirect(next_url)
                 return redirect(dashboard_name)
             else:
                 messages.error(request, f"Esta cuenta no tiene perfil de {rol_esperado}. Tu rol es: {user_rol}")
@@ -118,7 +125,7 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
                 messages.error(request, "Credenciales incorrectas")
             logger.debug(f"Credenciales incorrectas para {username}")
 
-    return render(request, template_name)
+    return render(request, template_name, {'next': next_url})
 def login_paciente(request):
     return login_rol(request, 'paciente', 'usuarios/login_paciente.html', 'dashboard_paciente')
 

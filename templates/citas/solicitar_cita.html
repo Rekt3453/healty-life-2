@@ -411,6 +411,7 @@
 <script>
 let currentStep = 1;
 const state = { sedeId:'', sedeNombre:'', especialidadId:'', especialidadNombre:'', medicoId:'', medicoNombre:'', fecha:'', hora:'' };
+const ESPECIALIDAD_PRESELECCIONADA = '{{ especialidad_preseleccionada|default:"" }}';
 
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
@@ -510,6 +511,20 @@ function cargarEspecialidades() {
       if (data.error) { empty.classList.remove('hidden'); empty.querySelector('p').textContent = 'Error: ' + data.error; return; }
       if (!data.length) { empty.classList.remove('hidden'); return; }
       data.forEach(esp => { grid.insertAdjacentHTML('beforeend', renderEspCard(esp)); });
+      // Auto-select preselected specialty if present in loaded list
+      if (ESPECIALIDAD_PRESELECCIONADA) {
+        const preId = String(ESPECIALIDAD_PRESELECCIONADA);
+        const found = data.find(esp => String(esp.id) === preId);
+        if (found) {
+          const cards = grid.querySelectorAll('.selectable-card');
+          cards.forEach(card => {
+            const onclickAttr = card.getAttribute('onclick') || '';
+            if (onclickAttr.includes("'" + preId + "'")) {
+              card.click();
+            }
+          });
+        }
+      }
     })
     .catch(err => { spinner.classList.add('hidden'); empty.classList.remove('hidden'); console.error(err); });
 }

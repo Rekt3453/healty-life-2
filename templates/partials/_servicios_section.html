@@ -14,84 +14,32 @@
         </div>
 
         <!-- Grid de Servicios -->
+        {% load user_tags %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Medicina General -->
+            {% for esp in especialidades %}
             <div class="hl-card p-6 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-colors" style="background: rgba(0,112,243,0.08);">
                     <svg class="w-6 h-6" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                 </div>
-                <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">Medicina General</h3>
-                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Atención primaria, chequeos preventivos y seguimiento de enfermedades crónicas.</p>
-                <a href="#" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                    Agendar cita
-                    <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
+                <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">{{ esp.tipo_especialidad|default:"Especialidad" }}</h3>
+                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Consulta especializada en {{ esp.tipo_especialidad|default:"medicina" }}. Atención profesional y personalizada.</p>
+                {% if user.is_authenticated and user|has_role:"paciente" %}
+                    <a href="{% url 'solicitar_cita' %}?especialidad={{ esp.id_especialidad }}" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
+                        Agendar cita
+                        <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login_paciente' %}?next={% url 'solicitar_cita' %}%3Fespecialidad%3D{{ esp.id_especialidad }}" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
+                        Agendar cita
+                        <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                {% endif %}
             </div>
-
-            <!-- Cardiología -->
-            <div class="hl-card p-6 group cursor-pointer">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-colors" style="background: rgba(0,112,243,0.08);">
-                    <svg class="w-6 h-6" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">Cardiología</h3>
-                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Evaluación cardiovascular, ecocardiogramas y tratamiento de enfermedades del corazón.</p>
-                <a href="#" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                    Agendar cita
-                    <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-sm" style="color: #64748B;">No hay especialidades disponibles en este momento.</p>
             </div>
-
-            <!-- Pediatría -->
-            <div class="hl-card p-6 group cursor-pointer">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-colors" style="background: rgba(0,112,243,0.08);">
-                    <svg class="w-6 h-6" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">Pediatría</h3>
-                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Cuidado integral de niños desde recién nacidos hasta adolescentes.</p>
-                <a href="#" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                    Agendar cita
-                    <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
-
-            <!-- Ginecología -->
-            <div class="hl-card p-6 group cursor-pointer">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-colors" style="background: rgba(0,112,243,0.08);">
-                    <svg class="w-6 h-6" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">Ginecología</h3>
-                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Salud femenina, control prenatal, colposcopía y tratamiento de enfermedades ginecológicas.</p>
-                <a href="#" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                    Agendar cita
-                    <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
-
-            <!-- Ortopedia -->
-            <div class="hl-card p-6 group cursor-pointer">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-colors" style="background: rgba(0,112,243,0.08);">
-                    <svg class="w-6 h-6" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">Ortopedia</h3>
-                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Tratamiento de lesiones óseas, articulares y rehabilitación física.</p>
-                <a href="#" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                    Agendar cita
-                    <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
-
-            <!-- Neurología -->
-            <div class="hl-card p-6 group cursor-pointer">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-colors" style="background: rgba(0,112,243,0.08);">
-                    <svg class="w-6 h-6" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">Neurología</h3>
-                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Diagnóstico y tratamiento de enfermedades del sistema nervioso.</p>
-                <a href="#" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                    Agendar cita
-                    <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
+            {% endfor %}
         </div>
 
         <!-- CTA -->
