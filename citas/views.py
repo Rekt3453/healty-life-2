@@ -1096,45 +1096,95 @@ def cancelar_cita_paciente(request, cita_id):
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
 def pagar_cita(request, cita_id):
-    """Paciente registra el pago de una cita aprobada por la recepcionista."""
+    """Paciente registra el pago de una cita (post-consulta o aprobada)."""
+    import re
     user = request.user
     paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
     cita = get_object_or_404(
-        Cita.objects.select_related('id_pago_cita'),
+        Cita.objects.select_related('id_pago_cita')
+                    .prefetch_related('servicios_solicitados'),
         id_citas=cita_id,
         id_paciente=paciente,
     )
 
-    estados_pagables = [Cita.ESTADO_APROBADA, Cita.ESTADO_SOLICITADA]
+    estados_pagables = [Cita.ESTADO_APROBADA, Cita.ESTADO_SOLICITADA, Cita.ESTADO_ATENDIDA]
     if cita.estado not in estados_pagables:
         messages.warning(request, "Esta cita no está disponible para pago.")
         return redirect('mis_citas')
 
+    # Desglose de cargos (en Bs)
+    costo_consulta_bs = Decimal('0')
+
+    # Costo de consulta = precio del servicio por el que se pidió la cita
+    servicios_solicitados = cita.servicios_solicitados.all()
+    for svc in servicios_solicitados:
+        precio_unit = Decimal(str(svc.precio_estimado or 0))
+        cantidad = svc.cantidad or 1
+        costo_consulta_bs += precio_unit * cantidad
+
+    total_bs = costo_consulta_bs
+
     METODOS_PAGO = [
         ('transferencia', 'Transferencia bancaria'),
-        ('tarjeta',       'Tarjeta de crédito/débito'),
         ('efectivo',      'Efectivo'),
         ('otro',          'Otro'),
     ]
 
     if request.method == 'POST':
-        metodo    = request.POST.get('metodo_pago', '').strip()
-        referencia = request.POST.get('referencia_pago', '').strip()
+        metodo     = request.POST.get('metodo_pago', '').strip()
+        # Hay múltiples inputs con name="referencia_pago" (transferencia y otro);
+        # tomamos el primero que no esté vacío.
+        referencia_vals = [v.strip() for v in request.POST.getlist('referencia_pago') if v.strip()]
+        referencia = referencia_vals[0] if referencia_vals else ''
+        cedula     = request.POST.get('cedula', '').strip()
+        telefono   = request.POST.get('telefono', '').strip()
+        monto_pago = request.POST.get('monto_pago', '').strip()
+
+        errores = []
         if not metodo:
-            messages.error(request, "Debes seleccionar un método de pago.")
+            errores.append("Debes seleccionar un método de pago.")
+
+        if metodo == 'transferencia':
+            if not cedula or not re.fullmatch(r'^\d{7,8}$', cedula):
+                errores.append("La cédula debe tener entre 7 y 8 dígitos numéricos.")
+            if not telefono or not re.fullmatch(r'^\d{1,11}$', telefono):
+                errores.append("El teléfono debe tener máximo 11 dígitos numéricos.")
+            if not referencia or not re.fullmatch(r'^\d{6}$', referencia):
+                errores.append("La referencia debe tener exactamente 6 dígitos numéricos (últimos 6 dígitos).")
+            if not monto_pago or not re.fullmatch(r'^\d{1,27},\d{2}$', monto_pago):
+                errores.append("El monto debe tener formato 0,00 (ej: 50,00).")
+
+        if errores:
+            for e in errores:
+                messages.error(request, e)
         else:
             try:
                 from django.db import transaction as _tx
                 with _tx.atomic():
                     pago = cita.id_pago_cita
                     if pago:
-                        pago.metodo_pago      = metodo
-                        pago.referencia_pago  = referencia
-                        pago.estado_pago      = PagoCita.ESTADO_PENDIENTE
-                        pago.save(update_fields=['metodo_pago', 'referencia_pago', 'estado_pago'])
+                        pago.metodo_pago     = metodo
+                        pago.referencia_pago = referencia
+                        pago.estado_pago     = PagoCita.ESTADO_PENDIENTE
+                        if monto_pago:
+                            try:
+                                pago.monto_pagar = Decimal(str(monto_pago).replace(',', '.'))
+                            except Exception:
+                                pass
+                        pago.save(update_fields=['metodo_pago', 'referencia_pago', 'estado_pago', 'monto_pagar'])
 
-                    cita.estado = Cita.ESTADO_PAGO_PENDIENTE
-                    cita.save(update_fields=['estado'])
+                    # Guardar datos de transferencia
+                    from citas.models import ReservaTransferencia
+                    rt, _ = ReservaTransferencia.objects.get_or_create(cita=cita)
+                    rt.cedula   = cedula
+                    rt.telefono = telefono
+                    rt.referencia = referencia
+                    rt.save(update_fields=['cedula', 'telefono', 'referencia'])
+
+                    # Solo cambiar estado si no es atendida
+                    if cita.estado != Cita.ESTADO_ATENDIDA:
+                        cita.estado = Cita.ESTADO_PAGO_PENDIENTE
+                        cita.save(update_fields=['estado'])
 
                 registrar_evento(
                     user=user,
@@ -1147,15 +1197,17 @@ def pagar_cita(request, cita_id):
                 )
                 messages.success(
                     request,
-                    "✅ Pago registrado. La recepcionista verificará y confirmará tu cita."
+                    "✅ Pago registrado. La recepcionista verificará y confirmará tu pago."
                 )
                 return redirect('mis_citas')
             except Exception as e:
                 messages.error(request, f"Error al registrar el pago: {e}")
 
     return render(request, 'citas/pagar_cita.html', {
-        'cita':         cita,
-        'metodos_pago': METODOS_PAGO,
+        'cita':               cita,
+        'metodos_pago':       METODOS_PAGO,
+        'costo_consulta':     costo_consulta_bs,
+        'total':              total_bs,
     })
 
 

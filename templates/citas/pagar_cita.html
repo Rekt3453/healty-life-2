@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservar Cita #{{ cita.id_citas }} — Healthy Life</title>
+    <title>Pago de Consulta #{{ cita.id_citas }} — Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -98,7 +98,7 @@
                         <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="Abrir menú">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                         </button>
-                        <span class="font-semibold text-lg" style="color:#1E293B;">Reservar Cita</span>
+                        <span class="font-semibold text-lg" style="color:#1E293B;">Pago de Consulta</span>
                     </div>
                     <div class="relative" id="userMenuContainer">
                         <button onclick="toggleUserMenu()" class="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors" aria-haspopup="true" aria-expanded="false" id="userMenuBtn">
@@ -133,7 +133,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     Volver a mis citas
                 </a>
-                <h1 class="text-2xl font-extrabold tracking-tight mt-2" style="color:#1E293B;">Confirmar Reserva</h1>
+                <h1 class="text-2xl font-extrabold tracking-tight mt-2" style="color:#1E293B;">Pago de Consulta</h1>
                 <p class="text-sm font-medium mt-1" style="color:#64748B;">Revisa los datos de tu cita y completa el pago para finalizar.</p>
             </div>
 
@@ -192,16 +192,12 @@
                     <div class="dashboard-card p-6">
                         <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">Desglose de cargos</h2>
                         <div class="line-item border-b" style="color:#64748B;">
-                            <span>Costo de la consulta</span>
-                            <span class="font-medium" style="color:#1E293B;">{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}—{% endif %}</span>
-                        </div>
-                        <div class="line-item border-b" style="color:#64748B;">
-                            <span>Comisión por reserva</span>
-                            <span class="font-medium" style="color:#1E293B;">$ 0.00</span>
+                            <span>Costo de consulta</span>
+                            <span class="font-medium" style="color:#1E293B;">{% if costo_consulta %}$ {{ costo_consulta }}{% else %}—{% endif %}</span>
                         </div>
                         <div class="line-item pt-2 mt-1">
                             <span class="text-base font-bold" style="color:#1E293B;">Total a pagar</span>
-                            <span class="text-xl font-extrabold" style="color:#0070F3;">{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}—{% endif %}</span>
+                            <span class="text-xl font-extrabold" style="color:#0070F3;">{% if total %}$ {{ total }}{% else %}—{% endif %}</span>
                         </div>
                     </div>
                 </div>
@@ -241,42 +237,29 @@
                         </div>
 
                         <!-- Campos dinámicos según método -->
-                        <div id="fields-tarjeta" class="payment-fields space-y-4 mb-6">
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Número de tarjeta</label>
-                                <input type="text" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000" class="input-modern">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Expiración (MM/AA)</label>
-                                    <input type="text" maxlength="5" placeholder="MM/AA" class="input-modern">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">CVV</label>
-                                    <input type="text" inputmode="numeric" maxlength="4" placeholder="123" class="input-modern">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Nombre del titular</label>
-                                <input type="text" placeholder="Como aparece en la tarjeta" class="input-modern">
-                            </div>
-                        </div>
-
                         <div id="fields-transferencia" class="payment-fields hidden space-y-4 mb-6">
                             <div class="p-4 rounded-lg" style="background:#F8FAFC; border:1px solid #E2E8F0;">
                                 <p class="text-sm font-semibold mb-2" style="color:#1E293B;">Datos para transferencia / Pago Móvil</p>
                                 <p class="text-sm mb-1" style="color:#64748B;"><span class="font-medium">Banco:</span> Banco Nacional de Crédito</p>
                                 <p class="text-sm mb-1" style="color:#64748B;"><span class="font-medium">Cuenta:</span> 0102-1234-56-7890123456</p>
                                 <p class="text-sm mb-3" style="color:#64748B;"><span class="font-medium">Titular:</span> Healthy Life C.A.</p>
-                                <p class="text-xs" style="color:#94A3B8;">Una vez realizado el pago, ingresa tu referencia abajo.</p>
+                                <p class="text-xs" style="color:#94A3B8;">Una vez realizado el pago, ingresa los datos abajo.</p>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Referencia / Número de comprobante</label>
-                                <input type="text" name="referencia_pago" maxlength="255" placeholder="Ej: TRF-202505-001234" class="input-modern">
+                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Cédula</label>
+                                <input type="text" name="cedula" inputmode="numeric" minlength="7" maxlength="8" placeholder="Ej: 12345678" class="input-modern" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Teléfono desde el que pagaste (Pago Móvil)</label>
-                                <input type="text" inputmode="tel" placeholder="0412-1234567" class="input-modern">
+                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Número de teléfono</label>
+                                <input type="text" name="telefono" inputmode="tel" maxlength="11" placeholder="Ej: 04121234567" class="input-modern" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Referencia (últimos 6 dígitos)</label>
+                                <input type="text" name="referencia_pago" inputmode="numeric" minlength="6" maxlength="6" placeholder="Ej: 123456" class="input-modern" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Monto</label>
+                                <input type="text" name="monto_pago" maxlength="30" placeholder="0,00" class="input-modern" required>
                             </div>
                         </div>
 
@@ -306,7 +289,7 @@
                         <div class="flex flex-col sm:flex-row gap-3">
                             <button type="submit" id="confirmBtn" class="btn-primary flex-1" disabled>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span id="btnText">Confirmar pago y reservar</span>
+                                <span id="btnText">Confirmar pago de consulta</span>
                             </button>
                             <a href="{% url 'mis_citas' %}" class="btn-secondary flex-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
@@ -332,8 +315,8 @@
             <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:rgba(16,185,129,0.08);">
                 <svg class="w-8 h-8" style="color:#059669;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <h3 class="text-xl font-bold mb-2" style="color:#1E293B;">¡Cita reservada!</h3>
-            <p class="text-sm mb-6" style="color:#64748B;">Tu pago ha sido registrado correctamente. La recepcionista verificará y confirmará tu cita en breve.</p>
+            <h3 class="text-xl font-bold mb-2" style="color:#1E293B;">¡Pago registrado!</h3>
+            <p class="text-sm mb-6" style="color:#64748B;">Tu pago ha sido registrado correctamente. La recepcionista verificará y confirmará tu pago en breve.</p>
             <a href="{% url 'mis_citas' %}" class="btn-primary w-full">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 Ver mis citas
@@ -367,7 +350,6 @@
         // Payment method selection
         const methodCards = document.querySelectorAll('.pay-method-card');
         const fields = {
-            tarjeta: document.getElementById('fields-tarjeta'),
             transferencia: document.getElementById('fields-transferencia'),
             efectivo: document.getElementById('fields-efectivo'),
             otro: document.getElementById('fields-otro')
@@ -385,13 +367,16 @@
             Object.keys(fields).forEach(key => {
                 if (fields[key]) fields[key].classList.toggle('hidden', key !== method);
             });
-            if (method === 'efectivo') { btnText.textContent = 'Reservar cita (pagar en clínica)'; }
-            else { btnText.textContent = 'Confirmar pago y reservar'; }
+            if (method === 'efectivo') { btnText.textContent = 'Confirmar pago en clínica'; }
+            else { btnText.textContent = 'Confirmar pago de consulta'; }
         }
 
         methodCards.forEach(card => {
             card.addEventListener('click', () => updateMethod(card.dataset.method));
         });
+
+        // Mostrar campos del método seleccionado por defecto al cargar
+        updateMethod('transferencia');
 
         // Enable/disable submit based on terms
         termsCheck.addEventListener('change', () => {

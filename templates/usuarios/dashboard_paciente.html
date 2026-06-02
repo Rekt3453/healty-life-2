@@ -267,10 +267,10 @@
                                     {% endif %}
                                 </td>
                                 <td class="py-3.5">
-                                    {% if cita.estado == 'aprobada' %}
-                                        <a href="{% url 'pagar_cita' cita.id_citas %}" class="text-xs font-semibold hover:underline" style="color:#0070F3;">Pagar</a>
-                                    {% elif cita.estado == 'atendida' and cita.factura and cita.factura.estado == 'emitida' %}
+                                    {% if cita.estado == 'atendida' and cita.factura and cita.factura.estado == 'emitida' %}
                                         <a href="{% url 'pagar_saldo' cita.id_citas %}" class="text-xs font-semibold hover:underline" style="color:#EA580C;">Pagar Saldo</a>
+                                    {% elif cita.estado == 'atendida' %}
+                                        <a href="{% url 'pagar_cita' cita.id_citas %}" class="text-xs font-semibold hover:underline" style="color:#0070F3;">Pagar</a>
                                     {% else %}
                                         <a href="{% url 'detalle_cita' cita.id_citas %}" class="text-xs font-semibold hover:underline" style="color:#0070F3;">Ver</a>
                                     {% endif %}
