@@ -43,6 +43,7 @@ urlpatterns = [
     path('dashboard/gerente/', views.dashboard_gerente, name='dashboard_gerente'),
     path('dashboard/gerente/reporte/pdf/', views.reporte_gerente_pdf, name='reporte_gerente_pdf'),
     path('dashboard/root/', views_root.dashboard_root, name='dashboard_root'),
+    path('dashboard/root/auditoria/', views_root.auditoria_root, name='auditoria_root'),
     path('dashboard/super-admin/', views_superadmin.dashboard_superadmin, name='dashboard_superadmin'),
 
     # Lista de pacientes (staff)
@@ -50,7 +51,15 @@ urlpatterns = [
 
     # Root
     path('root/registrar-centro-medico/', views_root.registrar_centro_medico, name='registrar_centro_medico'),
+    path('root/centros/<int:id_cm>/editar/', views_root.editar_centro_medico, name='editar_centro_medico'),
+    path('root/centros/<int:id_cm>/toggle/', views_root.toggle_centro_medico_status, name='toggle_centro_medico_status'),
+    path('root/centros/<int:id_cm>/eliminar/', views_root.eliminar_centro_medico, name='eliminar_centro_medico'),
+    path('root/centros/', views_root.lista_centros_root, name='lista_centros_root'),
     path('root/registrar-superadmin/', views_root.registrar_superadmin, name='registrar_superadmin'),
+    path('root/superadmins/<int:id_superadmin>/editar/', views_root.editar_superadmin, name='editar_superadmin'),
+    path('root/superadmins/<int:id_superadmin>/toggle/', views_root.toggle_superadmin_status, name='toggle_superadmin_status'),
+    path('root/superadmins/<int:id_superadmin>/eliminar/', views_root.eliminar_superadmin, name='eliminar_superadmin'),
+    path('root/superadmins/', views_root.lista_superadmins_root, name='lista_superadmins_root'),
 
     # Super Admin
     path('super-admin/registrar-sede/', views_superadmin.registrar_sede, name='registrar_sede'),
@@ -79,6 +88,7 @@ urlpatterns = [
     path('dashboard/gerente/especialidades/<int:id_especialidad>/toggle/', views.toggle_especialidad_status, name='toggle_especialidad_status'),
     path('dashboard/gerente/especialidades/<int:id_especialidad>/editar/', views.editar_especialidad, name='editar_especialidad'),
     path('dashboard/gerente/especialidades/<int:id_especialidad>/eliminar/', views.eliminar_especialidad, name='eliminar_especialidad'),
+    path('dashboard/gerente/sedes/', views.lista_sedes_gerente, name='lista_sedes_gerente'),
 
     # Horarios
     path('dashboard/gerente/horarios/', views.lista_horarios, name='lista_horarios'),

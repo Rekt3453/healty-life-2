@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Super Admin - Healthy Life</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #F7F9FC; }
+        .hl-card { background: #fff; border: 1px solid rgba(0,0,0,0.04); border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+        .hl-input { width: 100%; border-radius: 12px; border: 1px solid #E2E8F0; padding: 0.85rem 1rem; font-size: 0.95rem; color: #1E293B; background: #F8FAFC; transition: all 0.2s; outline: none; }
+        .hl-input:focus { border-color: #0070F3; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(0,112,243,0.1); }
+        .hl-btn-primary { background: linear-gradient(135deg, #0070F3, #005CC2); color: #FFFFFF; border-radius: 12px; padding: 0.85rem 1.5rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .hl-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,112,243,0.35); }
+        .hl-btn-secondary { background: #fff; color: #64748B; border: 1px solid #E2E8F0; border-radius: 12px; padding: 0.85rem 1.5rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s; }
+        .hl-btn-secondary:hover { background: #F8FAFC; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-lg">
+        <div class="hl-card p-8">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">Editar Super Admin</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ sa }}</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="mb-4 p-3 rounded-lg text-sm font-medium flex items-center gap-2
+                    {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Primer nombre</label>
+                        <input type="text" name="nombre_1" class="hl-input" value="{{ sa.nombre_1|default:'' }}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Segundo nombre</label>
+                        <input type="text" name="nombre_2" class="hl-input" value="{{ sa.nombre_2|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Primer apellido</label>
+                        <input type="text" name="apellido_1" class="hl-input" value="{{ sa.apellido_1|default:'' }}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Segundo apellido</label>
+                        <input type="text" name="apellido_2" class="hl-input" value="{{ sa.apellido_2|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de cédula</label>
+                        <select name="tipo_cedula" class="hl-input bg-white">
+                            <option value="V" {% if sa.tipo_cedula == 'V' %}selected{% endif %}>V</option>
+                            <option value="E" {% if sa.tipo_cedula == 'E' %}selected{% endif %}>E</option>
+                            <option value="J" {% if sa.tipo_cedula == 'J' %}selected{% endif %}>J</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Cédula</label>
+                        <input type="text" name="cedula" class="hl-input" value="{{ sa.cedula|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Centro médico asignado</label>
+                    <select name="id_cm" class="hl-input bg-white">
+                        <option value="">--- Sin asignar ---</option>
+                        {% for cm in centros %}
+                        <option value="{{ cm.id_cm }}" {% if sa.id_sede.id_cm.id_cm == cm.id_cm %}selected{% endif %}>{{ cm.nombre_cm }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" class="hl-btn-primary flex-1 justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Guardar cambios
+                    </button>
+                    <a href="{% url 'dashboard_root' %}" class="hl-btn-secondary flex-1 justify-center">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

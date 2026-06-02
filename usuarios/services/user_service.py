@@ -524,6 +524,22 @@ def get_gerente_dashboard_context():
             return round(((actual - anterior) / anterior) * 100, 1)
         return 0
 
+    # --- Comisiones pendientes a doctores ---
+    honorarios_pendientes = []
+    total_honorarios_pendientes = 0
+    try:
+        from citas.models import HonorarioMedico
+        honorarios_pendientes = HonorarioMedico.objects.filter(
+            estado_pago=HonorarioMedico.ESTADO_PENDIENTE,
+            status=True,
+        ).select_related('id_doctor', 'id_cita').order_by('-fecha_atencion')[:50]
+        total_honorarios_pendientes = HonorarioMedico.objects.filter(
+            estado_pago=HonorarioMedico.ESTADO_PENDIENTE,
+            status=True,
+        ).aggregate(total=Sum('monto_honorario'))['total'] or 0
+    except Exception:
+        pass
+
     return {
         'total_citas':          total_citas,
         'total_pacientes':      total_pacientes,
@@ -545,6 +561,8 @@ def get_gerente_dashboard_context():
         'ingresos_labels':      ingresos_labels,
         'ingresos_data':        ingresos_data,
         'actividades':          actividades,
+        'honorarios_pendientes': honorarios_pendientes,
+        'total_honorarios_pendientes': float(total_honorarios_pendientes),
     }
 
 

@@ -532,17 +532,6 @@ class RegistroStaffForm(forms.Form):
         required=True,
         widget=forms.EmailInput(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'})
     )
-    password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'}),
-        label="Contraseña",
-        required=True
-    )
-    password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-input w-full px-3 py-2 rounded-lg'}),
-        label="Confirmar Contraseña",
-        required=True
-    )
-    
     # Datos personales
     nombre_1 = forms.CharField(
         max_length=100,
@@ -658,13 +647,6 @@ class RegistroStaffForm(forms.Form):
             except (ValueError, TypeError):
                 pass
 
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Las contraseñas no coinciden")
-        return password2
-
     def clean_username(self):
         username = self.cleaned_data.get('username')
         rol = self.cleaned_data.get('rol')
@@ -717,12 +699,13 @@ class RegistroStaffForm(forms.Form):
                 longitud=self.cleaned_data.get('longitud', '')
             )
             
-            # Crear usuario doctor
+            # Crear usuario doctor (sin contraseña, requiere activación)
             user_doctor = UserDoctor.objects.create_user(
                 username=self.cleaned_data['username'],
                 correo=self.cleaned_data['email'],
-                password=self.cleaned_data['password1'],
-                id_sede=sede
+                password=None,
+                id_sede=sede,
+                status=False,
             )
             
             # Crear datos personales del doctor
@@ -755,12 +738,13 @@ class RegistroStaffForm(forms.Form):
                 longitud=self.cleaned_data.get('longitud', '')
             )
             
-            # Crear usuario recepcionista
+            # Crear usuario recepcionista (sin contraseña, requiere activación)
             user_recepcionista = UserRecepcionista.objects.create_user(
                 username=self.cleaned_data['username'],
                 correo=self.cleaned_data['email'],
-                password=self.cleaned_data['password1'],
-                id_sede=sede
+                password=None,
+                id_sede=sede,
+                status=False,
             )
             
             # Crear datos personales del recepcionista

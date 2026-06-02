@@ -3,8 +3,11 @@ Configuración de correo electrónico para Healthy Life
 Sistema de envío de correos de confirmación de registro
 """
 
-import os, ssl, smtplib, time, hashlib
+import os, ssl, smtplib, time
+import logging
 from pathlib import Path
+
+logger = logging.getLogger('usuarios')
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -97,7 +100,7 @@ def _conectar_y_enviar(msg, destinatario):
     Incluye reintentos y manejo detallado de errores.
     """
     if not SMTP_USER or not SMTP_PASS:
-        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        logger.error("Credenciales de correo no configuradas")
         return False
 
     # Estrategias: (host, puerto, usar_ssl_directo)
@@ -110,7 +113,7 @@ def _conectar_y_enviar(msg, destinatario):
     for host, puerto, usar_ssl in estrategias:
         for intento in range(1, 3):
             try:
-                print(f"SMTP: Intentando {host}:{puerto} (SSL={usar_ssl}) - intento {intento}/2")
+                logger.debug(f"Intentando {host}:{puerto} (SSL={usar_ssl}) intento {intento}/2")
                 if usar_ssl:
                     context = ssl.create_default_context()
                     server = smtplib.SMTP_SSL(host, puerto, timeout=SMTP_TIMEOUT, context=context)
@@ -129,16 +132,16 @@ def _conectar_y_enviar(msg, destinatario):
                     server.send_message(msg)
                     server.quit()
 
-                print(f"OK: Correo enviado a {destinatario}")
+                logger.info(f"Correo enviado a {destinatario}")
                 return True
 
             except Exception as exc:
                 err_msg = f"{host}:{puerto} SSL={usar_ssl} intento {intento}: {exc}"
-                print(f"WARN: {err_msg}")
+                logger.warning(f"SMTP: {err_msg}")
                 errores.append(err_msg)
                 time.sleep(1)
 
-    print(f"ERROR: No se pudo enviar correo a {destinatario}. Errores:\n  - " + "\n  - ".join(errores))
+    logger.error(f"No se pudo enviar correo a {destinatario}: {errores}")
     return False
 
 
@@ -162,8 +165,7 @@ def enviar_correo_confirmacion(datos_paciente):
         bool: True si el correo se envió exitosamente, False en caso contrario
     """
     if not SMTP_USER or not SMTP_PASS:
-        print("❌ ERROR: Las credenciales de correo no están configuradas")
-        print("Por favor, configura EMAIL_HOST_USER y EMAIL_HOST_PASSWORD en el archivo .env")
+        logger.error("Credenciales de correo no configuradas. Configura EMAIL_HOST_USER y EMAIL_HOST_PASSWORD en el archivo .env")
         return False
     
     # Construir nombre completo
@@ -246,12 +248,12 @@ def enviar_correo_doctor(datos_doctor):
     Args:
         datos_doctor (dict):
             - primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
-            - email, username, password
+            - email, username
     Returns:
         bool
     """
     if not SMTP_USER or not SMTP_PASS:
-        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        logger.error("Credenciales de correo no configuradas")
         return False
 
     nombre_completo = datos_doctor.get('primer_nombre', '')
@@ -326,12 +328,12 @@ def enviar_correo_recepcionista(datos_recepcionista):
     Args:
         datos_recepcionista (dict):
             - primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
-            - email, username, password
+            - email, username
     Returns:
         bool
     """
     if not SMTP_USER or not SMTP_PASS:
-        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        logger.error("Credenciales de correo no configuradas")
         return False
 
     nombre_completo = datos_recepcionista.get('primer_nombre', '')
@@ -429,7 +431,7 @@ def enviar_correo_superadmin(datos_superadmin):
         bool
     """
     if not SMTP_USER or not SMTP_PASS:
-        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        logger.error("Credenciales de correo no configuradas")
         return False
 
     nombre_completo = datos_superadmin.get('primer_nombre', '')
@@ -462,11 +464,10 @@ def enviar_correo_superadmin(datos_superadmin):
 
 # ── Activación de cuenta ─────────────────────────────────────────────────────
 
-def generar_token_activacion(user_id, correo):
-    """Genera un token MD5 único para activación de cuenta."""
-    from datetime import date
-    raw = f"{user_id}-{correo}-{date.today()}-healthy-life-secreto"
-    return hashlib.md5(raw.encode()).hexdigest()
+def generar_token_activacion(user_id, correo=None):
+    """Genera un token seguro para activación de cuenta."""
+    from usuarios.tokens import generar_token_seguro
+    return generar_token_seguro(user_id, 'activacion')
 
 TEMPLATE_ACTIVACION = """\
 Estimado(a) {nombre_completo},
@@ -519,7 +520,7 @@ def enviar_correo_activacion(user, rol, enlace):
         bool
     """
     if not SMTP_USER or not SMTP_PASS:
-        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        logger.error("Credenciales de correo no configuradas")
         return False
 
     nombre_completo = getattr(user, 'nombre_1', '') or ''

@@ -13,6 +13,20 @@
 <!-- Header Público -->
 {% include 'partials/_header_public.html' %}
 
+<!-- Mensajes Django -->
+{% if messages %}
+<div class="max-w-4xl mx-auto px-4 pt-4">
+    {% for message in messages %}
+        <div class="rounded-lg p-4 mb-3 text-sm font-medium
+            {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+            {% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+            {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <!-- Hero Section -->
 {% include 'partials/_hero_section.html' %}
 

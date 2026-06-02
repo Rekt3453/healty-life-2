@@ -36,14 +36,13 @@ def send_welcome_email(user, datos_paciente, password_plana, centro_medico_nombr
         logger.warning('No se pudo enviar correo de bienvenida a %s: %s', user.email, exc)
 
 
-def send_welcome_doctor(user_doctor, datos_doctor, password_plana):
+def send_welcome_doctor(user_doctor, datos_doctor):
     """
     Envía el correo de bienvenida a un médico recién registrado.
 
     Args:
         user_doctor:   Instancia de UserDoctor.
         datos_doctor:  Instancia de Doctor (puede ser None).
-        password_plana: Contraseña en texto plano.
     """
     from usuarios.email_config import enviar_correo_doctor
     try:
@@ -54,21 +53,19 @@ def send_welcome_doctor(user_doctor, datos_doctor, password_plana):
             'segundo_apellido': datos_doctor.apellido_2 if datos_doctor else '',
             'email':    user_doctor.email,
             'username': user_doctor.username,
-            'password': password_plana,
         })
         logger.info('Correo de bienvenida médico enviado a %s', user_doctor.email)
     except Exception as exc:
         logger.warning('No se pudo enviar correo al médico %s: %s', user_doctor.email, exc)
 
 
-def send_welcome_recepcionista(user_recep, datos_recep, password_plana):
+def send_welcome_recepcionista(user_recep, datos_recep):
     """
     Envía el correo de bienvenida a una recepcionista recién registrada.
 
     Args:
         user_recep:   Instancia de UserRecepcionista.
         datos_recep:  Instancia de Recepcionista (puede ser None).
-        password_plana: Contraseña en texto plano.
     """
     from usuarios.email_config import enviar_correo_recepcionista
     try:
@@ -79,7 +76,6 @@ def send_welcome_recepcionista(user_recep, datos_recep, password_plana):
             'segundo_apellido': datos_recep.apellido_2 if datos_recep else '',
             'email':    user_recep.email,
             'username': user_recep.username,
-            'password': password_plana,
         })
         logger.info('Correo de bienvenida recepcionista enviado a %s', user_recep.email)
     except Exception as exc:

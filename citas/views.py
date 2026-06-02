@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -21,6 +22,8 @@ from .models import (
 from .services import CitaService, FacturacionService
 from .reportes import ReportesService
 from .forms import ConsultaMedicaForm, RegistrarAdelantoForm
+
+logger = logging.getLogger('citas')
 
 @login_required(login_url='/login/paciente/')
 @rol_requerido('paciente')
@@ -1215,7 +1218,7 @@ def realizar_receta(request, cita_id):
 
             except Exception as exc:
                 messages.error(request, f"Error al guardar la receta: {exc}")
-                print(f"ERROR realizar_receta cita_id={cita_id}: {exc}")
+                logger.error(f"Error realizar_receta cita_id={cita_id}: {exc}")
     else:
         form = RecetaForm()
 

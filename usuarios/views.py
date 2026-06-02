@@ -1,4 +1,6 @@
+import logging
 from datetime import date
+from django.db.models import Prefetch
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -36,13 +38,15 @@ from .services.user_service import (
 from .services.email_service import send_welcome_email
 from .audit_services import registrar_evento
 
+logger = logging.getLogger('usuarios')
+
 def home(request):
-    sedes = Sede.objects.filter(status=True).select_related(
-        'id_direccion__id_estado',
-        'id_direccion__id_ciudad',
-        'id_cm'
-    ).order_by('id_sede')
-    return render(request, 'home.html', {'sedes': sedes})
+    centros = CentroMedico.objects.filter(status=True).prefetch_related(
+        Prefetch('sede_set', queryset=Sede.objects.filter(status=True).select_related(
+            'id_direccion__id_estado', 'id_direccion__id_ciudad'
+        ))
+    ).order_by('id_cm')
+    return render(request, 'home.html', {'centros': centros})
 
 def login_rol(request, rol_esperado, template_name, dashboard_name):
     if request.user.is_authenticated:
@@ -59,7 +63,7 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
         if user is not None:
             # Verificar el rol del usuario - CORREGIDO
             user_rol = auth_backend.get_rol(user)
-            print(f"DEBUG: Login - Username: {username}, Rol esperado: {rol_esperado}, Rol obtenido: {user_rol}")
+            logger.debug(f"Login - Username: {username}, Rol esperado: {rol_esperado}, Rol obtenido: {user_rol}")
 
             # Permitir cualquier rol que coincida exactamente
             if user_rol == rol_esperado:
@@ -86,7 +90,7 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
                             enviar_correo_activacion(user, rol_esperado.title(), enlace)
                             messages.info(request, "Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu correo.")
                         except Exception as mail_err:
-                            print(f'WARN: No se pudo reenviar correo de activación: {mail_err}')
+                            logger.warning(f"No se pudo reenviar correo de activación: {mail_err}")
                             messages.info(request, "Tu cuenta aún no está activada. Contacta al administrador.")
                         return render(request, template_name)
 
@@ -105,14 +109,14 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
                 return redirect(dashboard_name)
             else:
                 messages.error(request, f"Esta cuenta no tiene perfil de {rol_esperado}. Tu rol es: {user_rol}")
-                print(f"DEBUG: Rol incorrecto - Esperado: {rol_esperado}, Obtenido: {user_rol}")
+                logger.debug(f"Rol incorrecto - Esperado: {rol_esperado}, Obtenido: {user_rol}")
         else:
             ip = get_client_ip(request)
             if is_rate_limited(username, ip):
                 messages.error(request, "Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo.")
             else:
                 messages.error(request, "Credenciales incorrectas")
-            print(f"DEBUG: Credenciales incorrectas para {username}")
+            logger.debug(f"Credenciales incorrectas para {username}")
 
     return render(request, template_name)
 def login_paciente(request):
@@ -451,7 +455,7 @@ def dashboard_paciente(request):
     nombre = datos_paciente.nombre_completo if datos_paciente else getattr(request.user, 'username', request.user.username)
     
     # Obtener citas del paciente usando los campos reales del esquema Supabase
-    print(f"DEBUG dashboard_paciente: user={request.user}, tipo={type(request.user).__name__}, datos_paciente={datos_paciente}")
+    logger.debug(f"dashboard_paciente: user={request.user}, tipo={type(request.user).__name__}, datos_paciente={datos_paciente}")
     stats = get_paciente_dashboard_context(datos_paciente)
     return render(request, 'usuarios/dashboard_paciente.html', {
         'nombre':           nombre,
@@ -952,14 +956,33 @@ def registro_staff(request):
                         details={'username': staff_user.username},
                         request=request,
                     )
-                    messages.success(request, f'Staff {staff_user.username} registrado exitosamente')
+                    # Enviar correo de activación
+                    try:
+                        from .email_config import generar_token_activacion, enviar_correo_activacion
+                        from django.db import connection
+                        token = generar_token_activacion(staff_user.pk, staff_user.email)
+                        tabla_map = {
+                            'UserDoctor': ('user_doctor', 'id_user_doctor'),
+                            'UserRecepcionista': ('user_recepcionista', 'id_user_recepcionista'),
+                        }
+                        tabla, pk_col = tabla_map.get(type(staff_user).__name__, ('', ''))
+                        if tabla:
+                            with connection.cursor() as c:
+                                c.execute(f"UPDATE {tabla} SET token_activacion = %s WHERE {pk_col} = %s", [token, staff_user.pk])
+                        enlace = request.build_absolute_uri(f"/activar-cuenta/{staff_user.pk}/{token}/")
+                        rol_nombre = 'Médico' if type(staff_user).__name__ == 'UserDoctor' else 'Recepcionista'
+                        enviar_correo_activacion(staff_user, rol_nombre, enlace)
+                        messages.success(request, f'Staff {staff_user.username} registrado. Se envió un correo de activación.')
+                    except Exception as mail_err:
+                        logger.warning(f"No se pudo enviar correo de activación: {mail_err}")
+                        messages.success(request, f'Staff {staff_user.username} registrado.')
                     return redirect('dashboard_gerente')
                 except Exception as e:
                     messages.error(request, f'Error al registrar staff: {str(e)}')
-                    print(f"Error guardando staff: {e}")
+                    logger.error(f"Error guardando staff: {e}")
             else:
                 messages.error(request, 'Por favor corrige los errores en el formulario')
-                print(f"Errores formulario: {form.errors}")
+                logger.warning(f"Errores formulario: {form.errors}")
         else:
             from usuarios.forms import RegistroStaffForm
             form = RegistroStaffForm()
@@ -967,7 +990,7 @@ def registro_staff(request):
         return render(request, 'usuarios/registro_staff.html', {'form': form})
         
     except Exception as e:
-        print(f"Error en registro_staff: {e}")
+        logger.error(f"Error en registro_staff: {e}")
         messages.error(request, 'Error al cargar el formulario de registro')
         return redirect('home')
 
@@ -1002,9 +1025,7 @@ def lista_personal(request):
             'sede': sede,
         })
     except Exception as e:
-        import traceback
-        print(f"Error en lista_personal: {e}")
-        traceback.print_exc()
+        logger.error(f"Error en lista_personal: {e}", exc_info=True)
         messages.error(request, f'Error al cargar la lista de personal: {str(e)}')
         return redirect('dashboard_gerente')
 
@@ -1053,10 +1074,10 @@ def editar_doctor_view(request, id_doctor):
                     return redirect('lista_personal')
                 except Exception as e:
                     messages.error(request, f'Error al guardar: {str(e)}')
-                    print(f"Error guardando doctor {id_doctor}: {e}")
+                    logger.error(f"Error guardando doctor {id_doctor}: {e}")
             else:
                 messages.error(request, 'Por favor corrige los errores en el formulario.')
-                print(f"Errores editar_doctor: {form.errors}")
+                logger.warning(f"Errores editar_doctor: {form.errors}")
         else:
             initial = {}
             if user_doctor:
@@ -1101,7 +1122,7 @@ def editar_doctor_view(request, id_doctor):
             'form': form, 'doctor': doctor, 'sede': sede,
         })
     except Exception as e:
-        print(f"Error en editar_doctor_view: {e}")
+        logger.error(f"Error en editar_doctor_view: {e}")
         messages.error(request, 'Error al cargar el formulario de edición')
         return redirect('lista_personal')
 
@@ -1157,10 +1178,10 @@ def editar_recepcionista_view(request, id_recepcionista):
                     return redirect('lista_personal')
                 except Exception as e:
                     messages.error(request, f'Error al guardar: {str(e)}')
-                    print(f"Error guardando recepcionista {id_recepcionista}: {e}")
+                    logger.error(f"Error guardando recepcionista {id_recepcionista}: {e}")
             else:
                 messages.error(request, 'Por favor corrige los errores en el formulario.')
-                print(f"Errores editar_recepcionista: {form.errors}")
+                logger.warning(f"Errores editar_recepcionista: {form.errors}")
         else:
             initial = {}
             if user_recepcionista:
@@ -1204,7 +1225,7 @@ def editar_recepcionista_view(request, id_recepcionista):
             'form': form, 'recepcionista': recepcionista, 'sede': sede,
         })
     except Exception as e:
-        print(f"Error en editar_recepcionista_view: {e}")
+        logger.error(f"Error en editar_recepcionista_view: {e}")
         messages.error(request, 'Error al cargar el formulario de edición')
         return redirect('lista_personal')
 
@@ -1258,21 +1279,21 @@ def registrar_doctor(request):
                         enviar_correo_activacion(user_doctor, 'Médico', enlace)
                         messages.success(request, f'Doctor {user_doctor.username} registrado. Se envió un correo de activación.')
                     except Exception as mail_err:
-                        print(f'WARN: No se pudo enviar correo de activación al médico: {mail_err}')
+                        logger.warning(f"No se pudo enviar correo de activación al médico: {mail_err}")
                         messages.success(request, f'Doctor {user_doctor.username} registrado.')
                     return redirect('dashboard_gerente')
                 except Exception as e:
                     messages.error(request, f'Error al registrar el doctor: {str(e)}')
-                    print(f"Error guardando doctor: {e}")
+                    logger.error(f"Error guardando doctor: {e}")
             else:
                 messages.error(request, 'Por favor corrige los errores en el formulario.')
-                print(f"Errores formulario doctor: {form.errors}")
+                logger.warning(f"Errores formulario doctor: {form.errors}")
         else:
             from usuarios.forms import RegistrarDoctorForm
             form = RegistrarDoctorForm(sede_id=sede.id_sede if sede else None)
         return render(request, 'usuarios/registrar_doctor.html', {'form': form, 'sede': sede})
     except Exception as e:
-        print(f"Error en registrar_doctor: {e}")
+        logger.error(f"Error en registrar_doctor: {e}")
         messages.error(request, 'Error al cargar el formulario')
         return redirect('home')
 
@@ -1326,21 +1347,21 @@ def registrar_recepcionista(request):
                         enviar_correo_activacion(user_rec, 'Recepcionista', enlace)
                         messages.success(request, f'Recepcionista {user_rec.username} registrada. Se envió un correo de activación.')
                     except Exception as mail_err:
-                        print(f'WARN: No se pudo enviar correo de activación a la recepcionista: {mail_err}')
+                        logger.warning(f"No se pudo enviar correo de activación a la recepcionista: {mail_err}")
                         messages.success(request, f'Recepcionista {user_rec.username} registrada.')
                     return redirect('dashboard_gerente')
                 except Exception as e:
                     messages.error(request, f'Error al registrar la recepcionista: {str(e)}')
-                    print(f"Error guardando recepcionista: {e}")
+                    logger.error(f"Error guardando recepcionista: {e}")
             else:
                 messages.error(request, 'Por favor corrige los errores en el formulario.')
-                print(f"Errores formulario recepcionista: {form.errors}")
+                logger.warning(f"Errores formulario recepcionista: {form.errors}")
         else:
             from usuarios.forms import RegistrarRecepcionistaForm
             form = RegistrarRecepcionistaForm(sede_id=sede.id_sede if sede else None)
         return render(request, 'usuarios/registrar_recepcionista.html', {'form': form, 'sede': sede})
     except Exception as e:
-        print(f"Error en registrar_recepcionista: {e}")
+        logger.error(f"Error en registrar_recepcionista: {e}")
         messages.error(request, 'Error al cargar el formulario')
         return redirect('home')
 
@@ -1443,7 +1464,8 @@ def _enviar_correo_config_preguntas(user, request):
     if not destinatario or not SMTP_USER or not SMTP_PASS:
         raise ValueError('Credenciales de correo no configuradas en .env')
 
-    token  = _hashlib.md5(f"{user.pk}-{user.email}-config".encode()).hexdigest()
+    from usuarios.tokens import generar_token_seguro
+    token  = generar_token_seguro(user.pk, 'config-preguntas')
     enlace = request.build_absolute_uri(f'/configurar-preguntas/{user.pk}/{token}/')
     asunto = 'Healthy Life — Configura tus preguntas de seguridad'
     cuerpo = (
@@ -1462,7 +1484,7 @@ def _enviar_correo_config_preguntas(user, request):
     # Contexto SSL sin verificación de certificado (compatible con servidores custom)
     ctx = ssl._create_unverified_context()
     port = int(SMTP_PORT)
-    print(f'[EMAIL] Enviando a {destinatario} via {SMTP_HOST_NAME}:{port}')
+    logger.info(f"Enviando correo a {destinatario} via {SMTP_HOST_NAME}:{port}")
     if port == 465:
         with smtplib.SMTP_SSL(SMTP_HOST_NAME, port, context=ctx, timeout=15) as server:
             server.login(SMTP_USER, SMTP_PASS)
@@ -1473,7 +1495,7 @@ def _enviar_correo_config_preguntas(user, request):
             server.starttls(context=ctx)
             server.login(SMTP_USER, SMTP_PASS)
             server.sendmail(SMTP_USER, destinatario, msg.as_string())
-    print(f'[EMAIL] Enviado correctamente a {destinatario}')
+    logger.info(f"Correo enviado correctamente a {destinatario}")
 
 
 # ── RECUPERAR CONTRASEÑA — PASO 1 ────────────────────────────────────────────
@@ -1493,15 +1515,16 @@ def recuperar_password(request):
             )
             return redirect('login_paciente')
 
-        recuperacion = RecuperacionContrasenaPaciente.objects.filter(
-            id_user_paciente=user
-        ).first()
+        tiene_preguntas = RecuperacionContrasenaPaciente.objects.filter(
+            id_user_paciente=user,
+            preguntas_seguridad__isnull=False,
+        ).exclude(preguntas_seguridad='').exists()
 
-        if not recuperacion or not recuperacion.preguntas_seguridad:
+        if not tiene_preguntas:
             try:
                 _enviar_correo_config_preguntas(user, request)
             except Exception as _e:
-                print(f'[EMAIL ERROR] {type(_e).__name__}: {_e}')
+                logger.error(f"Error enviando correo: {type(_e).__name__}: {_e}")
             messages.success(
                 request,
                 'Si el correo está registrado en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.',
@@ -1599,11 +1622,11 @@ def configurar_preguntas_paciente(request, user_id=None, token=None):
         user = UserPaciente.objects.filter(pk=user_id, status=True).first()
         if not user:
             messages.error(request, 'Usuario no encontrado.')
-            return redirect('home')
-        esperado = _hashlib.md5(f"{user.pk}-{user.email}-config".encode()).hexdigest()
-        if token != esperado:
+            return redirect('login_paciente')
+        from usuarios.tokens import verificar_token_seguro
+        if not verificar_token_seguro(user.pk, 'config-preguntas', token, invalidar=False):
             messages.error(request, 'Enlace inválido o expirado.')
-            return redirect('home')
+            return redirect('login_paciente')
         via_token = True
     else:
         if not (hasattr(request, 'user') and request.user.is_authenticated
@@ -1637,12 +1660,17 @@ def configurar_preguntas_paciente(request, user_id=None, token=None):
         if not all(respuestas):
             messages.error(request, 'Debes responder todas las preguntas.')
         else:
+            # Borrar registros previos (evita duplicados vacíos que rompen recuperar_password)
+            RecuperacionContrasenaPaciente.objects.filter(id_user_paciente=user).delete()
             RecuperacionContrasenaPaciente.objects.create(
                 id_user_paciente=user,
                 preguntas_seguridad=','.join(str(p[0]) for p in seleccionadas),
                 respuestas_seguridad='||'.join(respuestas),
             )
             messages.success(request, 'Preguntas de seguridad configuradas correctamente.')
+            if via_token:
+                from django.core.cache import cache
+                cache.delete(f"token:config-preguntas:{user.pk}")
             return redirect('login_paciente' if via_token else 'dashboard_paciente')
 
         ids_mostrar = [str(p[0]) for p in seleccionadas]
@@ -1827,6 +1855,33 @@ def eliminar_especialidad(request, id_especialidad):
         except Exception as e:
             messages.error(request, f'Error al eliminar la especialidad: {e}')
     return redirect('lista_especialidades')
+
+
+def lista_sedes_gerente(request):
+    """Muestra la sede asignada al gerente con resumen de personal y citas."""
+    user, sede = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+
+    from citas.models import Cita, ConsultaMedica
+    from django.db.models import Count
+
+    doctores_count = Doctor.objects.filter(id_sede=sede).count() if sede else 0
+    recepcionistas_count = Recepcionista.objects.filter(id_sede=sede).count() if sede else 0
+    citas_count = Cita.objects.filter(id_sede=sede).count() if sede else 0
+    consultas_cerradas = ConsultaMedica.objects.filter(
+        id_cita__id_sede=sede, estado=ConsultaMedica.ESTADO_CERRADA
+    ).count() if sede else 0
+
+    return render(request, 'usuarios/lista_sedes_gerente.html', {
+        'sede': sede,
+        'doctores_count': doctores_count,
+        'recepcionistas_count': recepcionistas_count,
+        'citas_count': citas_count,
+        'consultas_cerradas': consultas_cerradas,
+        'nombre': user.username,
+    })
 
 
 def reporte_gerente_pdf(request):
@@ -2067,6 +2122,7 @@ def activar_cuenta(request, user_id, token):
     import re
     import hashlib
     from django.db import connection
+    from usuarios.tokens import verificar_token_seguro
 
     # Tablas y campos PK/contraseña por modelo (usar db_column real)
     TABLAS = [
@@ -2076,27 +2132,43 @@ def activar_cuenta(request, user_id, token):
         ('user_superadmin', 'id_user_superadmin', 'contrasena', 'superadmin', 'login_superadmin'),
     ]
 
+    # Buscar usuario por PK Y token_activacion en BD (identifica tabla correcta)
     user_found = None
     login_url = None
     with connection.cursor() as cursor:
         for tabla, pk_col, pwd_col, rol, url in TABLAS:
             cursor.execute(
-                f"SELECT {pk_col} FROM {tabla} WHERE {pk_col} = %s AND token_activacion = %s",
+                f"SELECT {pk_col}, {pwd_col}, status FROM {tabla} WHERE {pk_col} = %s AND token_activacion = %s",
                 [user_id, token]
             )
             row = cursor.fetchone()
             if row:
-                user_found = {'tabla': tabla, 'pk_col': pk_col, 'pk_val': row[0], 'pwd_col': pwd_col, 'rol': rol}
+                pk_val, pwd_val, status = row
+                user_found = {'tabla': tabla, 'pk_col': pk_col, 'pk_val': pk_val, 'pwd_col': pwd_col, 'rol': rol}
                 login_url = url
                 break
 
     if not user_found:
-        messages.error(request, "Enlace inválido o expirado.")
+        messages.error(request, "Enlace vencido")
+        return redirect('home')
+
+    # Verificar token seguro en caché (expiración / un solo uso)
+    if not verificar_token_seguro(user_id, 'activacion', token, invalidar=False):
+        messages.error(request, "Enlace vencido")
         return redirect('home')
 
     if request.method == 'POST':
+        logger.info(f"activar_cuenta POST recibido user_id={user_id} token={token[:10]}...")
+        # Invalidar token INMEDIATAMENTE al recibir POST (un solo uso)
+        token_valido = verificar_token_seguro(user_id, 'activacion', token, invalidar=True)
+        logger.info(f"activar_cuenta token_valido_post={token_valido}")
+        if not token_valido:
+            messages.error(request, "Enlace vencido")
+            return redirect('home')
+
         password1 = request.POST.get('password1', '')
         password2 = request.POST.get('password2', '')
+        logger.info(f"activar_cuenta passwords recibidas p1_len={len(password1)} p2_len={len(password2)}")
 
         errores = []
         if len(password1) < 8:
@@ -2115,16 +2187,49 @@ def activar_cuenta(request, user_id, token):
             errores.append("Las contraseñas no coinciden.")
 
         if errores:
-            for error in errores:
-                messages.error(request, error)
-        else:
-            password_hash = hashlib.md5(password1.encode()).hexdigest()
+            logger.info(f"activar_cuenta errores_validacion={errores}")
+            # Regenerar token para que el usuario pueda corregir errores
+            from usuarios.tokens import generar_token_seguro
+            nuevo_token = generar_token_seguro(user_id, 'activacion')
+            # Actualizar token en BD también para que el DB lookup siga funcionando
             with connection.cursor() as cursor:
                 cursor.execute(
-                    f"UPDATE {user_found['tabla']} SET {user_found['pwd_col']} = %s, token_activacion = NULL, status = TRUE WHERE {user_found['pk_col']} = %s",
-                    [password_hash, user_found['pk_val']]
+                    f"UPDATE {user_found['tabla']} SET token_activacion = %s WHERE {user_found['pk_col']} = %s",
+                    [nuevo_token, user_found['pk_val']]
                 )
+            for error in errores:
+                messages.error(request, error)
+            return render(request, 'usuarios/activar_cuenta.html', {
+                'user_id': user_id,
+                'token': nuevo_token,
+            })
+        else:
+            password_hash = hashlib.md5(password1.encode()).hexdigest()
+            logger.info(f"activar_cuenta hash_generado={password_hash[:16]}... tabla={user_found['tabla']} pk={user_found['pk_val']}")
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        f"UPDATE {user_found['tabla']} SET {user_found['pwd_col']} = %s, status = TRUE, token_activacion = NULL WHERE {user_found['pk_col']} = %s",
+                        [password_hash, user_found['pk_val']]
+                    )
+                    filas_afectadas = cursor.rowcount
+                    logger.info(f"activar_cuenta filas_afectadas={filas_afectadas}")
+                    if filas_afectadas == 0:
+                        logger.error(f"activar_cuenta UPDATE no afectó filas: tabla={user_found['tabla']} pk={user_found['pk_val']}")
+                        messages.error(request, "No se pudo actualizar la cuenta. Contacta al administrador.")
+                        return render(request, 'usuarios/activar_cuenta.html', {
+                            'user_id': user_id,
+                            'token': token,
+                        })
+            except Exception as db_err:
+                logger.error(f"activar_cuenta error BD: {db_err}", exc_info=True)
+                messages.error(request, "Error al guardar la contraseña. Intenta de nuevo.")
+                return render(request, 'usuarios/activar_cuenta.html', {
+                    'user_id': user_id,
+                    'token': token,
+                })
             messages.success(request, "Contraseña establecida correctamente. Ya puedes iniciar sesión.")
+            logger.info(f"activar_cuenta exitoso user_id={user_id} tabla={user_found['tabla']} login={login_url}")
             return redirect(login_url)
 
     return render(request, 'usuarios/activar_cuenta.html', {

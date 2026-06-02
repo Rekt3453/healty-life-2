@@ -521,6 +521,31 @@ class CitaService:
                                  campos_extra={'fecha_atencion': now})
         if not hasattr(cita, 'factura') or not cita.factura:
             FacturacionService.generar_factura_cita(cita)
+
+        # ── Comisión del 40% al doctor ─────────────────────────────────────
+        from citas.models import HonorarioMedico
+        if cita.id_doctor and not HonorarioMedico.objects.filter(id_cita=cita).exists():
+            pago = cita.id_pago_cita
+            monto_base = Decimal("0.00")
+            if pago and pago.monto_pagar:
+                monto_base = Decimal(str(pago.monto_pagar))
+            elif hasattr(cita, 'factura') and cita.factura and cita.factura.total:
+                monto_base = Decimal(str(cita.factura.total))
+            if monto_base > 0:
+                porcentaje = Decimal("40.00")
+                monto_comision = round(monto_base * porcentaje / Decimal("100"), 2)
+                HonorarioMedico.objects.create(
+                    id_doctor=cita.id_doctor,
+                    id_cita=cita,
+                    id_consulta=consulta,
+                    monto_honorario=monto_comision,
+                    porcentaje_comision=porcentaje,
+                    tipo_pago=HonorarioMedico.TIPO_COMISION,
+                    estado_pago=HonorarioMedico.ESTADO_PENDIENTE,
+                    fecha_atencion=now,
+                    id_sede=cita.id_sede,
+                )
+
         return consulta
 
 

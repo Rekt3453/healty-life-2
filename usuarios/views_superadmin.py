@@ -1,5 +1,6 @@
 import hashlib
 import re
+import logging
 from datetime import datetime
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -7,13 +8,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponse
+from django.db.models import Q
 from .models import (
     UserSuperAdmin, Superadmin, Sede, DireccionSede, CentroMedico,
     UserAdmin, Administrador, DireccionAdmin,
+    UserDoctor, UserRecepcionista,
     Estado, Municipio, Ciudad, Parroquia, AuditLog,
 )
 from .audit_services import registrar_evento
 from .authentication import is_rate_limited, _record_failed, get_client_ip
+
+logger = logging.getLogger('usuarios')
 
 # Obtener el CentroMedico del superadmin a través de su sede
 def _get_centro(sa):
@@ -76,10 +81,15 @@ def login_superadmin(request):
                         c.execute("UPDATE user_superadmin SET token_activacion = %s WHERE id_user_superadmin = %s", [token, user.pk])
                     enlace = request.build_absolute_uri(f"/activar-cuenta/{user.pk}/{token}/")
                     sa_profile = Superadmin.objects.filter(id_user_superadmin=user).first()
-                    enviar_correo_activacion(sa_profile, 'Super Admin', enlace)
+                    if sa_profile:
+                        user.nombre_1 = sa_profile.nombre_1
+                        user.nombre_2 = sa_profile.nombre_2
+                        user.apellido_1 = sa_profile.apellido_1
+                        user.apellido_2 = sa_profile.apellido_2
+                    enviar_correo_activacion(user, 'Super Admin', enlace)
                     messages.info(request, "Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu correo.")
                 except Exception as mail_err:
-                    print(f'WARN: No se pudo reenviar correo de activación: {mail_err}')
+                    logger.warning(f"No se pudo reenviar correo de activación: {mail_err}")
                     messages.info(request, "Tu cuenta aún no está activada. Contacta al administrador.")
                 return render(request, 'usuarios/login_superadmin.html')
 
@@ -114,16 +124,13 @@ def dashboard_superadmin(request):
         sedes = Sede.objects.filter(
             id_cm=centro
         ).select_related('id_direccion').order_by('nombre_sede')
-    else:
-        sedes = Sede.objects.all().select_related('id_direccion').order_by('nombre_sede')
-
-    sede_ids = list(sedes.values_list('id_sede', flat=True))
-    if sede_ids:
+        sede_ids = list(sedes.values_list('id_sede', flat=True))
         gerentes = Administrador.objects.filter(
             id_sede__in=sede_ids
         ).select_related('id_user_admin', 'id_sede').order_by('nombre_1')
     else:
-        gerentes = Administrador.objects.all().select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+        sedes = Sede.objects.none()
+        gerentes = Administrador.objects.none()
 
     context = {
         'superadmin': sa,
@@ -233,7 +240,7 @@ def registrar_gerente(request):
             id_cm=centro, status=True
         ).order_by('nombre_sede')
     else:
-        sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+        sedes = Sede.objects.none()
     estados = Estado.objects.all().order_by('estado')
 
     if request.method == 'POST':
@@ -384,9 +391,14 @@ def registrar_gerente(request):
 @_superadmin_required
 def lista_sedes(request):
     user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     filtro = request.GET.get('filtro', 'todos')
 
-    queryset = Sede.objects.all().select_related('id_cm').order_by('nombre_sede')
+    if centro:
+        queryset = Sede.objects.filter(id_cm=centro).select_related('id_cm').order_by('nombre_sede')
+    else:
+        queryset = Sede.objects.none()
+
     if filtro == 'activos':
         queryset = queryset.filter(status=True)
     elif filtro == 'inactivos':
@@ -400,14 +412,22 @@ def lista_sedes(request):
         'user_sa': user_sa,
         'page_obj': page_obj,
         'filtro': filtro,
+        'centro': centro,
     }
     return render(request, 'usuarios/lista_sedes.html', context)
 
 
 @_superadmin_required
 def toggle_sede_status(request, id_sede):
-    user_sa, _ = _get_superadmin_user(request)
+    user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     sede = get_object_or_404(Sede, pk=id_sede)
+
+    # Validar que la sede pertenezca al centro médico del superadmin
+    if centro and sede.id_cm_id != centro.id_cm:
+        messages.error(request, 'No tienes permiso para modificar esta sede.')
+        return redirect('lista_sedes')
+
     sede.status = not sede.status if sede.status is not None else True
     sede.save()
     estado = 'activada' if sede.status else 'desactivada'
@@ -467,9 +487,18 @@ def editar_sede(request, id_sede):
 @_superadmin_required
 def lista_gerentes(request):
     user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     filtro = request.GET.get('filtro', 'todos')
 
-    queryset = Administrador.objects.all().select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro)
+        sede_ids = list(sedes.values_list('id_sede', flat=True))
+        queryset = Administrador.objects.filter(
+            id_sede__in=sede_ids
+        ).select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+    else:
+        queryset = Administrador.objects.none()
+
     if filtro == 'activos':
         queryset = queryset.filter(status=True)
     elif filtro == 'inactivos':
@@ -483,14 +512,22 @@ def lista_gerentes(request):
         'user_sa': user_sa,
         'page_obj': page_obj,
         'filtro': filtro,
+        'centro': centro,
     }
     return render(request, 'usuarios/lista_gerentes.html', context)
 
 
 @_superadmin_required
 def toggle_gerente_status(request, id_administrador):
-    user_sa, _ = _get_superadmin_user(request)
+    user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     gerente = get_object_or_404(Administrador, pk=id_administrador)
+
+    # Validar que el gerente pertenezca al centro médico del superadmin
+    if centro and gerente.id_sede and gerente.id_sede.id_cm_id != centro.id_cm:
+        messages.error(request, 'No tienes permiso para modificar este gerente.')
+        return redirect('lista_gerentes')
+
     gerente.status = not gerente.status if gerente.status is not None else True
     gerente.save()
     estado = 'activado' if gerente.status else 'desactivado'
@@ -510,8 +547,18 @@ def toggle_gerente_status(request, id_administrador):
 @_superadmin_required
 def editar_gerente(request, id_administrador):
     user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     gerente = get_object_or_404(Administrador, pk=id_administrador)
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+
+    # Validar que el gerente pertenezca al centro médico del superadmin
+    if centro and gerente.id_sede and gerente.id_sede.id_cm_id != centro.id_cm:
+        messages.error(request, 'No tienes permiso para editar este gerente.')
+        return redirect('lista_gerentes')
+
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro, status=True).order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.none()
 
     if request.method == 'POST':
         nombre_1 = request.POST.get('nombre_1', '').strip().upper()
@@ -958,6 +1005,33 @@ def audit_log_list(request):
 
     # Excluir eventos de root y de otros superadmins
     queryset = AuditLog.objects.exclude(role__in=['root', 'superadmin'])
+
+    # Filtrar por centro médico: solo usuarios de las sedes del centro
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro)
+        sede_ids = list(sedes.values_list('id_sede', flat=True))
+        # Obtener IDs de usuarios que pertenecen a esas sedes
+        admin_ids = list(UserAdmin.objects.filter(
+            id_sede__in=sede_ids
+        ).values_list('id_user_admin', flat=True))
+        doctor_ids = list(UserDoctor.objects.filter(
+            id_sede__in=sede_ids
+        ).values_list('id_user_doctor', flat=True))
+        recep_ids = list(UserRecepcionista.objects.filter(
+            id_sede__in=sede_ids
+        ).values_list('id_user_recepcionista', flat=True))
+        # Pacientes no tienen sede fija en su modelo; mostrar todos los pacientes por ahora
+        # o filtrar por los que tengan citas en esas sedes (complejo). Por simplicidad,
+        # incluiremos logs de paciente sin filtrar por sede.
+        user_ids = set(admin_ids + doctor_ids + recep_ids)
+        if user_ids:
+            queryset = queryset.filter(
+                Q(id_user__in=user_ids) | Q(role='paciente')
+            )
+        else:
+            queryset = queryset.filter(role='paciente')
+    else:
+        queryset = queryset.none()
 
     # Filtros GET
     filtro_user_id = request.GET.get('user_id', '').strip()

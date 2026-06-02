@@ -1,8 +1,11 @@
+import logging
 from .authentication import CustomAuthBackend, _hint_local
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin,
     PacienteDatosPersonales, Doctor, Recepcionista, Administrador
 )
+
+logger = logging.getLogger('usuarios')
 
 
 def get_user_model_hint(request=None):
@@ -113,6 +116,6 @@ class SedeMiddleware:
                     request.sede_id_actual = getattr(sede, 'id_sede', None) or getattr(sede, 'id', None)
 
             except Exception as e:
-                print(f'Error en SedeMiddleware: {e}')
+                logger.error(f"Error en SedeMiddleware: {e}")
 
         return self.get_response(request)

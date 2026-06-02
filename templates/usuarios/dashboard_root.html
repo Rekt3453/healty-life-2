@@ -61,13 +61,17 @@
             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
             Dashboard
         </a>
-        <a href="{% url 'registrar_centro_medico' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+        <a href="{% url 'lista_centros_root' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
             <i data-lucide="building-2" class="w-5 h-5"></i>
             Centros Médicos
         </a>
-        <a href="{% url 'registrar_superadmin' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+        <a href="{% url 'lista_superadmins_root' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
             <i data-lucide="shield-check" class="w-5 h-5"></i>
             Super Admins
+        </a>
+        <a href="{% url 'auditoria_root' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            Auditoría Completa
         </a>
     </nav>
 
@@ -199,6 +203,7 @@
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre</th>
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">RIF</th>
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -226,10 +231,23 @@
                                     </span>
                                     {% endif %}
                                 </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{% url 'editar_centro_medico' cm.id_cm %}" class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title="Editar">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </a>
+                                        <a href="{% url 'toggle_centro_medico_status' cm.id_cm %}" class="p-1.5 rounded-lg {% if cm.status %}text-amber-600 hover:bg-amber-50{% else %}text-emerald-600 hover:bg-emerald-50{% endif %} transition-colors" title="{% if cm.status %}Desactivar{% else %}Activar{% endif %}">
+                                            <i data-lucide="{% if cm.status %}power-off{% else %}check-circle{% endif %}" class="w-4 h-4"></i>
+                                        </a>
+                                        <a href="{% url 'eliminar_centro_medico' cm.id_cm %}" class="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="px-6 py-12 text-center">
+                                <td colspan="4" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center gap-3">
                                         <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
                                             <i data-lucide="building-2" class="w-6 h-6 text-gray-400"></i>
@@ -243,6 +261,14 @@
                         </tbody>
                     </table>
                 </div>
+                {% if total_centros > 5 %}
+                <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/30 text-center">
+                    <a href="{% url 'lista_centros_root' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                        Ver todos los centros médicos
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Super Admins -->
@@ -267,6 +293,7 @@
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre</th>
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Correo</th>
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Centro</th>
+                                <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -282,10 +309,23 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600">{{ sa.id_user_superadmin.correo|default:"—" }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-600">{{ sa.id_sede.id_cm|default:"—" }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{% url 'editar_superadmin' sa.id_superadmin %}" class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors" title="Editar">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </a>
+                                        <a href="{% url 'toggle_superadmin_status' sa.id_superadmin %}" class="p-1.5 rounded-lg {% if sa.status %}text-amber-600 hover:bg-amber-50{% else %}text-emerald-600 hover:bg-emerald-50{% endif %} transition-colors" title="{% if sa.status %}Desactivar{% else %}Activar{% endif %}">
+                                            <i data-lucide="{% if sa.status %}power-off{% else %}check-circle{% endif %}" class="w-4 h-4"></i>
+                                        </a>
+                                        <a href="{% url 'eliminar_superadmin' sa.id_superadmin %}" class="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="px-6 py-12 text-center">
+                                <td colspan="4" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center gap-3">
                                         <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
                                             <i data-lucide="shield-check" class="w-6 h-6 text-gray-400"></i>
@@ -299,6 +339,14 @@
                         </tbody>
                     </table>
                 </div>
+                {% if total_superadmins > 5 %}
+                <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/30 text-center">
+                    <a href="{% url 'lista_superadmins_root' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">
+                        Ver todos los super admins
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+                {% endif %}
             </div>
 
         </div>

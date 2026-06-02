@@ -4,7 +4,6 @@ Django base settings for clinica_root project.
 
 from pathlib import Path
 import os
-import warnings
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -14,14 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 
-# SECURITY WARNING: keep the secret key used in production secret!
-_SECRET_KEY_FALLBACK = "change-me-in-env-not-for-production"
-SECRET_KEY = os.environ.get("SECRET_KEY", _SECRET_KEY_FALLBACK)
-if SECRET_KEY == _SECRET_KEY_FALLBACK:
-    warnings.warn(
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(
         "SECRET_KEY no está definida en las variables de entorno. "
-        "Usa un valor seguro en producción (variable SECRET_KEY en .env).",
-        stacklevel=1,
+        "Agrégala al archivo .env antes de iniciar el servidor."
     )
 
 # DEBUG y ALLOWED_HOSTS se definen en dev.py / prod.py
@@ -176,3 +172,46 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# LOGGING
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '[{levelname}] {asctime} {module}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'app.log',
+            'formatter': 'simple',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'usuarios': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+        },
+        'citas': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+        },
+    },
+}
+
+# Caché para tokens seguros
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
