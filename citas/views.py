@@ -661,6 +661,31 @@ def cancelar_cita_secretaria(request, cita_id):
     return redirect('gestionar_citas')
 
 
+@login_required(login_url='/login/recepcionista/')
+@rol_requerido('recepcionista', 'gerente')
+def marcar_llegada(request, cita_id):
+    """Recepcionista marca que el paciente llegó → estado='en_consulta'."""
+    if request.method == 'POST':
+        cita = get_object_or_404(Cita, id_citas=cita_id)
+        try:
+            CitaService.transicionar(cita, Cita.ESTADO_EN_CONSULTA)
+            cita.status = True
+            cita.save(update_fields=['status'])
+            registrar_evento(
+                user=request.user,
+                role=CustomAuthBackend().get_rol(request.user),
+                action='UPDATE',
+                model_affected='Cita',
+                object_id=cita.pk,
+                details={'cita_id': cita_id, 'nuevo_estado': 'en_consulta'},
+                request=request,
+            )
+            messages.success(request, f"Paciente de cita #{cita_id} marcado como llegado.")
+        except ValueError as e:
+            messages.error(request, str(e))
+    return redirect('dashboard_recepcionista')
+
+
 @rol_requerido('recepcionista', 'gerente')
 def registrar_adelanto(request, cita_id):
     """Recepcionista registra un adelanto de pago sin generar factura inmediata."""

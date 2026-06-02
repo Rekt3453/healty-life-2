@@ -6,7 +6,7 @@
             </div>
             <div>
                 <h2 class="text-base font-bold" style="color:var(--text-primary);">Citas del día</h2>
-                <p class="text-xs" style="color:var(--text-secondary);">{{ citas_hoy|default:"0" }} citas programadas</p>
+                <p class="text-xs" style="color:var(--text-secondary);">{{ citas_hoy|default:"0" }} citas programadas · {{ citas_en_consulta|default:"0" }} en consulta</p>
             </div>
         </div>
         <a href="{% url 'gestionar_citas' %}?hoy=1" class="btn-ghost">Ver todas</a>
@@ -26,7 +26,7 @@
             </thead>
             <tbody id="dailyAppointmentsBody">
                 {% for cita in citas_hoy_list %}
-                <tr class="border-b hover:bg-gray-50 transition-colors" style="border-color:var(--border);" data-row-id="{{ cita.id_citas }}" data-confirm-url="{% url 'confirmar_pago' cita.id_citas %}" data-reject-url="{% url 'rechazar_cita' cita.id_citas %}" data-cancel-url="{% url 'cancelar_cita_secretaria' cita.id_citas %}">
+                <tr class="border-b hover:bg-gray-50 transition-colors" style="border-color:var(--border);" data-row-id="{{ cita.id_citas }}" data-confirm-url="{% url 'confirmar_pago' cita.id_citas %}" data-reject-url="{% url 'rechazar_cita' cita.id_citas %}" data-cancel-url="{% url 'cancelar_cita_secretaria' cita.id_citas %}" data-llego-url="{% url 'marcar_llegada' cita.id_citas %}">
                     <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">{{ cita.fecha_consulta|time:"H:i" }}</td>
                     <td class="px-6 py-4" style="color:var(--text-primary);">{{ cita.id_paciente|default:"—" }}</td>
                     <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
@@ -37,7 +37,9 @@
                             <span class="badge-pendiente">Pendiente</span>
                         {% elif cita.estado == 'confirmada' or cita.estado == 'aprobada' %}
                             <span class="badge-confirmada">Confirmada</span>
-                        {% elif cita.estado == 'atendida' or cita.estado == 'en_consulta' %}
+                        {% elif cita.estado == 'en_consulta' %}
+                            <span class="badge-en-consulta">En consulta</span>
+                        {% elif cita.estado == 'atendida' %}
                             <span class="badge-completada">Completada</span>
                         {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' or cita.estado == 'no_asistio' %}
                             <span class="badge-cancelada">Cancelada</span>
@@ -50,7 +52,10 @@
                             <button onclick="openModal('confirmar',{{ cita.id_citas }})" class="btn-success text-xs px-3 py-1.5 mr-1">Confirmar</button>
                             <button onclick="openModal('rechazar',{{ cita.id_citas }})" class="btn-danger text-xs px-3 py-1.5">Rechazar</button>
                         {% elif cita.estado == 'confirmada' or cita.estado == 'aprobada' %}
-                            <button onclick="openModal('llego',{{ cita.id_citas }})" class="btn-primary text-xs px-3 py-1.5 mr-1">Llegó</button>
+                            <button onclick="openModal('llego',{{ cita.id_citas }})" class="btn-success text-xs px-2 py-1 inline-flex items-center gap-1 mr-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                Llegó
+                            </button>
                             <button onclick="openModal('cancelar',{{ cita.id_citas }})" class="btn-danger text-xs px-3 py-1.5">Cancelar</button>
                         {% else %}
                             <span class="text-xs" style="color:var(--text-secondary);">Sin acciones</span>

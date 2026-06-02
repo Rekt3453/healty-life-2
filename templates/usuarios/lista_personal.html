@@ -69,7 +69,15 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
             Especialidades
         </a>
-        <a href="#" class="sidebar-link">
+        <a href="{% url 'lista_sedes_gerente' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Sedes
+        </a>
+        <a href="{% url 'lista_horarios' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Horarios
+        </a>
+        <a href="{% url 'reporte_gerente_pdf' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Reportes
         </a>
@@ -155,51 +163,51 @@
         <!-- Tabla desktop -->
         <div class="dashboard-card overflow-hidden fade-in table-desktop" style="animation-delay:.1s;">
             <div class="overflow-x-auto">
-                <table class="min-w-full" id="staffTable">
+                <table class="w-full text-xs" id="staffTable">
                     <thead>
                         <tr style="border-bottom:1px solid var(--border);">
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Nombre</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Rol</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Contacto</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Especialidad</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Estado</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Acciones</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Nombre</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Rol</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Contacto</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Especialidad</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Estado</th>
+                            <th class="px-3 py-3 text-right font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y" style="border-color:var(--border);">
                         <!-- Doctores -->
                         {% for doc in doctores %}
                         <tr class="hover:bg-gray-50 transition staff-row" data-rol="medico" data-search="{{ doc.nombre_1|lower }} {{ doc.apellido_1|lower }} {{ doc.id_user_doctor.username|lower }} {{ doc.telefono|default:'' }}" style="border-color:var(--border);">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full avatar flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full avatar flex items-center justify-center font-bold text-xs flex-shrink-0">
                                         {{ doc.nombre_1|first|upper }}{{ doc.apellido_1|first|upper }}
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ doc.nombre_1 }} {{ doc.nombre_2|default:"" }} {{ doc.apellido_1 }} {{ doc.apellido_2|default:"" }}</p>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold truncate" style="color:var(--text-primary);max-width:180px;">{{ doc.nombre_1 }} {{ doc.nombre_2|default:"" }} {{ doc.apellido_1 }} {{ doc.apellido_2|default:"" }}</p>
                                         <p class="text-xs" style="color:var(--text-secondary);">{{ doc.id_user_doctor.username|default:"—" }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap">
                                 <span class="badge-rol-medico">Medico</span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm" style="color:var(--text-primary);">{{ doc.id_user_doctor.email|default:"—" }}</p>
-                                <p class="text-xs" style="color:var(--text-secondary);">{{ doc.telefono|default:"—" }}</p>
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <p class="truncate" style="color:var(--text-primary);max-width:160px;">{{ doc.id_user_doctor.email|default:"—" }}</p>
+                                <p style="color:var(--text-secondary);">{{ doc.telefono|default:"—" }}</p>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color:var(--text-secondary);">
-                                {{ doc.especialidad_nombre|default:"—" }}
+                            <td class="px-3 py-3 whitespace-nowrap" style="color:var(--text-secondary);">
+                                <span class="truncate block" style="max-width:120px;">{{ doc.especialidad_nombre|default:"—" }}</span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap">
                                 {% if doc.id_user_doctor.status %}
                                 <span class="badge-estado-activo">Activo</span>
                                 {% else %}
                                 <span class="badge-estado-inactivo">Inactivo</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <div class="flex items-center justify-end gap-2">
+                            <td class="px-3 py-3 whitespace-nowrap text-right">
+                                <div class="flex items-center justify-end gap-1">
                                     <a href="{% url 'editar_doctor' doc.pk %}" class="p-2 rounded-lg hover:bg-blue-50 transition-colors" style="color:var(--accent);" title="Editar">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </a>
@@ -214,34 +222,34 @@
                         <!-- Recepcionistas -->
                         {% for rec in recepcionistas %}
                         <tr class="hover:bg-gray-50 transition staff-row" data-rol="recepcionista" data-search="{{ rec.nombre_1|lower }} {{ rec.apellido_1|lower }} {{ rec.id_user_recepcionista.username|lower }} {{ rec.telefono|default:'' }}" style="border-color:var(--border);">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full avatar flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full avatar flex items-center justify-center font-bold text-xs flex-shrink-0">
                                         {{ rec.nombre_1|first|upper }}{{ rec.apellido_1|first|upper }}
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ rec.nombre_1 }} {{ rec.nombre_2|default:"" }} {{ rec.apellido_1 }} {{ rec.apellido_2|default:"" }}</p>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold truncate" style="color:var(--text-primary);max-width:180px;">{{ rec.nombre_1 }} {{ rec.nombre_2|default:"" }} {{ rec.apellido_1 }} {{ rec.apellido_2|default:"" }}</p>
                                         <p class="text-xs" style="color:var(--text-secondary);">{{ rec.id_user_recepcionista.username|default:"—" }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap">
                                 <span class="badge-rol-recepcionista">Recepcionista</span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm" style="color:var(--text-primary);">{{ rec.id_user_recepcionista.email|default:"—" }}</p>
-                                <p class="text-xs" style="color:var(--text-secondary);">{{ rec.telefono|default:"—" }}</p>
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <p class="truncate" style="color:var(--text-primary);max-width:160px;">{{ rec.id_user_recepcionista.email|default:"—" }}</p>
+                                <p style="color:var(--text-secondary);">{{ rec.telefono|default:"—" }}</p>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm" style="color:var(--text-secondary);">—</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3 whitespace-nowrap" style="color:var(--text-secondary);">—</td>
+                            <td class="px-3 py-3 whitespace-nowrap">
                                 {% if rec.id_user_recepcionista.status %}
                                 <span class="badge-estado-activo">Activo</span>
                                 {% else %}
                                 <span class="badge-estado-inactivo">Inactivo</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <div class="flex items-center justify-end gap-2">
+                            <td class="px-3 py-3 whitespace-nowrap text-right">
+                                <div class="flex items-center justify-end gap-1">
                                     <a href="{% url 'editar_recepcionista' rec.pk %}" class="p-2 rounded-lg hover:bg-blue-50 transition-colors" style="color:var(--accent);" title="Editar">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </a>
@@ -253,7 +261,7 @@
                         </tr>
                         {% endfor %}
                         {% if not doctores and not recepcionistas %}
-                        <tr><td colspan="6" class="px-6 py-12 text-center text-sm" style="color:var(--text-secondary);">No hay personal registrado en esta sede.</td></tr>
+                        <tr><td colspan="6" class="px-3 py-12 text-center" style="color:var(--text-secondary);">No hay personal registrado en esta sede.</td></tr>
                         {% endif %}
                     </tbody>
                 </table>

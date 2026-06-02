@@ -74,8 +74,9 @@ function confirmAction(action){
         if(url){submitForm(url,{'motivo_cancelacion':'Cancelada por recepcionista/gerente'});}
         else{showToast('Cita cancelada correctamente','error'); closeModal(action);}
     } else if(action==='llego'){
-        showToast('Paciente marcado como atendido','success');
-        closeModal(action);
+        var url=target?target.getAttribute('data-llego-url'):null;
+        if(url){submitForm(url,{});}
+        else{showToast('Paciente marcado como atendido','success'); closeModal(action);}
     }
 }
 

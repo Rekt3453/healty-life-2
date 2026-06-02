@@ -295,9 +295,10 @@ def get_recepcionista_dashboard_context():
     try:
         citas_pendientes = Cita.objects.filter(status=True).count()
         citas_hoy        = Cita.objects.filter(fecha_consulta__date=hoy).count()
+        citas_en_consulta = Cita.objects.filter(fecha_consulta__date=hoy, estado=Cita.ESTADO_EN_CONSULTA).count()
         citas_recientes  = Cita.objects.select_related('id_paciente', 'id_doctor').order_by('-fecha_emision')[:10]
     except Exception:
-        citas_pendientes = citas_hoy = 0
+        citas_pendientes = citas_hoy = citas_en_consulta = 0
         citas_recientes = []
 
     try:
@@ -354,6 +355,7 @@ def get_recepcionista_dashboard_context():
     return {
         'citas_pendientes':      citas_pendientes,
         'citas_hoy':             citas_hoy,
+        'citas_en_consulta':     citas_en_consulta,
         'citas_recientes':       citas_recientes,
         'total_pacientes':       total_pacientes,
         'citas_hoy_list':        citas_hoy_list,
