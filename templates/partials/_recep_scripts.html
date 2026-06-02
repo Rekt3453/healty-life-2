@@ -107,29 +107,49 @@ function toggleUpcoming(){
     if(chevron){chevron.style.transform=list.classList.contains('hidden')?'rotate(0deg)':'rotate(180deg)';}
 }
 
-var patients=[
-    {name:'María González',cedula:'V-12.345.678',phone:'0412-1234567'},
-    {name:'José Pérez',cedula:'V-23.456.789',phone:'0414-2345678'},
-    {name:'Luisa Martínez',cedula:'V-34.567.890',phone:'0416-3456789'},
-    {name:'Carlos Herrera',cedula:'V-45.678.901',phone:'0424-4567890'},
-    {name:'Fernanda Díaz',cedula:'V-56.789.012',phone:'0412-5678901'}
-];
+function searchDashboard(query){
+    var q=(query||'').toLowerCase().trim();
 
-function searchPatients(query){
-    var container=document.getElementById('patientSearchResults');
-    if(!container) return;
-    if(!query||query.length<2){container.classList.add('hidden');container.innerHTML='';return;}
-    var q=query.toLowerCase();
-    var results=patients.filter(function(p){return p.name.toLowerCase().indexOf(q)!==-1||p.cedula.toLowerCase().indexOf(q)!==-1;});
-    container.innerHTML='';
-    if(results.length===0){container.innerHTML='<p class="text-sm" style="color:var(--text-secondary);">No se encontraron pacientes.</p>';container.classList.remove('hidden');return;}
-    results.forEach(function(p){
-        var div=document.createElement('div');
-        div.className='flex items-center justify-between p-3 rounded-lg hover:bg-gray-50';
-        div.style.border='1px solid var(--border)';
-        div.innerHTML='<div><p class="text-sm font-medium" style="color:var(--text-primary);">'+p.name+'</p><p class="text-xs" style="color:var(--text-secondary);">'+p.cedula+' · '+p.phone+'</p></div><a href="#" class="btn-ghost text-xs px-3 py-1.5">Ver ficha</a>';
-        container.appendChild(div);
-    });
-    container.classList.remove('hidden');
+    // 1) Filtrar tabla de citas del día
+    var tableBody=document.getElementById('dailyAppointmentsBody');
+    if(tableBody){
+        var rows=tableBody.querySelectorAll('tr[data-row-id]');
+        var visibleRows=0;
+        rows.forEach(function(row){
+            var text=row.innerText.toLowerCase();
+            if(text.indexOf(q)!==-1){
+                row.style.display='';
+                visibleRows++;
+            } else {
+                row.style.display='none';
+            }
+        });
+        // Mostrar / ocultar mensaje "No hay citas"
+        var emptyMsg=tableBody.querySelector('tr:not([data-row-id])');
+        if(emptyMsg){
+            emptyMsg.style.display=visibleRows===0?'':'none';
+        }
+    }
+
+    // 2) Filtrar solicitudes pendientes
+    var pendingList=document.getElementById('pendingRequestsList');
+    if(pendingList){
+        var items=pendingList.querySelectorAll('div[data-request-id]');
+        var visibleItems=0;
+        items.forEach(function(item){
+            var text=item.innerText.toLowerCase();
+            if(text.indexOf(q)!==-1){
+                item.style.display='';
+                visibleItems++;
+            } else {
+                item.style.display='none';
+            }
+        });
+        // Mostrar / ocultar mensaje "No hay solicitudes"
+        var emptyMsg=pendingList.querySelector('div:not([data-request-id])');
+        if(emptyMsg){
+            emptyMsg.style.display=visibleItems===0?'':'none';
+        }
+    }
 }
 </script>

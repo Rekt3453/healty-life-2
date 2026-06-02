@@ -9,7 +9,7 @@
                 <p class="text-xs" style="color:var(--text-secondary);">{{ citas_hoy|default:"0" }} citas programadas</p>
             </div>
         </div>
-        <a href="{% url 'gestionar_citas' %}" class="btn-ghost">Ver todas</a>
+        <a href="{% url 'gestionar_citas' %}?hoy=1" class="btn-ghost">Ver todas</a>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">

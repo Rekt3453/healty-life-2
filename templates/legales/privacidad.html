@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad — Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+</head>
+<body class="hl-redesign bg-gray-50">
+{% include 'partials/_header_public.html' %}
+
+<main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="hl-card p-8 md:p-10">
+        <h1 class="text-2xl font-bold mb-6" style="color: #1E293B;">Política de Privacidad</h1>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">1. Información que recopilamos</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Recopilamos datos personales necesarios para brindar atención médica de calidad: nombre, documento de identidad, datos de contacto, historial médico, resultados de exámenes y citas programadas. Esta información es estrictamente confidencial.
+            </p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">2. Uso de la información</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Utilizamos sus datos únicamente para gestionar citas médicas, mantener historiales clínicos, contactarle sobre resultados o recordatorios de citas, y cumplir con obligaciones legales sanitarias.
+            </p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">3. Protección de datos</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Implementamos medidas de seguridad técnicas y administrativas para proteger su información contra accesos no autorizados, alteraciones o divulgaciones. Solo el personal autorizado tiene acceso a su historial clínico.
+            </p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">4. Derechos del paciente</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Usted tiene derecho a acceder, rectificar o solicitar la eliminación de sus datos personales, conforme a la normativa de protección de datos vigente. Para ejercer estos derechos, contacte a nuestra oficina de atención al paciente.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold mb-2" style="color: #1E293B;">5. Cambios a esta política</h2>
+            <p class="text-sm leading-relaxed" style="color: #64748B;">
+                Nos reservamos el derecho de actualizar esta política. Cualquier cambio será publicado en esta página con la fecha de revisión correspondiente.
+            </p>
+        </section>
+
+        <p class="text-xs mt-8 pt-6 border-t" style="color: #94A3B8; border-color: #E2E8F0;">
+            Última actualización: junio 2026.
+        </p>
+    </div>
+</main>
+
+{% include 'partials/_footer.html' %}
+</body>
+</html>
