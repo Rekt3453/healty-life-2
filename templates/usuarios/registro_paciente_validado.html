@@ -1,0 +1,574 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Pacientes - Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <style>
+        :root {
+            --verde-principal: #2E7D32;
+            --verde-oscuro: #1B5E20;
+            --verde-claro: #E8F5E9;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+        }
+
+        .card-registro {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .form-control:focus {
+            border-color: var(--verde-principal);
+            box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+            outline: none;
+        }
+
+        .form-control.is-valid,
+        .form-select.is-valid {
+            border-color: #198754;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+        }
+
+        .form-control.is-invalid,
+        .form-select.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+
+        .btn-registro {
+            background: var(--verde-principal);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-registro:hover {
+            background: var(--verde-oscuro);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .text-danger {
+            color: #dc3545;
+        }
+
+        .password-strength .badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+        }
+
+        .valid-icon::after {
+            content: '✓';
+            color: #198754;
+            margin-left: 8px;
+        }
+
+        .invalid-icon::after {
+            content: '✗';
+            color: #dc3545;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+<!-- Hero Section con Registro -->
+<div class="hero-section relative">
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto">
+            <!-- Logo y título -->
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 2-2m0 7l2 2 2-2M9 5H7a2 2 0 00-2 2v2a2 2 0 00-2 2H7a2 2 0 00-2 2z"/>
+                    </svg>
+                </div>
+                <h1 class="text-4xl font-bold text-white mb-2">🏥 Healthy Life</h1>
+                <h2 class="text-2xl font-semibold text-white mb-2">Registro de Pacientes</h2>
+                <p class="text-green-100">Crea tu cuenta para acceder a nuestros servicios</p>
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+                <div class="mb-6 space-y-3">
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %} border rounded-lg p-4 flex items-center space-x-3">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                {% if message.tags == 'error' %}
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                {% elif message.tags == 'success' %}
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 101.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                {% else %}
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                {% endif %}
+                            </svg>
+                            <span class="text-sm font-medium">{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Formulario -->
+            <form method="POST" id="form-registro" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Errores generales del formulario -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                                <li>⚠️ {{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <!-- Sección: Información de Cuenta -->
+                <div class="card-registro bg-white rounded-2xl shadow-xl p-6">
+                    <div class="flex items-center mb-6">
+                        <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <h3 class="text-xl font-bold text-green-800">📝 Información de Cuenta</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                Nombre de Usuario <span class="text-danger">*</span>
+                            </label>
+                            {{ form.username }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                Correo Electrónico <span class="text-danger">*</span>
+                            </label>
+                            {{ form.email }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                Contraseña <span class="text-danger">*</span>
+                            </label>
+                            {{ form.password1 }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                Confirmar Contraseña <span class="text-danger">*</span>
+                            </label>
+                            {{ form.password2 }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Información Personal -->
+                <div class="card-registro bg-white rounded-2xl shadow-xl p-6">
+                    <div class="flex items-center mb-6">
+                        <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <h3 class="text-xl font-bold text-green-800">👤 Información Personal</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.primer_nombre.id_for_label }}" class="form-label">
+                                Primer Nombre <span class="text-danger">*</span>
+                            </label>
+                            {{ form.primer_nombre }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.segundo_nombre.id_for_label }}" class="form-label">
+                                Segundo Nombre
+                            </label>
+                            {{ form.segundo_nombre }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="{{ form.primer_apellido.id_for_label }}" class="form-label">
+                                Primer Apellido <span class="text-danger">*</span>
+                            </label>
+                            {{ form.primer_apellido }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.segundo_apellido.id_for_label }}" class="form-label">
+                                Segundo Apellido
+                            </label>
+                            {{ form.segundo_apellido }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label for="{{ form.tipo_cedula.id_for_label }}" class="form-label">
+                                Tipo Cédula <span class="text-danger">*</span>
+                            </label>
+                            {{ form.tipo_cedula }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.cedula.id_for_label }}" class="form-label">
+                                Número Cédula <span class="text-danger">*</span>
+                            </label>
+                            {{ form.cedula }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.sexo.id_for_label }}" class="form-label">
+                                Sexo <span class="text-danger">*</span>
+                            </label>
+                            {{ form.sexo }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">
+                                Fecha Nacimiento <span class="text-danger">*</span>
+                            </label>
+                            {{ form.fecha_nacimiento }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                Teléfono <span class="text-danger">*</span>
+                            </label>
+                            {{ form.telefono }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Información de Ubicación -->
+                <div class="card-registro bg-white rounded-2xl shadow-xl p-6">
+                    <div class="flex items-center mb-6">
+                        <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <h3 class="text-xl font-bold text-green-800">📍 Información de Ubicación</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.estado.id_for_label }}" class="form-label">
+                                Estado
+                            </label>
+                            {{ form.estado }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.municipio.id_for_label }}" class="form-label">
+                                Municipio
+                            </label>
+                            {{ form.municipio }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="{{ form.ciudad.id_for_label }}" class="form-label">
+                                Ciudad
+                            </label>
+                            {{ form.ciudad }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div>
+                            <label for="{{ form.parroquia.id_for_label }}" class="form-label">
+                                Parroquia
+                            </label>
+                            {{ form.parroquia }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                            Dirección
+                        </label>
+                        {{ form.direccion }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- Botón de envío -->
+                <div class="text-center">
+                    <button type="submit" class="btn-registro text-lg px-8 py-4">
+                        🚀 Crear Cuenta
+                    </button>
+                </div>
+
+                <!-- Enlace a login -->
+                <div class="text-center">
+                    <p class="text-white">
+                        ¿Ya tienes cuenta? 
+                        <a href="{% url 'login_paciente' %}" class="text-green-100 hover:text-white font-semibold underline">
+                            Inicia sesión aquí
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== VALIDACIÓN EN TIEMPO REAL ====================
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Patrones de validación
+    const patterns = {
+        nombre: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/,
+        apellido: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/,
+        username: /^[a-zA-Z0-9_-]{4,30}$/,
+        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        cedula: /^\d{6,20}$/,
+        telefono: /^\d{10,15}$/,
+        texto: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\d\-\.\,\#]*$/,
+    };
+    
+    // Mensajes de error personalizados
+    const messages = {
+        nombre: 'Solo letras (mínimo 2)',
+        apellido: 'Solo letras (mínimo 2)',
+        username: 'Solo letras, números, guiones (mínimo 4)',
+        email: 'Ingrese un correo válido',
+        cedula: 'Solo números (mínimo 6 dígitos)',
+        telefono: 'Solo números (mínimo 10 dígitos)',
+        texto: 'Formato inválido',
+        password: 'Mínimo 8 caracteres, incluir mayúscula, minúscula y número',
+        password2: 'Las contraseñas deben coincidir',
+        select: 'Seleccione una opción',
+        fecha: 'Seleccione una fecha válida',
+    };
+    
+    // Validar campo en tiempo real
+    function validateField(field) {
+        const value = field.value.trim();
+        const type = field.dataset.validate;
+        const errorDiv = field.parentElement.querySelector('.invalid-feedback') || 
+                         createErrorDiv(field);
+        
+        // Limpiar error previo
+        field.classList.remove('is-invalid', 'is-valid');
+        errorDiv.textContent = '';
+        
+        if (!value && field.required) {
+            field.classList.add('is-invalid');
+            errorDiv.textContent = 'Este campo es obligatorio';
+            return false;
+        }
+        
+        if (!value) {
+            field.classList.add('is-valid');
+            return true;
+        }
+        
+        // Validar según tipo
+        let isValid = true;
+        
+        switch(type) {
+            case 'nombre':
+            case 'apellido':
+                isValid = patterns[type].test(value);
+                if (!isValid) errorDiv.textContent = messages[type];
+                break;
+                
+            case 'username':
+                isValid = patterns.username.test(value);
+                if (!isValid) errorDiv.textContent = messages.username;
+                break;
+                
+            case 'email':
+                isValid = patterns.email.test(value);
+                if (!isValid) errorDiv.textContent = messages.email;
+                break;
+                
+            case 'cedula':
+                isValid = patterns.cedula.test(value);
+                if (!isValid) errorDiv.textContent = messages.cedula;
+                break;
+                
+            case 'telefono':
+                isValid = patterns.telefono.test(value);
+                if (!isValid) errorDiv.textContent = messages.telefono;
+                break;
+                
+            case 'texto':
+                // Para campos de ubicación, aceptar texto básico
+                isValid = value.length <= 100;
+                if (!isValid) errorDiv.textContent = 'Máximo 100 caracteres';
+                break;
+                
+            case 'password':
+                isValid = value.length >= 8 && 
+                         /[A-Z]/.test(value) && 
+                         /[a-z]/.test(value) && 
+                         /[0-9]/.test(value);
+                if (!isValid) errorDiv.textContent = messages.password;
+                break;
+                
+            case 'password2':
+                const pass1 = document.querySelector('[data-validate="password"]').value;
+                isValid = value === pass1;
+                if (!isValid) errorDiv.textContent = messages.password2;
+                break;
+                
+            case 'select':
+                isValid = value !== '';
+                if (!isValid) errorDiv.textContent = messages.select;
+                break;
+                
+            case 'fecha':
+                const fecha = new Date(value);
+                const hoy = new Date();
+                isValid = fecha <= hoy;
+                if (!isValid) errorDiv.textContent = messages.fecha;
+                break;
+        }
+        
+        if (isValid) {
+            field.classList.add('is-valid');
+        } else {
+            field.classList.add('is-invalid');
+        }
+        
+        return isValid;
+    }
+    
+    // Crear div de error si no existe
+    function createErrorDiv(field) {
+        const div = document.createElement('div');
+        div.className = 'invalid-feedback';
+        field.parentElement.appendChild(div);
+        return div;
+    }
+    
+    // Agregar eventos a todos los campos con data-validate
+    document.querySelectorAll('[data-validate]').forEach(field => {
+        field.addEventListener('input', () => validateField(field));
+        field.addEventListener('change', () => validateField(field));
+        field.addEventListener('blur', () => validateField(field));
+    });
+    
+    // Validar todo el formulario antes de enviar
+    document.getElementById('form-registro').addEventListener('submit', function(e) {
+        let allValid = true;
+        document.querySelectorAll('[data-validate]').forEach(field => {
+            if (!validateField(field)) {
+                allValid = false;
+            }
+        });
+        
+        if (!allValid) {
+            e.preventDefault();
+            // Scroll al primer error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+    });
+    
+    // Indicador de fortaleza de contraseña
+    const passwordField = document.querySelector('[data-validate="password"]');
+    if (passwordField) {
+        const strengthDiv = document.createElement('div');
+        strengthDiv.className = 'password-strength mt-1';
+        strengthDiv.innerHTML = '<small class="text-muted">Fortaleza: </small><span class="badge">-</span>';
+        passwordField.parentElement.appendChild(strengthDiv);
+        
+        passwordField.addEventListener('input', function() {
+            const value = this.value;
+            const badge = strengthDiv.querySelector('.badge');
+            
+            let score = 0;
+            if (value.length >= 8) score++;
+            if (/[A-Z]/.test(value)) score++;
+            if (/[a-z]/.test(value)) score++;
+            if (/[0-9]/.test(value)) score++;
+            if (/[\W_]/.test(value)) score++;
+            
+            badge.className = 'badge ';
+            switch(score) {
+                case 0:
+                case 1:
+                    badge.className += 'bg-danger';
+                    badge.textContent = 'Débil';
+                    break;
+                case 2:
+                case 3:
+                    badge.className += 'bg-warning text-dark';
+                    badge.textContent = 'Media';
+                    break;
+                case 4:
+                    badge.className += 'bg-info';
+                    badge.textContent = 'Buena';
+                    break;
+                case 5:
+                    badge.className += 'bg-success';
+                    badge.textContent = 'Fuerte';
+                    break;
+            }
+        });
+    }
+});
+
+// Aplicar clases de Tailwind a los campos del formulario
+document.addEventListener('DOMContentLoaded', function() {
+    const formElements = document.querySelectorAll('#form-registro input, #form-registro select, #form-registro textarea');
+    
+    formElements.forEach(function(element) {
+        element.classList.add('form-control', 'w-full', 'px-4', 'py-3', 'rounded-lg', 'border', 'border-gray-300', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent');
+        
+        if (element.tagName === 'SELECT') {
+            element.classList.add('form-select', 'appearance-none');
+        }
+        
+        if (element.tagName === 'TEXTAREA') {
+            element.classList.add('resize-none');
+            element.setAttribute('rows', '3');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
