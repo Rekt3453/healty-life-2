@@ -118,4 +118,7 @@ urlpatterns = [
     # Legales
     path('privacidad/', views.privacidad, name='privacidad'),
     path('terminos/', views.terminos, name='terminos'),
+
+    # Session keep-alive
+    path('session/keep-alive/', views.session_keep_alive, name='session_keep_alive'),
 ]

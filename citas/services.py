@@ -161,13 +161,14 @@ class CitaService:
     def crear_cita_con_reserva(user, *, sede_id, especialidad_id, doctor_id, servicio_id,
                                  fecha, hora, motivo_raw, paciente_objetivo='self',
                                  cedula=None, telefono=None, banco_emisor=None, referencia=None,
-                                 servicios_seleccionados=None):
+                                 monto_pago=None, servicios_seleccionados=None):
         """
         Crea la cita vía crear_cita, registra los datos de transferencia bancaria
         en ReservaTransferencia, y guarda los servicios médicos pre-seleccionados
         por el paciente en CitaServicioSolicitado.
         """
         from citas.models import ReservaTransferencia, ServicioMedico, CitaServicioSolicitado
+        from decimal import Decimal
 
         cita, mensaje = CitaService.crear_cita(
             user,
@@ -188,6 +189,18 @@ class CitaService:
             banco_emisor=banco_emisor,
             referencia=referencia,
         )
+
+        # Actualizar PagoCita con monto y referencia de la reserva
+        pago = getattr(cita, 'id_pago_cita', None)
+        if pago:
+            if monto_pago:
+                try:
+                    pago.monto_pagar = Decimal(str(monto_pago).replace(',', '.'))
+                except Exception:
+                    pass
+            pago.metodo_pago = 'Transferencia / Pago Movil'
+            pago.referencia_pago = referencia
+            pago.save(update_fields=['monto_pagar', 'metodo_pago', 'referencia_pago'])
 
         # Guardar servicios pre-seleccionados por el paciente
         if servicios_seleccionados:

@@ -199,18 +199,15 @@
                 </div>
 
                 <div class="dashboard-card p-6">
-                    <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">Desglose de cargos</h2>
-                    <div class="line-item border-b" style="color:#64748B;">
-                        <span>Costo de la consulta</span>
-                        <span class="font-medium" style="color:#1E293B;">$ 50.00</span>
-                    </div>
-                    <div class="line-item border-b" style="color:#64748B;">
-                        <span>Comisión por reserva</span>
-                        <span class="font-medium" style="color:#1E293B;">$ 0.00</span>
+                    <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">Cargo por reserva</h2>
+                    <div class="p-4 rounded-lg mb-4" style="background:rgba(0,112,243,0.04); border:1px solid rgba(0,112,243,0.12);">
+                        <p class="text-sm" style="color:#1E293B;">
+                            <strong>El pago por reserva es un cargo adicional por reservar la cita, es independiente del precio del servicio.</strong>
+                        </p>
                     </div>
                     <div class="line-item pt-2 mt-1">
-                        <span class="text-base font-bold" style="color:#1E293B;">Total a pagar</span>
-                        <span class="text-xl font-extrabold" style="color:#0070F3;">$ 50.00</span>
+                        <span class="text-base font-bold" style="color:#1E293B;">Monto a pagar</span>
+                        <span class="text-xl font-extrabold" style="color:#0070F3;">$5,00 A BCV</span>
                     </div>
                 </div>
 
@@ -262,80 +259,30 @@
                                 <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                             </div>
                         </label>
-                        <label class="pay-method-card" data-method="tarjeta">
-                            <input type="radio" name="metodo_pago" value="tarjeta" class="hidden">
-                            <div class="radio-circle"></div>
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold" style="color:#1E293B;">Tarjeta de crédito / débito</p>
-                                <p class="text-xs" style="color:#64748B;">Visa, Mastercard, Amex</p>
-                            </div>
-                            <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(0,112,243,0.06);">
-                                <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                            </div>
-                        </label>
-                        <label class="pay-method-card" data-method="efectivo">
-                            <input type="radio" name="metodo_pago" value="efectivo" class="hidden">
-                            <div class="radio-circle"></div>
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold" style="color:#1E293B;">Efectivo en consulta</p>
-                                <p class="text-xs" style="color:#64748B;">Paga al llegar a la clínica</p>
-                            </div>
-                            <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(0,112,243,0.06);">
-                                <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            </div>
-                        </label>
                     </div>
 
                     <!-- Campos transferencia -->
                     <div id="fields-transferencia" class="payment-fields space-y-4 mb-6">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Cédula del titular</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Monto del pago <span style="color:#DC2626;">*</span></label>
+                            <input type="text" id="monto_pago" name="monto_pago" required maxlength="30" placeholder="5,00" class="input-modern" inputmode="decimal" pattern="^\d{1,3}(,\d{2})$" title="Ingresa el monto con formato 0,00 (ej: 5,00)">
+                            <p class="text-xs mt-1" style="color:#94A3B8;">Ingresa el monto con formato <strong>0,00</strong> (ej: 5,00)</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Cédula del titular <span style="color:#DC2626;">*</span></label>
                             <input type="text" id="cedula" name="cedula" required maxlength="9" pattern="^\d{6,9}$" title="Solo números, entre 6 y 9 dígitos" placeholder="12345678" class="input-modern">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Teléfono</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Teléfono <span style="color:#DC2626;">*</span></label>
                             <input type="text" id="telefono" name="telefono" required maxlength="11" pattern="^\d{10,11}$" title="Solo números, 10-11 dígitos" placeholder="04121234567" class="input-modern">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Banco emisor</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Banco emisor <span style="color:#DC2626;">*</span></label>
                             <input type="text" id="banco_emisor" name="banco_emisor" required minlength="2" maxlength="30" placeholder="Banco de Venezuela, Mercantil, etc." class="input-modern">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Número de referencia (últimos 6 dígitos)</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Número de referencia (últimos 6 dígitos) <span style="color:#DC2626;">*</span></label>
                             <input type="text" id="referencia" name="referencia" required minlength="6" maxlength="6" pattern="^\d{6}$" title="Exactamente 6 dígitos numéricos" placeholder="Ej: 123456" class="input-modern">
-                        </div>
-                    </div>
-
-                    <!-- Campos tarjeta (simulados) -->
-                    <div id="fields-tarjeta" class="payment-fields hidden space-y-4 mb-6">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Número de tarjeta</label>
-                            <input type="text" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000" class="input-modern">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Expiración (MM/AA)</label>
-                                <input type="text" maxlength="5" placeholder="MM/AA" class="input-modern">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">CVV</label>
-                                <input type="text" inputmode="numeric" maxlength="4" placeholder="123" class="input-modern">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748B;">Nombre del titular</label>
-                            <input type="text" placeholder="Como aparece en la tarjeta" class="input-modern">
-                        </div>
-                        <div class="p-3 rounded-lg" style="background:#F8FAFC; border:1px solid #E2E8F0;">
-                            <p class="text-xs" style="color:#94A3B8;"><strong>Nota:</strong> La pasarela de pago con tarjeta será procesada próximamente. Por ahora utiliza transferencia bancaria para completar tu reserva.</p>
-                        </div>
-                    </div>
-
-                    <!-- Efectivo -->
-                    <div id="fields-efectivo" class="payment-fields hidden mb-6">
-                        <div class="p-4 rounded-lg flex items-start gap-3" style="background:rgba(245,158,11,0.04); border:1px solid rgba(245,158,11,0.15);">
-                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color:#D97706;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <p class="text-sm" style="color:#64748B;">Has seleccionado <strong style="color:#1E293B;">pago en efectivo</strong>. El monto total deberá ser cancelado en la recepción el día de tu cita. Tu reserva quedará pendiente de confirmación.</p>
                         </div>
                     </div>
 
@@ -358,7 +305,7 @@
                     <div class="mt-4 text-center">
                         <span class="secure-badge">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            Transacción segura — No guardamos los datos de tu tarjeta
+                            Transacción segura — Verificación manual de pago
                         </span>
                     </div>
                 </form>
@@ -417,8 +364,6 @@
         // Métodos de pago
         const methodCards = document.querySelectorAll('.pay-method-card');
         const fieldsTransferencia = document.getElementById('fields-transferencia');
-        const fieldsTarjeta = document.getElementById('fields-tarjeta');
-        const fieldsEfectivo = document.getElementById('fields-efectivo');
         const btnText = document.getElementById('btnText');
         const confirmBtn = document.getElementById('confirmBtn');
         const termsCheck = document.getElementById('termsCheck');
@@ -436,48 +381,36 @@
                 if (input) input.checked = (card.dataset.method === method);
             });
             fieldsTransferencia.classList.toggle('hidden', method !== 'transferencia');
-            fieldsTarjeta.classList.toggle('hidden', method !== 'tarjeta');
-            fieldsEfectivo.classList.toggle('hidden', method !== 'efectivo');
-
-            if (method === 'efectivo') {
-                btnText.textContent = 'Reservar cita (pagar en clínica)';
-            } else {
-                btnText.textContent = 'Confirmar pago y reservar';
-            }
         }
 
         methodCards.forEach(card => {
             card.addEventListener('click', () => switchMethod(card.dataset.method));
         });
 
-        // Validación y envío simulado
+        // Validación y envío
         checkoutForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const selected = document.querySelector('.pay-method-card.selected').dataset.method;
 
             if (!termsCheck.checked) {
                 alert('Debes aceptar los términos y condiciones para continuar.');
                 return;
             }
 
-            if (selected === 'transferencia') {
-                const cedula = document.getElementById('cedula').value.trim();
-                const telefono = document.getElementById('telefono').value.trim();
-                const banco = document.getElementById('banco_emisor').value.trim();
-                const ref = document.getElementById('referencia').value.trim();
-                if (!/^\d{6,9}$/.test(cedula)) { alert('La cédula debe tener entre 6 y 9 dígitos numéricos.'); return; }
-                if (!/^\d{10,11}$/.test(telefono)) { alert('El teléfono debe tener 10 o 11 dígitos numéricos.'); return; }
-                if (banco.length < 2 || banco.length > 30) { alert('El banco emisor debe tener entre 2 y 30 caracteres.'); return; }
-                if (!/^\d{6}$/.test(ref)) { alert('La referencia debe tener exactamente 6 dígitos numéricos.'); return; }
-            }
+            const montoPago = document.getElementById('monto_pago').value.trim();
+            const cedula = document.getElementById('cedula').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const banco = document.getElementById('banco_emisor').value.trim();
+            const ref = document.getElementById('referencia').value.trim();
 
-            if (selected === 'tarjeta') {
-                // Frontend simulado: muestra modal de éxito sin enviar al backend (tarjeta no implementada aún)
-                document.getElementById('successModal').classList.add('active');
+            if (!/^\d{1,3},\d{2}$/.test(montoPago)) {
+                alert('El monto del pago debe tener formato 0,00 (ej: 5,00).');
                 return;
             }
+            if (!/^\d{6,9}$/.test(cedula)) { alert('La cédula debe tener entre 6 y 9 dígitos numéricos.'); return; }
+            if (!/^\d{10,11}$/.test(telefono)) { alert('El teléfono debe tener 10 o 11 dígitos numéricos.'); return; }
+            if (banco.length < 2 || banco.length > 30) { alert('El banco emisor debe tener entre 2 y 30 caracteres.'); return; }
+            if (!/^\d{6}$/.test(ref)) { alert('La referencia debe tener exactamente 6 dígitos numéricos.'); return; }
 
-            // Para transferencia y efectivo: enviar al backend (post real)
             this.submit();
         });
 
@@ -489,5 +422,6 @@
             });
         });
     </script>
+{% include "partials/_session_timeout.html" %}
 </body>
 </html>

@@ -88,7 +88,9 @@
                     <h5 class="mb-0">Ingresos por Método de Pago</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="graficoMetodosPago" height="100"></canvas>
+                    <canvas id="graficoMetodosPago"
+                            data-metodos='{{ datos.pagos_por_metodo|safe|escapejs }}'
+                            height="100"></canvas>
                 </div>
             </div>
 
@@ -129,8 +131,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('graficoMetodosPago');
-    const metodosPago = {{ datos.pagos_por_metodo|safe }};
-    
+    const metodosPago = JSON.parse(ctx.dataset.metodos || '[]');
+
     const labels = metodosPago.map(item => item.metodo_pago || 'Sin especificar');
     const data = metodosPago.map(item => parseFloat(item.total));
     const colors = ['#2E7D32', '#43A047', '#66BB6A', '#81C784', '#A5D6A7'];

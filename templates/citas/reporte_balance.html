@@ -108,7 +108,10 @@
                     <h5 class="mb-0">Composición de Facturación</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="graficoFacturacion" height="100"></canvas>
+                    <canvas id="graficoFacturacion"
+                            data-pagadas="{{ datos.facturas_pagadas.total|default:0|floatformat:'2u' }}"
+                            data-pendientes="{{ datos.facturas_pendientes.total|default:0|floatformat:'2u' }}"
+                            height="100"></canvas>
                 </div>
             </div>
         </div>
@@ -125,8 +128,8 @@
             labels: ['Pagadas', 'Pendientes'],
             datasets: [{
                 data: [
-                    {{ datos.facturas_pagadas.total|floatformat:2 }},
-                    {{ datos.facturas_pendientes.total|floatformat:2 }}
+                    parseFloat(ctx.dataset.pagadas || 0),
+                    parseFloat(ctx.dataset.pendientes || 0)
                 ],
                 backgroundColor: ['#2E7D32', '#FFC107'],
                 borderColor: ['#2E7D32', '#FFC107'],

@@ -218,18 +218,36 @@
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
-                            <td class="px-6 py-4"><span class="badge-pendiente">Pendiente</span></td>
+                            <td class="px-6 py-4">
+                                <span class="badge-pendiente">Pendiente</span>
+                                {% if cita.reserva_pago %}
+                                <button type="button" class="btn-ghost text-xs px-2 py-1 ml-1"
+                                    data-cita-id="{{ cita.id_citas }}"
+                                    data-referencia="{{ cita.reserva_pago.referencia|default:'' }}"
+                                    data-banco="{{ cita.reserva_pago.banco_emisor|default:'' }}"
+                                    data-cedula="{{ cita.reserva_pago.cedula|default:'' }}"
+                                    data-telefono="{{ cita.reserva_pago.telefono|default:'' }}"
+                                    data-monto="{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}No registrado{% endif %}"
+                                    onclick="openVerPago(this)">Ver pago</button>
+                                {% endif %}
+                            </td>
                             <td class="px-6 py-4 text-right">
                                 {% if cita.id_doctor %}
-                                <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="inline" onsubmit="return confirm('Confirmar pago y aceptar esta cita?')">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-success text-xs px-3 py-1.5 mr-1">Confirmar</button>
-                                </form>
+                                <button type="button" class="btn-success text-xs px-3 py-1.5 mr-1"
+                                    data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                                    data-titulo="Confirmar pago"
+                                    data-mensaje="Esta seguro que desea confirmar el pago y aceptar esta cita?"
+                                    data-btn-class="btn-success"
+                                    data-btn-text="Confirmar"
+                                    onclick="openModalAccion(this)">Confirmar</button>
                                 {% endif %}
-                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline" onsubmit="return confirm('Rechazar esta cita?')">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-danger text-xs px-3 py-1.5">Rechazar</button>
-                                </form>
+                                <button type="button" class="btn-danger text-xs px-3 py-1.5"
+                                    data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                                    data-titulo="Rechazar cita"
+                                    data-mensaje="Esta seguro que desea rechazar esta cita?"
+                                    data-btn-class="btn-danger"
+                                    data-btn-text="Rechazar"
+                                    onclick="openModalAccion(this)">Rechazar</button>
                             </td>
                         </tr>
                         {% empty %}
@@ -243,15 +261,39 @@
                 <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
                     <div class="flex justify-between items-start mb-2">
                         <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
-                        <span class="badge-pendiente">Pendiente</span>
+                        <div class="flex items-center gap-1">
+                            <span class="badge-pendiente">Pendiente</span>
+                            {% if cita.reserva_pago %}
+                            <button type="button" class="btn-ghost text-xs px-2 py-1"
+                                data-cita-id="{{ cita.id_citas }}"
+                                data-referencia="{{ cita.reserva_pago.referencia|default:'' }}"
+                                data-banco="{{ cita.reserva_pago.banco_emisor|default:'' }}"
+                                data-cedula="{{ cita.reserva_pago.cedula|default:'' }}"
+                                data-telefono="{{ cita.reserva_pago.telefono|default:'' }}"
+                                data-monto="{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}No registrado{% endif %}"
+                                onclick="openVerPago(this)">Ver pago</button>
+                            {% endif %}
+                        </div>
                     </div>
                     <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }} · {{ cita.id_sede.nombre_sede|default:"—" }}</p>
                     <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"No asignado" }}</p>
                     <div class="flex gap-2">
                         {% if cita.id_doctor %}
-                        <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Confirmar pago y aceptar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-success w-full text-xs py-1.5">Confirmar</button></form>
+                        <button type="button" class="btn-success flex-1 w-full text-xs py-1.5"
+                            data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                            data-titulo="Confirmar pago"
+                            data-mensaje="Esta seguro que desea confirmar el pago y aceptar esta cita?"
+                            data-btn-class="btn-success"
+                            data-btn-text="Confirmar"
+                            onclick="openModalAccion(this)">Confirmar</button>
                         {% endif %}
-                        <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Rechazar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-danger w-full text-xs py-1.5">Rechazar</button></form>
+                        <button type="button" class="btn-danger flex-1 w-full text-xs py-1.5"
+                            data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                            data-titulo="Rechazar cita"
+                            data-mensaje="Esta seguro que desea rechazar esta cita?"
+                            data-btn-class="btn-danger"
+                            data-btn-text="Rechazar"
+                            onclick="openModalAccion(this)">Rechazar</button>
                     </div>
                 </div>
                 {% empty %}
@@ -291,8 +333,20 @@
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
                             <td class="px-6 py-4 text-right">
-                                <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="inline" onsubmit="return confirm('Confirmar pago y activar cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-success text-xs px-3 py-1.5 mr-1">Confirmar Pago</button></form>
-                                <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="inline" onsubmit="return confirm('Rechazar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-danger text-xs px-3 py-1.5">Rechazar</button></form>
+                                <button type="button" class="btn-success text-xs px-3 py-1.5 mr-1"
+                                    data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                                    data-titulo="Confirmar pago"
+                                    data-mensaje="Esta seguro que desea confirmar el pago y activar esta cita?"
+                                    data-btn-class="btn-success"
+                                    data-btn-text="Confirmar"
+                                    onclick="openModalAccion(this)">Confirmar Pago</button>
+                                <button type="button" class="btn-danger text-xs px-3 py-1.5"
+                                    data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                                    data-titulo="Rechazar cita"
+                                    data-mensaje="Esta seguro que desea rechazar esta cita?"
+                                    data-btn-class="btn-danger"
+                                    data-btn-text="Rechazar"
+                                    onclick="openModalAccion(this)">Rechazar</button>
                             </td>
                         </tr>
                         {% empty %}
@@ -312,8 +366,20 @@
                     <p class="text-xs mb-1" style="color:var(--text-secondary);">Metodo: {{ cita.id_pago_cita.metodo_pago|default:"—" }} · Ref: {{ cita.id_pago_cita.referencia_pago|default:"—" }}</p>
                     <p class="text-xs mb-3 font-semibold" style="color:var(--text-primary);">Monto: {% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}—{% endif %}</p>
                     <div class="flex gap-2">
-                        <form method="POST" action="{% url 'confirmar_pago' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Confirmar pago y activar cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-success w-full text-xs py-1.5">Confirmar Pago</button></form>
-                        <form method="POST" action="{% url 'rechazar_cita' cita.id_citas %}" class="flex-1" onsubmit="return confirm('Rechazar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button type="submit" class="btn-danger w-full text-xs py-1.5">Rechazar</button></form>
+                        <button type="button" class="btn-success flex-1 w-full text-xs py-1.5"
+                            data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                            data-titulo="Confirmar pago"
+                            data-mensaje="Esta seguro que desea confirmar el pago y activar esta cita?"
+                            data-btn-class="btn-success"
+                            data-btn-text="Confirmar"
+                            onclick="openModalAccion(this)">Confirmar Pago</button>
+                        <button type="button" class="btn-danger flex-1 w-full text-xs py-1.5"
+                            data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                            data-titulo="Rechazar cita"
+                            data-mensaje="Esta seguro que desea rechazar esta cita?"
+                            data-btn-class="btn-danger"
+                            data-btn-text="Rechazar"
+                            onclick="openModalAccion(this)">Rechazar</button>
                     </div>
                 </div>
                 {% empty %}
@@ -410,6 +476,108 @@ function clearFilters(){
     document.getElementById('filterSearch').value='';
     document.getElementById('filterEstado').value='';
     applyFilters();
+}
+</script>
+
+<!-- Modal: Ver datos de pago -->
+<div id="modalVerPago" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] hidden items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6" id="cardVerPago">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Datos del pago</h3>
+            <button type="button" onclick="closeVerPago()" class="text-gray-400 hover:text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="space-y-3 text-sm">
+            <div class="flex justify-between p-3 rounded-lg" style="background:var(--bg-primary);"><span style="color:var(--text-secondary);">Referencia</span><span class="font-semibold" style="color:var(--text-primary);" id="vpReferencia">—</span></div>
+            <div class="flex justify-between p-3 rounded-lg" style="background:var(--bg-primary);"><span style="color:var(--text-secondary);">Banco emisor</span><span class="font-semibold" style="color:var(--text-primary);" id="vpBanco">—</span></div>
+            <div class="flex justify-between p-3 rounded-lg" style="background:var(--bg-primary);"><span style="color:var(--text-secondary);">Cedula</span><span class="font-semibold" style="color:var(--text-primary);" id="vpCedula">—</span></div>
+            <div class="flex justify-between p-3 rounded-lg" style="background:var(--bg-primary);"><span style="color:var(--text-secondary);">Telefono</span><span class="font-semibold" style="color:var(--text-primary);" id="vpTelefono">—</span></div>
+            <div class="flex justify-between p-3 rounded-lg" style="background:var(--bg-primary);"><span style="color:var(--text-secondary);">Monto</span><span class="font-semibold" style="color:var(--text-primary);" id="vpMonto">—</span></div>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button type="button" id="btnAprobarDesdePago" class="btn-success flex-1 text-sm py-2.5">Aprobar cita</button>
+            <button type="button" onclick="closeVerPago()" class="btn-secondary flex-1 text-sm py-2.5">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmar aprobacion desde Ver Pago -->
+<div id="modalConfirmarAprobar" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] hidden items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
+        <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Confirmar aprobacion</h3>
+        <p class="text-sm text-gray-600 mb-6">Esta seguro que desea confirmar? La cita pasara a estado <strong>Aprobada</strong>.</p>
+        <form id="formConfirmarAprobar" method="POST" action="" class="flex gap-3">
+            {% csrf_token %}
+            <button type="submit" class="btn-success flex-1 text-sm py-2.5">Confirmar</button>
+            <button type="button" onclick="closeConfirmar()" class="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal generico de confirmacion -->
+<div id="modalAccion" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] hidden items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
+        <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2" id="modalAccionTitulo">Confirmar accion</h3>
+        <p class="text-sm text-gray-600 mb-6" id="modalAccionMensaje">Esta seguro que desea confirmar?</p>
+        <form id="formAccion" method="POST" action="" class="flex gap-3">
+            {% csrf_token %}
+            <button type="submit" id="modalAccionBtn" class="btn-success flex-1 text-sm py-2.5">Confirmar</button>
+            <button type="button" onclick="closeModalAccion()" class="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openVerPago(btn) {
+    document.getElementById('vpReferencia').textContent = btn.dataset.referencia || '—';
+    document.getElementById('vpBanco').textContent = btn.dataset.banco || '—';
+    document.getElementById('vpCedula').textContent = btn.dataset.cedula || '—';
+    document.getElementById('vpTelefono').textContent = btn.dataset.telefono || '—';
+    document.getElementById('vpMonto').textContent = btn.dataset.monto || '—';
+    var citaId = btn.dataset.citaId;
+    var aprobarBtn = document.getElementById('btnAprobarDesdePago');
+    aprobarBtn.onclick = function() { openConfirmar(citaId); };
+    var modal = document.getElementById('modalVerPago');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closeVerPago() {
+    var modal = document.getElementById('modalVerPago');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+function openConfirmar(citaId) {
+    closeVerPago();
+    document.getElementById('formConfirmarAprobar').action = '/citas/' + citaId + '/aprobar/';
+    var modal = document.getElementById('modalConfirmarAprobar');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closeConfirmar() {
+    var modal = document.getElementById('modalConfirmarAprobar');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+function openModalAccion(btn) {
+    document.getElementById('modalAccionTitulo').textContent = btn.dataset.titulo || 'Confirmar accion';
+    document.getElementById('modalAccionMensaje').textContent = btn.dataset.mensaje || 'Esta seguro que desea confirmar?';
+    document.getElementById('formAccion').action = btn.dataset.action || '';
+    var btnConfirmar = document.getElementById('modalAccionBtn');
+    btnConfirmar.textContent = btn.dataset.btnText || 'Confirmar';
+    btnConfirmar.className = (btn.dataset.btnClass || 'btn-success') + ' flex-1 text-sm py-2.5';
+    var modal = document.getElementById('modalAccion');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closeModalAccion() {
+    var modal = document.getElementById('modalAccion');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 </script>
 

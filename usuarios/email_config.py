@@ -157,7 +157,7 @@ def enviar_correo_confirmacion(datos_paciente):
             - segundo_apellido: Segundo apellido (opcional)
             - email: Correo electrónico
             - username: Nombre de usuario
-            - password: Contraseña (ignorado, no se envía)
+            
             - cedula: Cédula de identidad
             - fecha_registro: Fecha de registro (opcional)
     
@@ -364,7 +364,7 @@ def enviar_correo_recepcionista(datos_recepcionista):
 
 
 def enviar_correo_confirmacion_simple(primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
-                                     email, username, password, cedula):
+                                     email, username, cedula, password=None):
     """
     Función simplificada para enviar correo de confirmación con parámetros individuales
     """
@@ -375,7 +375,6 @@ def enviar_correo_confirmacion_simple(primer_nombre, segundo_nombre, primer_apel
         'segundo_apellido': segundo_apellido,
         'email': email,
         'username': username,
-        'password': password,
         'cedula': cedula
     }
 

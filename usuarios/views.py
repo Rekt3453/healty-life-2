@@ -2251,3 +2251,9 @@ def privacidad(request):
 
 def terminos(request):
     return render(request, 'legales/terminos.html')
+
+
+def session_keep_alive(request):
+    """Endpoint para extender la sesión. Con SESSION_SAVE_EVERY_REQUEST=True,
+    cualquier request reinicia el contador de expiración automáticamente."""
+    return JsonResponse({'status': 'ok', 'session_active': request.user.is_authenticated})

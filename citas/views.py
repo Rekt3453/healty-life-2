@@ -106,7 +106,10 @@ def checkout_reserva(request):
         'tipo': 'Cuenta Corriente',
     }
 
+    MONTO_RESERVA = Decimal('5.00')
+
     if request.method == 'POST':
+        monto_pago = request.POST.get('monto_pago', '').strip()
         cedula = request.POST.get('cedula', '').strip()
         telefono = request.POST.get('telefono', '').strip()
         banco_emisor = request.POST.get('banco_emisor', '').strip()
@@ -114,8 +117,10 @@ def checkout_reserva(request):
 
         import re
         errores = []
-        if not all([cedula, telefono, banco_emisor, referencia]):
+        if not all([monto_pago, cedula, telefono, banco_emisor, referencia]):
             errores.append("Todos los campos de datos bancarios son obligatorios.")
+        if not re.fullmatch(r'^\d{1,3},\d{2}$', monto_pago):
+            errores.append("El monto del pago debe tener formato 0,00 (ej: 5,00).")
         if not re.fullmatch(r'^\d{6,9}$', cedula):
             errores.append("La cédula debe contener solo entre 6 y 9 dígitos numéricos.")
         if not re.fullmatch(r'^\d{10,11}$', telefono):
@@ -144,6 +149,7 @@ def checkout_reserva(request):
                     telefono=telefono,
                     banco_emisor=banco_emisor,
                     referencia=referencia,
+                    monto_pago=monto_pago,
                     servicios_seleccionados=reserva.get('servicios_seleccionados', []),
                 )
                 del request.session['reserva_cita']
@@ -184,6 +190,7 @@ def checkout_reserva(request):
         'especialidad': especialidad,
         'servicio': servicio,
         'paciente': paciente,
+        'monto_reserva': MONTO_RESERVA,
     })
 
 
@@ -843,7 +850,7 @@ def ajax_servicios(request):
         return JsonResponse({'error': str(exc)}, safe=False, status=500)
     return JsonResponse(data, safe=False)
 
-
+@login_required
 @require_GET
 def ajax_servicios_medico(request):
     """Servicios médicos activos de un doctor (nombre + precio). Usado por paciente al solicitar cita."""
