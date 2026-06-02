@@ -10,7 +10,7 @@
             </div>
         </div>
     </div>
-    <div class="divide-y" style="border-color:var(--border);">
+    <div id="pendingRequestsList" class="divide-y" style="border-color:var(--border);">
         {% for cita in citas_pendientes_list %}
         <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors" data-request-id="{{ cita.id_citas }}" data-confirm-url="{% url 'confirmar_pago' cita.id_citas %}" data-reject-url="{% url 'rechazar_cita' cita.id_citas %}" data-cancel-url="{% url 'cancelar_cita_secretaria' cita.id_citas %}">
             <div>

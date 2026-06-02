@@ -450,6 +450,11 @@ def gestionar_citas(request):
         'reserva_pago',
     ).order_by('-fecha_consulta')
 
+    # Si se pasa ?hoy=1, filtrar solo citas del día actual
+    if request.GET.get('hoy') == '1':
+        hoy = date.today()
+        _base = _base.filter(fecha_consulta__date=hoy)
+
     try:
         citas_solicitud = _base.filter(estado=Cita.ESTADO_SOLICITADA)
     except Exception:
@@ -472,6 +477,7 @@ def gestionar_citas(request):
         'citas_pago':      citas_pago,
         'citas_aceptadas': citas_aceptadas,
         'total': citas_solicitud.count() + citas_pago.count() + citas_aceptadas.count(),
+        'filtro_hoy': request.GET.get('hoy') == '1',
     })
 
 
@@ -965,19 +971,24 @@ def mis_facturas(request):
 
 
 @login_required(login_url='/login/paciente/')
-@rol_requerido('paciente')
+@rol_requerido('paciente', 'recepcionista', 'gerente')
 def detalle_cita(request, cita_id):
-    """Detalle de una cita específica del paciente."""
+    """Detalle de una cita específica."""
     user = request.user
-    paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
-    cita = get_object_or_404(
-        Cita.objects.select_related(
-            'id_doctor', 'id_especialidades', 'id_sede',
-            'id_servicio_especialidad', 'id_consultorio', 'id_pago_cita'
-        ),
-        id_citas=cita_id,
-        id_paciente=paciente,
+    auth_backend = CustomAuthBackend()
+    user_rol = auth_backend.get_rol(user)
+
+    cita_qs = Cita.objects.select_related(
+        'id_doctor', 'id_especialidades', 'id_sede',
+        'id_servicio_especialidad', 'id_consultorio', 'id_pago_cita'
     )
+
+    if user_rol == 'paciente':
+        paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user).first()
+        cita = get_object_or_404(cita_qs, id_citas=cita_id, id_paciente=paciente)
+    else:
+        cita = get_object_or_404(cita_qs, id_citas=cita_id)
+
     consulta = None
     try:
         consulta = cita.consulta_medica
