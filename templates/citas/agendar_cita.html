@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Agendar Cita - Healthy Life{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Agendar Nueva Cita</h1>
+        <p class="text-gray-600 mt-2">Selecciona los detalles para tu consulta médica</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700{% elif message.tags == 'success' %}bg-green-50 text-green-700{% else %}bg-blue-50 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" id="agendar-cita-form">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Sede -->
+                <div>
+                    <label for="{{ form.sede.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Sede <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.sede|as_crispy_field }}
+                </div>
+
+                <!-- Especialidad -->
+                <div>
+                    <label for="{{ form.especialidad.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Especialidad <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.especialidad|as_crispy_field }}
+                </div>
+
+                <!-- Médico -->
+                <div>
+                    <label for="{{ form.medico.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Médico <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.medico|as_crispy_field }}
+                    <div id="medico-info" class="mt-2 text-sm text-gray-600"></div>
+                </div>
+
+                <!-- Servicio -->
+                <div>
+                    <label for="{{ form.servicio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Servicio <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.servicio|as_crispy_field }}
+                    <div id="servicio-info" class="mt-2 text-sm text-gray-600"></div>
+                </div>
+
+                <!-- Fecha -->
+                <div>
+                    <label for="{{ form.fecha.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Fecha <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.fecha|as_crispy_field }}
+                    <input type="hidden" name="fecha_min" id="fecha_min">
+                </div>
+
+                <!-- Hora -->
+                <div>
+                    <label for="{{ form.hora.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Hora <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.hora|as_crispy_field }}
+                    <div id="disponibilidad-info" class="mt-2 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Notas del paciente -->
+            <div class="mt-6">
+                <label for="{{ form.notas_paciente.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Notas para el médico
+                </label>
+                {{ form.notas_paciente|as_crispy_field }}
+                <p class="text-sm text-gray-500 mt-1">Describe tus síntomas o el motivo de tu consulta</p>
+            </div>
+
+            <!-- Información de la cita -->
+            <div id="cita-resumen" class="mt-6 p-4 bg-blue-50 rounded-lg hidden">
+                <h3 class="text-lg font-medium text-blue-900 mb-2">Resumen de la Cita</h3>
+                <div id="resumen-contenido"></div>
+            </div>
+
+            <!-- Botones -->
+            <div class="mt-8 flex justify-between">
+                <a href="{% url 'mis_citas' %}" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancelar
+                </a>
+                <button type="submit" id="btn-submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Agendar Cita
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('agendar-cita-form');
+    const sedeSelect = document.getElementById('id_sede');
+    const especialidadSelect = document.getElementById('id_especialidad');
+    const medicoSelect = document.getElementById('id_medico');
+    const servicioSelect = document.getElementById('id_servicio');
+    const fechaInput = document.getElementById('id_fecha');
+    const horaInput = document.getElementById('id_hora');
+    const submitBtn = document.getElementById('btn-submit');
+    
+    // Establecer fecha mínima (hoy)
+    const today = new Date().toISOString().split('T')[0];
+    fechaInput.setAttribute('min', today);
+    
+    // Event listeners
+    especialidadSelect.addEventListener('change', function() {
+        actualizarMedicos();
+        actualizarServicios();
+    });
+    
+    sedeSelect.addEventListener('change', function() {
+        actualizarMedicos();
+    });
+    
+    medicoSelect.addEventListener('change', function() {
+        actualizarInfoMedico();
+    });
+    
+    servicioSelect.addEventListener('change', function() {
+        actualizarInfoServicio();
+    });
+    
+    fechaInput.addEventListener('change', function() {
+        verificarDisponibilidad();
+    });
+    
+    horaInput.addEventListener('change', function() {
+        verificarDisponibilidad();
+    });
+    
+    function actualizarMedicos() {
+        const especialidadId = especialidadSelect.value;
+        const sedeId = sedeSelect.value;
+        
+        if (!especialidadId || !sedeId) {
+            medicoSelect.innerHTML = '<option value="">Seleccione especialidad y sede</option>';
+            return;
+        }
+        
+        fetch('/citas/ajax/obtener-medicos/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `especialidad_id=${especialidadId}&sede_id=${sedeId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            medicoSelect.innerHTML = '<option value="">Seleccione un médico</option>';
+            
+            if (data.medicos) {
+                data.medicos.forEach(medico => {
+                    const option = document.createElement('option');
+                    option.value = medico.id;
+                    option.textContent = `${medico.nombre} (${medico.experiencia} años)`;
+                    option.dataset.precio = medico.precio;
+                    medicoSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    
+    function actualizarServicios() {
+        const especialidadId = especialidadSelect.value;
+        
+        if (!especialidadId) {
+            servicioSelect.innerHTML = '<option value="">Seleccione especialidad</option>';
+            return;
+        }
+        
+        fetch('/citas/ajax/obtener-servicios/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `especialidad_id=${especialidadId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            servicioSelect.innerHTML = '<option value="">Seleccione un servicio</option>';
+            
+            if (data.servicios) {
+                data.servicios.forEach(servicio => {
+                    const option = document.createElement('option');
+                    option.value = servicio.id;
+                    option.textContent = `${servicio.nombre} - $${servicio.precio}`;
+                    option.dataset.precio = servicio.precio;
+                    option.dataset.duracion = servicio.duracion;
+                    servicioSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    
+    function actualizarInfoMedico() {
+        const selectedOption = medicoSelect.options[medicoSelect.selectedIndex];
+        const infoDiv = document.getElementById('medico-info');
+        
+        if (selectedOption && selectedOption.value) {
+            const precio = selectedOption.dataset.precio;
+            infoDiv.innerHTML = `<span class="text-green-600">Precio base: $${precio}</span>`;
+        } else {
+            infoDiv.innerHTML = '';
+        }
+    }
+    
+    function actualizarInfoServicio() {
+        const selectedOption = servicioSelect.options[servicioSelect.selectedIndex];
+        const infoDiv = document.getElementById('servicio-info');
+        
+        if (selectedOption && selectedOption.value) {
+            const precio = selectedOption.dataset.precio;
+            const duracion = selectedOption.dataset.duracion;
+            infoDiv.innerHTML = `<span class="text-green-600">Precio: $${precio} | Duración: ${duracion} minutos</span>`;
+        } else {
+            infoDiv.innerHTML = '';
+        }
+    }
+    
+    function verificarDisponibilidad() {
+        const medicoId = medicoSelect.value;
+        const fecha = fechaInput.value;
+        const hora = horaInput.value;
+        const infoDiv = document.getElementById('disponibilidad-info');
+        
+        if (!medicoId || !fecha || !hora) {
+            infoDiv.innerHTML = '';
+            return;
+        }
+        
+        infoDiv.innerHTML = '<span class="text-yellow-600">Verificando disponibilidad...</span>';
+        
+        fetch('/citas/ajax/verificar-disponibilidad/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `medico_id=${medicoId}&fecha=${fecha}&hora=${hora}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.disponible) {
+                infoDiv.innerHTML = '<span class="text-green-600">✓ Médico disponible</span>';
+                submitBtn.disabled = false;
+            } else {
+                infoDiv.innerHTML = `<span class="text-red-600">✗ ${data.motivo}</span>`;
+                submitBtn.disabled = true;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            infoDiv.innerHTML = '<span class="text-red-600">Error verificando disponibilidad</span>';
+            submitBtn.disabled = true;
+        });
+    }
+});
+</script>
+{% endblock %}

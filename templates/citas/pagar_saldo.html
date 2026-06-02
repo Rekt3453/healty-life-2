@@ -1,0 +1,515 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagar Saldo Pendiente — Healthy Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#F7F9FC;color:#1E293B;}
+        .dashboard-sidebar{width:260px;background:#fff;border-right:1px solid rgba(0,0,0,0.06);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:40;transition:transform .3s ease;}
+        .dashboard-sidebar.open{transform:translateX(0);}
+        .dashboard-main{flex:1;margin-left:260px;min-height:100vh;transition:margin-left .3s ease;}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:35;}
+        .sidebar-overlay.active{display:block;}
+        .sidebar-nav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;margin:0 12px;border-radius:10px;font-size:.9rem;font-weight:500;color:#64748B;transition:all .2s ease;text-decoration:none;}
+        .sidebar-nav-link:hover,.sidebar-nav-link.active{background:rgba(0,112,243,0.06);color:#0070F3;}
+        .sidebar-nav-link.active{font-weight:600;}
+        .sidebar-icon{width:20px;height:20px;flex-shrink:0;}
+        .dashboard-card{background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.04);transition:all .25s cubic-bezier(0.4,0,0.2,1);}
+        .dashboard-card:hover{box-shadow:0 8px 24px rgba(0,0,0,0.08);}
+        .input-modern{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #E2E8F0;font-size:.9rem;color:#1E293B;background:#fff;transition:all .2s ease;outline:none;}
+        .input-modern:focus{border-color:#0070F3;box-shadow:0 0 0 3px rgba(0,112,243,0.08);}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:.9rem;font-weight:600;color:#fff;background:#0070F3;border:none;cursor:pointer;transition:all .2s ease;text-decoration:none;}
+        .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:.9rem;font-weight:600;color:#64748B;background:#fff;border:1.5px solid #E2E8F0;cursor:pointer;transition:all .2s ease;text-decoration:none;}
+        .btn-secondary:hover{background:#F1F5F9;}
+        .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:500;color:#64748B;background:transparent;border:1px solid #E2E8F0;cursor:pointer;transition:all .15s ease;text-decoration:none;}
+        .btn-ghost:hover{background:#F1F5F9;}
+        .field-label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94A3B8;margin-bottom:6px;}
+        .badge-green{background:#D1FAE5;color:#059669;padding:4px 10px;border-radius:9999px;font-size:.7rem;font-weight:600;display:inline-block;}
+        .badge-yellow{background:#FEF3C7;color:#D97706;padding:4px 10px;border-radius:9999px;font-size:.7rem;font-weight:600;display:inline-block;}
+        .badge-red{background:#FEE2E2;color:#DC2626;padding:4px 10px;border-radius:9999px;font-size:.7rem;font-weight:600;display:inline-block;}
+        .badge-blue{background:#DBEAFE;color:#2563EB;padding:4px 10px;border-radius:9999px;font-size:.7rem;font-weight:600;display:inline-block;}
+        .badge-gray{background:#F1F5F9;color:#64748B;padding:4px 10px;border-radius:9999px;font-size:.7rem;font-weight:600;display:inline-block;}
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:60;align-items:center;justify-content:center;}
+        .modal-overlay.active{display:flex;}
+        .modal-card{background:#fff;border-radius:16px;padding:28px;max-width:520px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;}
+        .radio-option{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid #E2E8F0;border-radius:10px;cursor:pointer;transition:all .15s ease;}
+        .radio-option:hover{border-color:#0070F3;background:rgba(0,112,243,0.03);}
+        .radio-option.selected{border-color:#0070F3;background:rgba(0,112,243,0.05);}
+        .radio-option input{accent-color:#0070F3;width:18px;height:18px;cursor:pointer;flex-shrink:0;}
+        .payment-fields{display:none;animation:fadeIn .25s ease;}
+        .payment-fields.active{display:block;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+        .error-text{color:#DC2626;font-size:.75rem;margin-top:4px;display:none;}
+        .error-text.visible{display:block;}
+        .input-error{border-color:#DC2626!important;box-shadow:0 0 0 3px rgba(220,38,38,0.08)!important;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
+    </style>
+</head>
+<body>
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <aside id="sidebar" class="dashboard-sidebar">
+        <div class="p-6">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:#1E293B;">
+                <svg class="w-8 h-8" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Healthy Life</span>
+            </a>
+        </div>
+        <nav class="flex-1 px-2 space-y-1" aria-label="Navegación del paciente">
+            <a href="{% url 'dashboard_paciente' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>Mi Dashboard</span>
+            </a>
+            <a href="{% url 'mis_citas' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Mis Citas</span>
+            </a>
+            <a href="{% url 'perfil_paciente' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Mi Perfil</span>
+            </a>
+            <a href="{% url 'historial_medico' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Historial Médico</span>
+            </a>
+            <a href="{% url 'mis_facturas' %}" class="sidebar-nav-link active">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                <span>Mis Facturas</span>
+            </a>
+            <a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>Menores a Cargo</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t" style="border-color:rgba(0,0,0,0.06);">
+            <a href="{% url 'logout' %}" class="sidebar-nav-link" style="color:#EF4444;">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="dashboard-main">
+        <header style="position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid rgba(0,0,0,0.06);">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="Abrir menú">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        </button>
+                        <span class="font-semibold text-lg" style="color:#1E293B;">Pagar Saldo</span>
+                    </div>
+                    <div class="relative" id="userMenuContainer">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors" aria-haspopup="true" aria-expanded="false" id="userMenuBtn">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:linear-gradient(135deg,#0070F3,#005CC2);">{{ request.user.first_name|default:request.user.username|first|upper }}</div>
+                            <div class="hidden sm:block text-left">
+                                <p class="text-sm font-semibold leading-tight" style="color:#1E293B;">{{ request.user.first_name|default:request.user.username }}</p>
+                                <p class="text-xs" style="color:#64748B;">Paciente</p>
+                            </div>
+                            <svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border" style="border-color:rgba(0,0,0,0.06);">
+                            <a href="{% url 'perfil_paciente' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors rounded-t-xl" style="color:#1E293B;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Mi Perfil
+                            </a>
+                            <div class="border-t" style="border-color:rgba(0,0,0,0.06);"></div>
+                            <a href="{% url 'logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors rounded-b-xl" style="color:#EF4444;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Breadcrumb -->
+            <nav class="flex items-center gap-2 text-xs font-medium mb-4" style="color:#94A3B8;">
+                <a href="{% url 'home' %}" class="hover:text-[#0070F3] transition-colors">Inicio</a><span>/</span>
+                <a href="{% url 'mis_facturas' %}" class="hover:text-[#0070F3] transition-colors">Mis Facturas</a><span>/</span>
+                <span style="color:#1E293B;">Pagar Saldo</span>
+            </nav>
+            <div class="mb-6">
+                <h1 class="text-2xl font-extrabold tracking-tight" style="color:#1E293B;">Pagar Saldo Pendiente</h1>
+                <p class="text-sm font-medium mt-1" style="color:#64748B;">Factura #{{ factura.numero }} — {{ cita.id_especialidades.tipo_especialidad|default:"Consulta médica" }}</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <!-- Columna izquierda -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="dashboard-card p-6">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Nº Factura</p>
+                                <p class="text-lg font-bold" style="color:#1E293B;">#{{ factura.numero }}</p>
+                            </div>
+                            {% if factura.estado == 'pagada' %}<span class="badge-green">Pagada</span>
+                            {% elif factura.estado == 'emitida' %}<span class="badge-yellow">Pendiente</span>
+                            {% elif factura.estado == 'borrador' %}<span class="badge-gray">Borrador</span>
+                            {% else %}<span class="badge-red">{{ factura.get_estado_display }}</span>{% endif %}
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                            <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                                <p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Fecha de emisión</p>
+                                <p class="text-sm font-semibold" style="color:#1E293B;">{{ factura.fecha_emision|date:"d/m/Y"|default:"—" }}</p>
+                            </div>
+                            <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                                <p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Fecha de vencimiento</p>
+                                <p class="text-sm font-semibold" style="color:#1E293B;">{{ factura.fecha_emision|date:"d/m/Y"|default:"—" }}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 mb-5">
+                            <div class="flex justify-between text-sm"><span style="color:#64748B;">Concepto</span><span class="font-medium" style="color:#1E293B;">Cita médica — {{ cita.id_especialidades.tipo_especialidad|default:"Consulta" }} con Dr. {{ cita.id_doctor|default:"Sin asignar" }}</span></div>
+                            <div class="flex justify-between text-sm"><span style="color:#64748B;">Sede</span><span class="font-medium" style="color:#1E293B;">{{ cita.id_sede.nombre_sede|default:"—" }}</span></div>
+                            <div class="flex justify-between text-sm"><span style="color:#64748B;">Fecha de la cita</span><span class="font-medium" style="color:#1E293B;">{{ cita.fecha_consulta|date:"d/m/Y H:i"|default:"—" }}</span></div>
+                        </div>
+                        <div class="border-t pt-4" style="border-color:#E2E8F0;">
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div><p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Monto total</p><p class="text-xl font-extrabold mt-1" style="color:#1E293B;">${{ monto_total|floatformat:2 }}</p></div>
+                                <div><p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Monto pagado</p><p class="text-xl font-extrabold mt-1" style="color:#059669;">${{ monto_pagado|floatformat:2 }}</p></div>
+                                <div><p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Saldo pendiente</p><p class="text-xl font-extrabold mt-1" style="color:#DC2626;">${{ saldo|floatformat:2 }}</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advertencia vencida -->
+                    <div class="dashboard-card p-5 border-l-4" style="border-color:#DC2626; background:#FEF2F2;">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color:#DC2626;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <div>
+                                <p class="text-sm font-semibold" style="color:#991B1B;">Factura próxima a vencer</p>
+                                <p class="text-xs mt-1" style="color:#B91C1C;">El plazo de pago está por expirar. Se recomienda regularizar el saldo lo antes posible para evitar recargos por mora.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desglose colapsable -->
+                    <div class="dashboard-card overflow-hidden">
+                        <button type="button" onclick="toggleDesglose()" class="w-full flex items-center justify-between p-5 text-left" id="btnDesglose" aria-expanded="false">
+                            <div>
+                                <p class="text-sm font-bold" style="color:#1E293B;">Detalle de cargos</p>
+                                <p class="text-xs" style="color:#64748B;">Servicios, consulta e impuestos</p>
+                            </div>
+                            <svg id="iconDesglose" class="w-5 h-5 transition-transform" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="panelDesglose" class="hidden px-5 pb-5">
+                            <div class="border-t pt-4" style="border-color:#E2E8F0;">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm"><span style="color:#64748B;">Costo consulta</span><span class="font-medium" style="color:#1E293B;">${{ factura.subtotal|floatformat:2 }}</span></div>
+                                    <div class="flex justify-between text-sm"><span style="color:#64748B;">Impuestos (0%)</span><span class="font-medium" style="color:#1E293B;">$0.00</span></div>
+                                    {% if servicios %}
+                                        <div class="border-t pt-2" style="border-color:#E2E8F0;">
+                                            <p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Servicios realizados</p>
+                                            {% for srv in servicios %}
+                                                <div class="flex justify-between text-sm"><span style="color:#64748B;">{{ srv.nombre_servicio|default:"Servicio" }} x{{ srv.cantidad|default:1 }}</span><span class="font-medium" style="color:#1E293B;">${{ srv.precio_cobrado|floatformat:2 }}</span></div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="border-t pt-2" style="border-color:#E2E8F0;">
+                                        <div class="flex justify-between"><span class="text-sm font-bold" style="color:#1E293B;">Total a pagar ahora</span><span class="text-sm font-bold" style="color:#0070F3;">${{ saldo|floatformat:2 }}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Columna derecha -->
+                <div class="lg:col-span-2 space-y-6">
+                    <form method="post" class="dashboard-card p-6 space-y-5" id="paymentForm">
+                        {% csrf_token %}
+                        <div>
+                            <p class="text-sm font-bold mb-3" style="color:#1E293B;">Método de pago</p>
+                            <div class="space-y-2" id="metodoOptions">
+                                <label class="radio-option" data-metodo="tarjeta">
+                                    <input type="radio" name="metodo_pago" value="tarjeta" checked>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold" style="color:#1E293B;">Tarjeta de crédito / débito</p>
+                                        <p class="text-xs" style="color:#64748B;">Pago inmediato y seguro</p>
+                                    </div>
+                                    <svg class="w-5 h-5" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                </label>
+                                <label class="radio-option" data-metodo="transferencia">
+                                    <input type="radio" name="metodo_pago" value="transferencia">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold" style="color:#1E293B;">Pago móvil / Transferencia</p>
+                                        <p class="text-xs" style="color:#64748B;">Depósito bancario o transferencia</p>
+                                    </div>
+                                    <svg class="w-5 h-5" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                </label>
+                                <label class="radio-option" data-metodo="efectivo">
+                                    <input type="radio" name="metodo_pago" value="efectivo">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold" style="color:#1E293B;">Efectivo en consulta</p>
+                                        <p class="text-xs" style="color:#64748B;">Pagas al llegar a la clínica</p>
+                                    </div>
+                                    <svg class="w-5 h-5" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Campos tarjeta -->
+                        <div id="fieldsTarjeta" class="payment-fields active space-y-3">
+                            <div>
+                                <label class="field-label">Número de tarjeta</label>
+                                <input type="text" id="cardNumber" name="card_number" placeholder="0000 0000 0000 0000" maxlength="19" class="input-modern" inputmode="numeric">
+                                <p class="error-text" id="errCardNumber">Ingresa un número de tarjeta válido (16 dígitos).</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="field-label">Expiración (MM/AA)</label>
+                                    <input type="text" id="cardExpiry" name="card_expiry" placeholder="MM/AA" maxlength="5" class="input-modern" inputmode="numeric">
+                                    <p class="error-text" id="errCardExpiry">Ingresa una fecha válida y futura.</p>
+                                </div>
+                                <div>
+                                    <label class="field-label">CVV</label>
+                                    <input type="text" id="cardCvv" name="card_cvv" placeholder="123" maxlength="4" class="input-modern" inputmode="numeric">
+                                    <p class="error-text" id="errCardCvv">Ingresa el CVV de 3 o 4 dígitos.</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="field-label">Nombre del titular</label>
+                                <input type="text" id="cardName" name="card_name" placeholder="Como aparece en la tarjeta" class="input-modern">
+                                <p class="error-text" id="errCardName">Ingresa el nombre del titular.</p>
+                            </div>
+                        </div>
+
+                        <!-- Campos transferencia -->
+                        <div id="fieldsTransferencia" class="payment-fields space-y-3">
+                            <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                                <p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Instrucciones de pago</p>
+                                <p class="text-sm" style="color:#1E293B;">Banco: Banco de Venezuela</p>
+                                <p class="text-sm" style="color:#1E293B;">Cuenta: 0102-0123-4567-8901</p>
+                                <p class="text-sm" style="color:#1E293B;">Titular: Healthy Life C.A.</p>
+                                <p class="text-sm" style="color:#1E293B;">RIF: J-12345678-9</p>
+                                <p class="text-xs mt-2" style="color:#64748B;">Realiza la transferencia e ingresa el número de comprobante o referencia.</p>
+                            </div>
+                            <div>
+                                <label class="field-label">Número de comprobante / referencia</label>
+                                <input type="text" id="refTransferencia" name="ref_transferencia" placeholder="Ej. REF-12345678" class="input-modern">
+                                <p class="error-text" id="errRefTransferencia">Ingresa el número de comprobante.</p>
+                            </div>
+                            <div>
+                                <label class="field-label">Teléfono emisor (opcional)</label>
+                                <input type="text" id="telTransferencia" name="tel_transferencia" placeholder="Ej. 0412-1234567" class="input-modern">
+                            </div>
+                        </div>
+
+                        <!-- Campos efectivo -->
+                        <div id="fieldsEfectivo" class="payment-fields space-y-3">
+                            <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                                <p class="text-sm font-semibold" style="color:#1E293B;">Pagas al llegar a la clínica</p>
+                                <p class="text-xs mt-1" style="color:#64748B;">La factura quedará marcada como pendiente hasta que realices el pago en recepción. Te recomendamos llevar el monto exacto.</p>
+                            </div>
+                        </div>
+
+                        <!-- Términos -->
+                        <div class="flex items-start gap-3 pt-2">
+                            <input type="checkbox" id="aceptaTerminos" class="mt-0.5" style="accent-color:#0070F3;width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+                            <label for="aceptaTerminos" class="text-sm leading-snug" style="color:#64748B;">
+                                Acepto los <a href="#" onclick="event.preventDefault();alert('Términos y condiciones de pago (simulado)');" class="font-semibold" style="color:#0070F3;">términos y condiciones</a> de pago y la política de cancelación.
+                            </label>
+                        </div>
+                        <p class="error-text" id="errTerminos">Debes aceptar los términos para continuar.</p>
+
+                        <!-- Mensaje error general -->
+                        <p class="error-text" id="errGeneral">Corrige los errores indicados antes de continuar.</p>
+
+                        <!-- Botones -->
+                        <div class="flex flex-col gap-3 pt-2">
+                            <button type="submit" class="btn-primary" id="btnSubmit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span id="btnSubmitText">Pagar saldo ahora — ${{ saldo|floatformat:2 }}</span>
+                            </button>
+                            <a href="{% url 'mis_facturas' %}" class="btn-secondary">Volver a mis facturas</a>
+                        </div>
+
+                        <!-- Confianza -->
+                        <div class="flex items-center justify-center gap-2 pt-1">
+                            <svg class="w-4 h-4" style="color:#059669;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <span class="text-xs" style="color:#64748B;">Transacción 100% segura. No almacenamos los datos de tu tarjeta.</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal procesando -->
+    <div id="modalProcesando" class="modal-overlay">
+        <div class="modal-card text-center">
+            <div class="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:rgba(0,112,243,0.08);">
+                <svg class="w-6 h-6 animate-spin" style="color:#0070F3;" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold mb-1" style="color:#1E293B;">Procesando pago...</h3>
+            <p class="text-sm" style="color:#64748B;">Por favor no cierres esta ventana.</p>
+        </div>
+    </div>
+
+    <!-- Modal éxito -->
+    <div id="modalExito" class="modal-overlay" onclick="if(event.target===this)closeModal('modalExito')">
+        <div class="modal-card text-center">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:#D1FAE5;">
+                <svg class="w-7 h-7" style="color:#059669;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2" style="color:#1E293B;">¡Pago realizado exitosamente!</h3>
+            <p class="text-sm mb-5" style="color:#64748B;">Tu factura #{{ factura.numero }} ha sido saldada. Recibirás un comprobante por correo.</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{% url 'mis_facturas' %}" class="btn-primary flex-1">Ver mis facturas</a>
+                <button onclick="closeModal('modalExito')" class="btn-secondary flex-1">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- Sidebar / User menu --- */
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function toggleUserMenu() {
+            const m = document.getElementById('userMenu');
+            const b = document.getElementById('userMenuBtn');
+            const hidden = m.classList.contains('hidden');
+            m.classList.toggle('hidden', !hidden);
+            b.setAttribute('aria-expanded', hidden ? 'true' : 'false');
+        }
+        document.addEventListener('click', function(e) {
+            const c = document.getElementById('userMenuContainer');
+            const m = document.getElementById('userMenu');
+            if (c && !c.contains(e.target) && !m.classList.contains('hidden')) {
+                m.classList.add('hidden');
+                document.getElementById('userMenuBtn').setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        /* --- Desglose colapsable --- */
+        function toggleDesglose() {
+            const panel = document.getElementById('panelDesglose');
+            const icon = document.getElementById('iconDesglose');
+            const btn = document.getElementById('btnDesglose');
+            panel.classList.toggle('hidden');
+            icon.style.transform = panel.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+            btn.setAttribute('aria-expanded', panel.classList.contains('hidden') ? 'false' : 'true');
+        }
+
+        /* --- Modales --- */
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+        });
+
+        /* --- Métodos de pago --- */
+        const metodoOptions = document.getElementById('metodoOptions');
+        const fieldsTarjeta = document.getElementById('fieldsTarjeta');
+        const fieldsTransferencia = document.getElementById('fieldsTransferencia');
+        const fieldsEfectivo = document.getElementById('fieldsEfectivo');
+        const btnSubmitText = document.getElementById('btnSubmitText');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        function setMetodo(metodo) {
+            document.querySelectorAll('.radio-option').forEach(l => l.classList.toggle('selected', l.dataset.metodo === metodo));
+            fieldsTarjeta.classList.toggle('active', metodo === 'tarjeta');
+            fieldsTransferencia.classList.toggle('active', metodo === 'transferencia');
+            fieldsEfectivo.classList.toggle('active', metodo === 'efectivo');
+            if (metodo === 'efectivo') {
+                btnSubmitText.textContent = 'Confirmar pago en clínica — ${{ saldo|floatformat:2 }}';
+            } else {
+                btnSubmitText.textContent = 'Pagar saldo ahora — ${{ saldo|floatformat:2 }}';
+            }
+        }
+        metodoOptions.addEventListener('change', function(e) {
+            if (e.target.name === 'metodo_pago') setMetodo(e.target.value);
+        });
+        metodoOptions.querySelectorAll('.radio-option').forEach(l => {
+            l.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'INPUT') {
+                    const inp = l.querySelector('input[type="radio"]');
+                    inp.checked = true;
+                    setMetodo(inp.value);
+                }
+            });
+        });
+        setMetodo('tarjeta');
+
+        /* --- Validaciones y simulación de pago --- */
+        const form = document.getElementById('paymentForm');
+        function showErr(id, show) { document.getElementById(id).classList.toggle('visible', show); }
+        function setInputErr(id, show) { document.getElementById(id).classList.toggle('input-error', show); }
+
+        function validate() {
+            let ok = true;
+            const metodo = document.querySelector('input[name="metodo_pago"]:checked').value;
+            showErr('errGeneral', false);
+
+            if (metodo === 'tarjeta') {
+                const num = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                const exp = document.getElementById('cardExpiry').value;
+                const cvv = document.getElementById('cardCvv').value;
+                const name = document.getElementById('cardName').value.trim();
+                const numOk = /^\d{16}$/.test(num);
+                const expOk = /^\d{2}\/\d{2}$/.test(exp) && isFutureExpiry(exp);
+                const cvvOk = /^\d{3,4}$/.test(cvv);
+                const nameOk = name.length > 2;
+                showErr('errCardNumber', !numOk); setInputErr('cardNumber', !numOk);
+                showErr('errCardExpiry', !expOk); setInputErr('cardExpiry', !expOk);
+                showErr('errCardCvv', !cvvOk); setInputErr('cardCvv', !cvvOk);
+                showErr('errCardName', !nameOk); setInputErr('cardName', !nameOk);
+                if (!numOk || !expOk || !cvvOk || !nameOk) ok = false;
+            } else if (metodo === 'transferencia') {
+                const ref = document.getElementById('refTransferencia').value.trim();
+                const refOk = ref.length > 2;
+                showErr('errRefTransferencia', !refOk); setInputErr('refTransferencia', !refOk);
+                if (!refOk) ok = false;
+            }
+
+            const terminos = document.getElementById('aceptaTerminos').checked;
+            showErr('errTerminos', !terminos);
+            if (!terminos) ok = false;
+
+            return ok;
+        }
+
+        function isFutureExpiry(val) {
+            const [mm, yy] = val.split('/');
+            if (!mm || !yy) return false;
+            const month = parseInt(mm, 10), year = parseInt('20' + yy, 10);
+            if (isNaN(month) || isNaN(year) || month < 1 || month > 12) return false;
+            const now = new Date();
+            const exp = new Date(year, month - 1, 1);
+            return exp > new Date(now.getFullYear(), now.getMonth(), 1);
+        }
+
+        /* Máscara número de tarjeta */
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '');
+            v = v.substring(0, 16);
+            e.target.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+        });
+        /* Máscara expiración */
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 4);
+            e.target.value = v;
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); /* Simulación frontend. Para conectar con Django backend, eliminar esta línea. */
+            if (!validate()) { showErr('errGeneral', true); return; }
+
+            openModal('modalProcesando');
+            setTimeout(function() {
+                closeModal('modalProcesando');
+                openModal('modalExito');
+            }, 1800);
+        });
+    </script>
+</body>
+</html>
