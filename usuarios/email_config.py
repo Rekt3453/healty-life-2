@@ -3,7 +3,7 @@ Configuración de correo electrónico para Healthy Life
 Sistema de envío de correos de confirmación de registro
 """
 
-import os, ssl, smtplib, time
+import os, ssl, smtplib, time, hashlib
 from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -67,7 +67,6 @@ Una vez que inicies sesión, podrás:
 ✅ Ver tu historial médico completo
 ✅ Recibir notificaciones de tus citas
 ✅ Actualizar tu información personal
-✅ Comunicarte con nuestros médicos
 
 💡 **Consejos de seguridad:**
 
@@ -392,10 +391,7 @@ Tu cuenta de Super Administrador ha sido creada exitosamente. Ahora puedes gesti
 
 👤 Usuario: {username}
 📧 Correo Electrónico: {email}
-🔑 Contraseña: {password}
 🏥 Centro Médico: {centro_medico}
-
-⚠️ **IMPORTANTE:** Por seguridad, te recomendamos cambiar tu contraseña después de tu primer inicio de sesión.
 
 🚀 **Accede a tu panel de Super Admin aquí:**
 
@@ -450,7 +446,6 @@ def enviar_correo_superadmin(datos_superadmin):
         'login_url':  f"{SITE_URL}/login/superadmin/",
         'username':   datos_superadmin.get('username', ''),
         'email':      datos_superadmin.get('email', ''),
-        'password':   datos_superadmin.get('password', ''),
         'centro_medico': datos_superadmin.get('centro_medico', 'Nuestro Centro Médico'),
     }
 
@@ -463,3 +458,92 @@ def enviar_correo_superadmin(datos_superadmin):
     msg.attach(MIMEText(TEMPLATE_SUPERADMIN.format(**template_data), "plain"))
 
     return _conectar_y_enviar(msg, datos_superadmin.get('email', ''))
+
+
+# ── Activación de cuenta ─────────────────────────────────────────────────────
+
+def generar_token_activacion(user_id, correo):
+    """Genera un token MD5 único para activación de cuenta."""
+    from datetime import date
+    raw = f"{user_id}-{correo}-{date.today()}-healthy-life-secreto"
+    return hashlib.md5(raw.encode()).hexdigest()
+
+TEMPLATE_ACTIVACION = """\
+Estimado(a) {nombre_completo},
+
+¡Bienvenido(a) a {site_name}! 🏥✨
+
+Has sido registrado en nuestro sistema como {rol}.
+
+📋 **Datos de tu cuenta:**
+
+👤 Nombre: {nombre_completo}
+👤 Nombre de Usuario: {username}
+
+Para establecer tu contraseña y activar tu cuenta, haz clic en el siguiente enlace:
+
+{enlace}
+
+⚠️ Este enlace expira en 24 horas y es de un solo uso.
+
+💡 **Consejos de seguridad:**
+
+• Nunca compartas tu contraseña con nadie
+• Cambia tu contraseña regularmente
+• Usa contraseñas fuertes con letras, números y símbolos
+
+📞 **¿Necesitas ayuda?**
+
+Nuestro equipo de soporte está disponible para ayudarte:
+📧 Correo: soporte@healthylife.com
+📞 Teléfono: +58 123-456-7890
+
+¡Estamos aquí para ti en cada paso de tu viaje hacia una vida más saludable! 💚
+
+🏥 **{site_name} - Tu Salud, Nuestra Prioridad** 🌟
+
+---
+Este es un correo automático, por favor no respondas a este mensaje.
+Si tienes preguntas, contáctanos a través de nuestros canales de soporte.
+"""
+
+def enviar_correo_activacion(user, rol, enlace):
+    """
+    Envía correo de activación de cuenta con enlace (SIN contraseña).
+
+    Args:
+        user: Instancia del modelo de usuario (debe tener atributos: nombre_1, nombre_2, etc.)
+        rol: str, nombre del rol para mostrar en el correo.
+        enlace: str, URL de activación.
+    Returns:
+        bool
+    """
+    if not SMTP_USER or not SMTP_PASS:
+        print("❌ ERROR: Las credenciales de correo no están configuradas")
+        return False
+
+    nombre_completo = getattr(user, 'nombre_1', '') or ''
+    if getattr(user, 'nombre_2', ''):
+        nombre_completo += ' ' + user.nombre_2
+    nombre_completo += ' ' + (getattr(user, 'apellido_1', '') or '')
+    if getattr(user, 'apellido_2', ''):
+        nombre_completo += ' ' + user.apellido_2
+
+    template_data = {
+        'nombre_completo': nombre_completo.strip(),
+        'site_name': SITE_NAME,
+        'site_url': SITE_URL,
+        'rol': rol,
+        'enlace': enlace,
+        'username': getattr(user, 'username', ''),
+    }
+
+    msg = MIMEMultipart()
+    msg["From"] = SMTP_USER
+    msg["To"] = getattr(user, 'email', '') or getattr(user, 'correo', '')
+    msg["Subject"] = f"🏥 Activa tu cuenta en {SITE_NAME}"
+    if CC_ADDR:
+        msg["Cc"] = CC_ADDR
+    msg.attach(MIMEText(TEMPLATE_ACTIVACION.format(**template_data), "plain"))
+
+    return _conectar_y_enviar(msg, getattr(user, 'email', '') or getattr(user, 'correo', ''))

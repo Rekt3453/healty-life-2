@@ -156,19 +156,6 @@
                             {{ form.email }}
                             {% if form.email.errors %}<p class="field-error">{{ form.email.errors|join:", " }}</p>{% endif %}
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Contrasena <span style="color:#DC2626;">*</span></label>
-                            <div class="flex gap-2">
-                                {{ form.password1 }}
-                                <button type="button" onclick="generatePassword()" class="btn-secondary text-xs px-3 flex-shrink-0">Generar</button>
-                            </div>
-                            {% if form.password1.errors %}<p class="field-error">{{ form.password1.errors|join:", " }}</p>{% endif %}
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Confirmar contrasena <span style="color:#DC2626;">*</span></label>
-                            {{ form.password2 }}
-                            {% if form.password2.errors %}<p class="field-error">{{ form.password2.errors|join:", " }}</p>{% endif %}
-                        </div>
                     </div>
                 </div>
 
@@ -282,14 +269,6 @@
                         <div class="md:col-span-2">
                             <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Referencia</label>
                             {{ form.referencia }}
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Latitud</label>
-                            {{ form.latitud }}
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Longitud</label>
-                            {{ form.longitud }}
                         </div>
                     </div>
                 </div>

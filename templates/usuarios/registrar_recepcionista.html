@@ -188,19 +188,6 @@
                             {{ form.id_horario }}
                             {% if form.id_horario.errors %}<p class="field-error">{{ form.id_horario.errors|join:", " }}</p>{% endif %}
                         </div>
-                        <div>
-                            <label class="form-label">Contrasena <span style="color:#DC2626;">*</span></label>
-                            <div class="flex gap-2">
-                                {{ form.password1 }}
-                                <button type="button" onclick="generarPassword()" class="btn-secondary whitespace-nowrap text-xs px-3">Generar segura</button>
-                            </div>
-                            {% if form.password1.errors %}<p class="field-error">{{ form.password1.errors|join:", " }}</p>{% endif %}
-                        </div>
-                        <div>
-                            <label class="form-label">Confirmar contrasena <span style="color:#DC2626;">*</span></label>
-                            {{ form.password2 }}
-                            {% if form.password2.errors %}<p class="field-error">{{ form.password2.errors|join:", " }}</p>{% endif %}
-                        </div>
                     </div>
                 </div>
 
@@ -236,14 +223,6 @@
                         <div class="md:col-span-2">
                             <label class="form-label">Referencia</label>
                             {{ form.referencia }}
-                        </div>
-                        <div>
-                            <label class="form-label">Latitud</label>
-                            {{ form.latitud }}
-                        </div>
-                        <div>
-                            <label class="form-label">Longitud</label>
-                            {{ form.longitud }}
                         </div>
                     </div>
                 </div>

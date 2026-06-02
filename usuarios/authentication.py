@@ -20,18 +20,41 @@ def _rl_key(username):
     """Clave de caché para contar intentos de login de un username."""
     return f'login_attempts:{username}'
 
-def is_rate_limited(username):
-    """Devuelve True si el username superó el límite de intentos."""
-    return cache.get(_rl_key(username), 0) >= _RL_MAX
+def _rl_ip_key(ip):
+    """Clave de caché para contar intentos de login por IP."""
+    return f'login_attempts_ip:{ip}'
 
-def _record_failed(username):
-    """Incrementa el contador de intentos fallidos en la ventana definida."""
-    key = _rl_key(username)
-    cache.set(key, cache.get(key, 0) + 1, timeout=_RL_WINDOW)
+def is_rate_limited(username, ip=None):
+    """Devuelve True si el username o la IP superaron el límite de intentos."""
+    username_blocked = cache.get(_rl_key(username), 0) >= _RL_MAX
+    if username_blocked:
+        return True
+    if ip:
+        ip_blocked = cache.get(_rl_ip_key(ip), 0) >= _RL_MAX
+        return ip_blocked
+    return False
 
-def _reset_attempts(username):
-    """Elimina el contador de intentos (login exitoso)."""
+def _record_failed(username, ip=None):
+    """Incrementa los contadores de intentos fallidos (username e IP)."""
+    key_user = _rl_key(username)
+    cache.set(key_user, cache.get(key_user, 0) + 1, timeout=_RL_WINDOW)
+    if ip:
+        key_ip = _rl_ip_key(ip)
+        cache.set(key_ip, cache.get(key_ip, 0) + 1, timeout=_RL_WINDOW)
+
+def _reset_attempts(username, ip=None):
+    """Elimina los contadores de intentos (login exitoso)."""
     cache.delete(_rl_key(username))
+    if ip:
+        cache.delete(_rl_ip_key(ip))
+
+def get_client_ip(request):
+    """Extrae la IP del cliente desde el request, considerando proxies."""
+    x_forwarded = request and request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded:
+        return x_forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', 'unknown') if request else 'unknown'
+
 
 class CustomAuthBackend(BaseBackend):
     """
@@ -40,17 +63,14 @@ class CustomAuthBackend(BaseBackend):
     separadas de Supabase.
 
     Mejoras incluidas:
-    - Rate limiting: máximo 5 intentos por username en 60 segundos.
+    - Rate limiting: máximo 5 intentos por username/IP en 60 segundos.
     - Logging: registra intentos fallidos y exitosos con IP y hora.
     - Validación de status activo antes de aceptar credenciales.
     """
 
     def _get_ip(self, request):
         """Extrae la IP del cliente desde el request, considerando proxies."""
-        x_forwarded = request and request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded:
-            return x_forwarded.split(',')[0].strip()
-        return request.META.get('REMOTE_ADDR', 'unknown') if request else 'unknown'
+        return get_client_ip(request)
 
     def _try_auth(self, Model, username, password):
         """
@@ -84,7 +104,7 @@ class CustomAuthBackend(BaseBackend):
         ip = self._get_ip(request)
 
         # ── Rate limiting ─────────────────────────────────────────────────────
-        if is_rate_limited(username):
+        if is_rate_limited(username, ip):
             logger.warning(
                 'LOGIN BLOQUEADO | usuario=%s | ip=%s | motivo=rate_limit',
                 username, ip
@@ -106,7 +126,7 @@ class CustomAuthBackend(BaseBackend):
         for Model in models_to_try:
             user = self._try_auth(Model, username, password)
             if user:
-                _reset_attempts(username)
+                _reset_attempts(username, ip)
                 logger.info(
                     'LOGIN OK | usuario=%s | rol=%s | ip=%s',
                     username, type(user).__name__, ip
@@ -114,7 +134,7 @@ class CustomAuthBackend(BaseBackend):
                 return user
 
         # ── Fallo de autenticación ────────────────────────────────────────────
-        _record_failed(username)
+        _record_failed(username, ip)
         remaining = max(0, _RL_MAX - cache.get(_rl_key(username), 0))
         logger.warning(
             'LOGIN FALLIDO | usuario=%s | ip=%s | intentos_restantes=%d',

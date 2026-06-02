@@ -130,11 +130,6 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Correo <span class="text-red-500">*</span></label>
                                     <input type="email" name="correo" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" placeholder="usuario@correo.com" required>
                                 </div>
-                                <div class="sm:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contrasena <span class="text-red-500">*</span></label>
-                                    <input type="password" name="password" minlength="8" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" required>
-                                    <p class="text-xs text-gray-400 mt-1">Minimo 8 caracteres</p>
-                                </div>
                             </div>
                         </div>
 
@@ -168,7 +163,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Cedula <span class="text-red-500">*</span></label>
-                                    <input type="text" name="cedula" minlength="7" maxlength="9" pattern="^\d+$" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" required>
+                                    <input type="text" name="cedula" minlength="7" maxlength="8" pattern="^\d+$" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
@@ -183,7 +178,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Telefono <span class="text-red-500">*</span></label>
-                                    <input type="text" name="telefono" maxlength="13" pattern="^(0412|0426|0424|0422)-\d{3}-\d{4}$" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" placeholder="0412-123-4567" required>
+                                    <input type="text" name="telefono" maxlength="11" pattern="^(0412|0426|0424|0422)\d{7}$" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" placeholder="04121234567" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Sede <span class="text-red-500">*</span></label>

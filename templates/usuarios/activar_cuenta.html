@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activar Cuenta - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+    <style>
+        .login-body { background: var(--bg-primary); min-height: 100vh; position: relative; overflow-x: hidden; }
+        .login-body::before { content: ''; position: fixed; top: -20%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,112,243,0.06) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .login-body::after { content: ''; position: fixed; bottom: -10%; left: -5%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,112,243,0.04) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .login-main { position: relative; z-index: 1; }
+        .login-header { background: linear-gradient(135deg, #0070F3, #005CC2); border-bottom: none; box-shadow: 0 4px 20px rgba(0,112,243,0.25); }
+        .login-header a, .login-header span { color: #FFFFFF !important; }
+        .login-header svg { color: #FFFFFF !important; }
+        .login-card { background: var(--bg-white); border: 1px solid rgba(0,0,0,0.04); border-radius: 16px; box-shadow: var(--shadow-card); padding: 2.5rem; }
+        .login-card:hover { box-shadow: var(--shadow-hover); }
+        .login-title { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
+        .login-subtitle { color: var(--text-secondary); font-size: 0.95rem; }
+        .login-input-wrap { position: relative; }
+        .login-input-wrap .hl-input { padding-left: 2.5rem; }
+        .login-input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94A3B8; pointer-events: none; }
+        .login-btn { width: 100%; border-radius: 12px; padding: 0.85rem; font-weight: 600; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .login-icon-wrap { width: 64px; height: 64px; border-radius: 50%; background: rgba(0,112,243,0.08); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
+        .login-alert { border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+        .login-alert-error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #DC2626; }
+        .login-alert-success { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #16A34A; }
+        .login-alert-info { background: rgba(0,112,243,0.08); border: 1px solid rgba(0,112,243,0.2); color: var(--accent); }
+        .req-list { list-style: none; padding: 0; margin: 0; }
+        .req-list li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.35rem; }
+        .req-list li::before { content: '•'; color: var(--accent); font-weight: 700; }
+    </style>
+</head>
+<body class="login-body">
+    <header class="login-header hl-header">
+        <div class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #0070F3, #005CC2); border: 2px solid rgba(255,255,255,0.25);">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold tracking-tight" style="color:#FFFFFF;">Healthy Life</span>
+            </a>
+            <a href="{% url 'home' %}" class="flex items-center gap-1.5 text-sm font-medium" style="color:var(--text-secondary); transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Volver
+            </a>
+        </div>
+    </header>
+
+    <main class="login-main max-w-md mx-auto px-6 py-12">
+        <div class="login-card hl-animate-fade-up">
+            <div class="login-icon-wrap">
+                <svg class="w-7 h-7" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            </div>
+
+            <div class="text-center mb-8">
+                <h1 class="login-title">Activar Cuenta</h1>
+                <p class="login-subtitle">Establece tu contraseña para comenzar</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="login-alert {% if message.tags == 'error' %}login-alert-error{% elif message.tags == 'success' %}login-alert-success{% else %}login-alert-info{% endif %}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            {% if message.tags == 'error' %}<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            {% elif message.tags == 'success' %}<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            {% else %}<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            {% endif %}
+                        </svg>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="rounded-xl p-4 mb-5" style="background:rgba(0,112,243,0.04); border:1px solid rgba(0,112,243,0.12);">
+                <p class="text-sm font-semibold mb-2" style="color:var(--text-primary);">Requisitos de contraseña</p>
+                <ul class="req-list">
+                    <li>Entre 8 y 30 caracteres</li>
+                    <li>Al menos una mayúscula</li>
+                    <li>Al menos una minúscula</li>
+                    <li>Al menos un número</li>
+                    <li>Al menos un carácter especial (@ # $ % &)</li>
+                </ul>
+            </div>
+
+            <form method="POST" class="space-y-5" id="form-activacion">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-primary);">Nueva contraseña</label>
+                    <div class="login-input-wrap">
+                        <svg class="login-input-icon w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <input type="password" name="password1" id="password1" class="hl-input" placeholder="••••••••" minlength="8" maxlength="30" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-primary);">Confirmar contraseña</label>
+                    <div class="login-input-wrap">
+                        <svg class="login-input-icon w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <input type="password" name="password2" id="password2" class="hl-input" placeholder="••••••••" minlength="8" maxlength="30" required>
+                    </div>
+                    <p id="password-match" class="text-xs mt-1 hidden" style="color:#DC2626;">Las contraseñas no coinciden</p>
+                </div>
+
+                <button type="submit" class="hl-btn-primary login-btn">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Activar cuenta
+                </button>
+            </form>
+        </div>
+    </main>
+
+<script>
+document.getElementById('password2').addEventListener('input', function() {
+    const p1 = document.getElementById('password1').value;
+    const p2 = this.value;
+    const matchMsg = document.getElementById('password-match');
+    if (p1 && p2 && p1 !== p2) {
+        matchMsg.classList.remove('hidden');
+    } else {
+        matchMsg.classList.add('hidden');
+    }
+});
+</script>
+</body>
+</html>

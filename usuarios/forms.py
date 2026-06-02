@@ -806,26 +806,22 @@ class RegistrarDoctorForm(forms.Form):
     """Formulario dedicado para registrar un doctor con sus credenciales."""
 
     # ── Autenticación ──────────────────────────────────────────────────────
-    username = forms.CharField(max_length=150, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
+    username = forms.CharField(max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
     email = forms.EmailField(required=True,
         widget=forms.EmailInput(attrs={'class': _CSS}))
-    password1 = forms.CharField(label="Contraseña", required=True,
-        widget=forms.PasswordInput(attrs={'class': _CSS}))
-    password2 = forms.CharField(label="Confirmar contraseña", required=True,
-        widget=forms.PasswordInput(attrs={'class': _CSS}))
 
     # ── Datos personales ───────────────────────────────────────────────────
-    nombre_1 = forms.CharField(max_length=100, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    nombre_2 = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    apellido_1 = forms.CharField(max_length=100, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    apellido_2 = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    cedula = forms.CharField(max_length=20, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
+    nombre_1 = forms.CharField(max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    nombre_2 = forms.CharField(max_length=30, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    apellido_1 = forms.CharField(max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    apellido_2 = forms.CharField(max_length=30, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    cedula = forms.CharField(min_length=7, max_length=8, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'minlength': '7', 'maxlength': '8', 'pattern': '^\d+$'}))
     tipo_cedula = forms.ChoiceField(choices=_TIPO_CEDULA_CHOICES, required=True,
         widget=forms.Select(attrs={'class': _CSS}))
     sexo = forms.ChoiceField(choices=_SEXO_CHOICES, required=True,
@@ -866,10 +862,6 @@ class RegistrarDoctorForm(forms.Form):
         widget=forms.Textarea(attrs={'rows': 3, 'class': _CSS}))
     referencia = forms.CharField(required=False,
         widget=forms.Textarea(attrs={'rows': 2, 'class': _CSS}))
-    latitud = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    longitud = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
 
     def __init__(self, *args, sede_id=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -896,13 +888,6 @@ class RegistrarDoctorForm(forms.Form):
                 self.fields['id_parroquia'].queryset = Parroquia.objects.filter(id_municipio=municipio_id)
             except (ValueError, TypeError):
                 pass
-
-    def clean_password2(self):
-        p1 = self.cleaned_data.get('password1')
-        p2 = self.cleaned_data.get('password2')
-        if p1 and p2 and p1 != p2:
-            raise forms.ValidationError("Las contraseñas no coinciden.")
-        return p2
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
@@ -942,15 +927,15 @@ class RegistrarDoctorForm(forms.Form):
             id_parroquia=self.cleaned_data['id_parroquia'],
             direccion=self.cleaned_data['direccion'],
             referencia=self.cleaned_data.get('referencia') or '',
-            latitud=self.cleaned_data.get('latitud') or '',
-            longitud=self.cleaned_data.get('longitud') or '',
         )
         user_doctor = UserDoctor.objects.create_user(
             username=self.cleaned_data['username'],
             correo=self.cleaned_data['email'],
-            password=self.cleaned_data['password1'],
+            password='',
             id_sede=sede,
         )
+        user_doctor.status = False
+        user_doctor.save()
         espec_obj   = self.cleaned_data.get('id_especialidad_doctor')
         consul_obj  = self.cleaned_data.get('id_consultorio')
         horario_obj = self.cleaned_data.get('id_horario')
@@ -980,26 +965,22 @@ class RegistrarRecepcionistaForm(forms.Form):
     """Formulario dedicado para registrar una recepcionista."""
 
     # ── Autenticación ──────────────────────────────────────────────────────
-    username = forms.CharField(max_length=150, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
+    username = forms.CharField(max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
     email = forms.EmailField(required=True,
         widget=forms.EmailInput(attrs={'class': _CSS}))
-    password1 = forms.CharField(label="Contraseña", required=True,
-        widget=forms.PasswordInput(attrs={'class': _CSS}))
-    password2 = forms.CharField(label="Confirmar contraseña", required=True,
-        widget=forms.PasswordInput(attrs={'class': _CSS}))
 
     # ── Datos personales ───────────────────────────────────────────────────
-    nombre_1 = forms.CharField(max_length=100, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    nombre_2 = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    apellido_1 = forms.CharField(max_length=100, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    apellido_2 = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    cedula = forms.CharField(max_length=20, required=True,
-        widget=forms.TextInput(attrs={'class': _CSS}))
+    nombre_1 = forms.CharField(max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    nombre_2 = forms.CharField(max_length=30, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    apellido_1 = forms.CharField(max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    apellido_2 = forms.CharField(max_length=30, required=False,
+        widget=forms.TextInput(attrs={'class': _CSS, 'maxlength': '30'}))
+    cedula = forms.CharField(min_length=7, max_length=8, required=True,
+        widget=forms.TextInput(attrs={'class': _CSS, 'minlength': '7', 'maxlength': '8', 'pattern': '^\d+$'}))
     tipo_cedula = forms.ChoiceField(choices=_TIPO_CEDULA_CHOICES, required=True,
         widget=forms.Select(attrs={'class': _CSS}))
     sexo = forms.ChoiceField(choices=_SEXO_CHOICES, required=True,
@@ -1032,10 +1013,6 @@ class RegistrarRecepcionistaForm(forms.Form):
         widget=forms.Textarea(attrs={'rows': 3, 'class': _CSS}))
     referencia = forms.CharField(required=False,
         widget=forms.Textarea(attrs={'rows': 2, 'class': _CSS}))
-    latitud = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
-    longitud = forms.CharField(max_length=100, required=False,
-        widget=forms.TextInput(attrs={'class': _CSS}))
 
     def __init__(self, *args, sede_id=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1055,13 +1032,6 @@ class RegistrarRecepcionistaForm(forms.Form):
                 self.fields['id_parroquia'].queryset = Parroquia.objects.filter(id_municipio=municipio_id)
             except (ValueError, TypeError):
                 pass
-
-    def clean_password2(self):
-        p1 = self.cleaned_data.get('password1')
-        p2 = self.cleaned_data.get('password2')
-        if p1 and p2 and p1 != p2:
-            raise forms.ValidationError("Las contraseñas no coinciden.")
-        return p2
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
@@ -1101,15 +1071,15 @@ class RegistrarRecepcionistaForm(forms.Form):
             id_parroquia=self.cleaned_data['id_parroquia'],
             direccion=self.cleaned_data['direccion'],
             referencia=self.cleaned_data.get('referencia') or '',
-            latitud=self.cleaned_data.get('latitud') or '',
-            longitud=self.cleaned_data.get('longitud') or '',
         )
         user_recepcionista = UserRecepcionista.objects.create_user(
             username=self.cleaned_data['username'],
             correo=self.cleaned_data['email'],
-            password=self.cleaned_data['password1'],
+            password='',
             id_sede=sede,
         )
+        user_recepcionista.status = False
+        user_recepcionista.save()
         horario_obj = self.cleaned_data.get('id_horario')
         Recepcionista.objects.create(
             nombre_1=self.cleaned_data['nombre_1'],
@@ -2017,36 +1987,6 @@ class RegistroSuperAdminForm(forms.Form):
         })
     )
 
-    password = forms.CharField(
-        required=True,
-        label="Contraseña",
-        min_length=8,
-        max_length=30,
-        validators=[
-            RegexValidator(
-                r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:''",.<>/?\\|`~]).{8,30}$',
-                'Debe contener al menos 1 mayúscula, 1 número, 1 carácter especial y tener entre 8 y 30 caracteres'
-            ),
-        ],
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
-            'placeholder': 'Mínimo 8 caracteres',
-            'maxlength': '30',
-        })
-    )
-
-    password_confirm = forms.CharField(
-        required=True,
-        label="Confirmar Contraseña",
-        min_length=8,
-        max_length=30,
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm',
-            'placeholder': 'Repite la contraseña',
-            'maxlength': '30',
-        })
-    )
-
     # ── DATOS PERSONALES ──
     nombre_1 = forms.CharField(
         max_length=30,
@@ -2171,13 +2111,6 @@ class RegistroSuperAdminForm(forms.Form):
             'class': 'form-input w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm bg-white',
         })
     )
-
-    def clean_password_confirm(self):
-        pwd1 = self.cleaned_data.get('password')
-        pwd2 = self.cleaned_data.get('password_confirm')
-        if pwd1 and pwd2 and pwd1 != pwd2:
-            raise ValidationError('Las contraseñas no coinciden.')
-        return pwd2
 
     def clean_fecha_nacimiento(self):
         fecha = self.cleaned_data.get('fecha_nacimiento')

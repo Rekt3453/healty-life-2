@@ -9,6 +9,7 @@ from .models import (
     DireccionSuperadmin,
 )
 from .audit_services import registrar_evento
+from .authentication import is_rate_limited, _record_failed, get_client_ip
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,12 @@ def login_root(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
+        ip = get_client_ip(request)
+
+        if is_rate_limited(username, ip):
+            messages.error(request, 'Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo.')
+            return render(request, 'usuarios/login_root.html')
+
         password_hash = hashlib.md5(password.encode()).hexdigest()
 
         user = UserRoot.objects.filter(username=username, contrasena=password_hash).first()
@@ -63,6 +70,7 @@ def login_root(request):
             messages.success(request, f'Bienvenido, {user.username}')
             return redirect('dashboard_root')
         else:
+            _record_failed(username, ip)
             messages.error(request, 'Credenciales incorrectas.')
 
     return render(request, 'usuarios/login_root.html')
@@ -129,12 +137,11 @@ def registrar_superadmin(request):
         if form.is_valid():
             cd = form.cleaned_data
             try:
-                password_hash = hashlib.md5(cd['password'].encode()).hexdigest()
                 user_sa = UserSuperAdmin.objects.create(
                     username=cd['username'],
                     correo=cd['correo'],
-                    contrasena=password_hash,
-                    status=True,
+                    contrasena='',
+                    status=False,
                 )
 
                 sede_sa = None
@@ -154,22 +161,28 @@ def registrar_superadmin(request):
                     status=True,
                 )
 
-                # Enviar correo de bienvenida con credenciales
-                from .email_config import enviar_correo_superadmin
-                ok = enviar_correo_superadmin({
-                    'primer_nombre': cd['nombre_1'],
-                    'segundo_nombre': cd['nombre_2'] or '',
-                    'primer_apellido': cd['apellido_1'],
-                    'segundo_apellido': cd['apellido_2'] or '',
-                    'email': cd['correo'],
-                    'username': cd['username'],
-                    'password': cd['password'],
-                    'centro_medico': cd['id_cm'].nombre_cm if cd['id_cm'] else 'Nuestro Centro Médico',
-                })
-                if ok:
-                    messages.success(request, 'Se enviaron las credenciales al correo del Super Admin.')
-                else:
-                    messages.warning(request, 'El Super Admin se registró pero no se pudieron enviar las credenciales por correo.')
+                # Enviar correo de activación
+                try:
+                    from .email_config import generar_token_activacion, enviar_correo_activacion
+                    from django.db import connection
+                    token = generar_token_activacion(user_sa.pk, user_sa.correo)
+                    with connection.cursor() as c:
+                        c.execute("UPDATE user_superadmin SET token_activacion = %s WHERE id_user_superadmin = %s", [token, user_sa.pk])
+                    enlace = request.build_absolute_uri(f"/activar-cuenta/{user_sa.pk}/{token}/")
+                    sa_profile = Superadmin.objects.filter(id_user_superadmin=user_sa).first()
+                    if sa_profile:
+                        user_sa.nombre_1 = sa_profile.nombre_1
+                        user_sa.nombre_2 = sa_profile.nombre_2
+                        user_sa.apellido_1 = sa_profile.apellido_1
+                        user_sa.apellido_2 = sa_profile.apellido_2
+                    ok = enviar_correo_activacion(user_sa, 'Super Admin', enlace)
+                    if ok:
+                        messages.success(request, 'Se envió un correo de activación al Super Admin.')
+                    else:
+                        messages.warning(request, 'El Super Admin se registró pero no se pudo enviar el correo de activación.')
+                except Exception as mail_err:
+                    print(f'WARN: No se pudo enviar correo de activación al super admin: {mail_err}')
+                    messages.warning(request, 'El Super Admin se registró pero no se pudo enviar el correo de activación.')
 
                 messages.success(request, f'Super Admin {cd["username"]} registrado exitosamente.')
                 return redirect('dashboard_root')

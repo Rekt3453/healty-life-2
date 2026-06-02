@@ -97,6 +97,9 @@ urlpatterns = [
     path('configurar-preguntas/<int:user_id>/<str:token>/', views.configurar_preguntas_paciente, name='configurar_preguntas_token'),
     path('perfil/preguntas-seguridad/', views.configurar_preguntas_paciente, name='configurar_preguntas_perfil'),
 
+    # Activación de cuenta
+    path('activar-cuenta/<int:user_id>/<str:token>/', views.activar_cuenta, name='activar_cuenta'),
+
     # API endpoints para validación en tiempo real
     path('ajax/validar-username/', views.validar_username, name='validar_username'),
     path('ajax/validar-email/', views.validar_email, name='validar_email'),

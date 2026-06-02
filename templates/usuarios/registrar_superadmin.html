@@ -112,23 +112,6 @@
                         </div>
                         <p class="error-msg" id="err-correo"></p>
                     </div>
-                    <div>
-                        <label for="id_password" class="block text-sm font-semibold text-gray-700 mb-2">Contraseña <span class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="lock" class="w-5 h-5 text-slate-400"></i></div>
-                            {{ form.password }}
-                        </div>
-                        <p class="error-msg" id="err-password"></p>
-                        <p class="text-xs text-gray-400 mt-1">8-30 caracteres. Al menos 1 mayúscula, 1 número y 1 especial.</p>
-                    </div>
-                    <div>
-                        <label for="id_password_confirm" class="block text-sm font-semibold text-gray-700 mb-2">Confirmar Contraseña <span class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="lock" class="w-5 h-5 text-slate-400"></i></div>
-                            {{ form.password_confirm }}
-                        </div>
-                        <p class="error-msg" id="err-password_confirm"></p>
-                    </div>
                 </div>
             </div>
 
@@ -258,11 +241,6 @@ function clearError(fieldId) {
 const rules = {
     username:  v => /^[a-zA-Z0-9_]{3,30}$/.test(v) ? '' : 'Máx. 30 caracteres. Solo letras, números y guiones bajos.',
     correo:    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Ingrese un correo válido.',
-    password:  v => /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:'"\\|,.<>/?`~]).{8,30}$/.test(v) ? '' : '8-30 caracteres, 1 mayúscula, 1 número, 1 especial.',
-    password_confirm: v => {
-        const p = document.getElementById('id_password').value;
-        return v === p ? '' : 'Las contraseñas no coinciden.';
-    },
     nombre_1:  v => /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,30}$/.test(v) ? '' : 'Solo letras, máx. 30.',
     nombre_2:  v => !v || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{0,30}$/.test(v) ? '' : 'Solo letras, máx. 30.',
     apellido_1:v => /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,30}$/.test(v) ? '' : 'Solo letras, máx. 30.',

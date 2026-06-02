@@ -436,6 +436,7 @@ def gestionar_horarios(request):
     })
 
 
+@login_required(login_url='/login/recepcionista/')
 @rol_requerido('recepcionista', 'gerente')
 def gestionar_citas(request):
     """Recepcionista/gerente: solicitudes nuevas, pagos por confirmar y citas aceptadas."""
@@ -470,6 +471,7 @@ def gestionar_citas(request):
     })
 
 
+@login_required(login_url='/login/recepcionista/')
 @rol_requerido('recepcionista', 'gerente')
 def confirmar_pago(request, cita_id):
     """Recepcionista confirma que el pago del paciente fue verificado → estado='confirmada'."""
@@ -575,6 +577,7 @@ def mes_nombre(mes):
     return nombres[mes - 1]
 
 
+@login_required(login_url='/login/recepcionista/')
 @rol_requerido('recepcionista', 'gerente')
 def aprobar_cita(request, cita_id):
     """Recepcionista aprueba la solicitud de cita → estado='aprobada'."""
@@ -599,6 +602,7 @@ def aprobar_cita(request, cita_id):
     return redirect('gestionar_citas')
 
 
+@login_required(login_url='/login/recepcionista/')
 @rol_requerido('recepcionista', 'gerente')
 def rechazar_cita(request, cita_id):
     """Rechazar cita → estado='rechazada'."""
@@ -692,6 +696,7 @@ _CLASIFICACIONES_POR_TIPO = {
     'menor':  ['Pediatría', 'General'],
 }
 
+@login_required
 @require_GET
 def ajax_especialidades(request):
     """Especialidades activas en una sede, filtradas por tipo de paciente.
@@ -720,6 +725,7 @@ def ajax_especialidades(request):
     return JsonResponse(data, safe=False)
 
 
+@login_required
 @require_GET
 def ajax_doctores(request):
     """Doctores por especialidad y sede (AJAX)."""
@@ -768,6 +774,7 @@ def ajax_fechas_disponibles(request):
         return JsonResponse({'fechas': [], 'error': str(exc)})
 
 
+@login_required
 @require_GET
 def ajax_horas_disponibles(request):
     """Slots de 1 hora disponibles para un doctor en una fecha."""
@@ -784,6 +791,7 @@ def ajax_horas_disponibles(request):
         return JsonResponse({'horas': [], 'error': str(exc)})
 
 
+@login_required
 @require_GET
 def ajax_servicios(request):
     """Servicios por doctor (y opcionalmente sede/especialidad)."""

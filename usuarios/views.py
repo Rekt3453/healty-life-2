@@ -24,7 +24,7 @@ from citas.models import (
     HistorialAlergias, HistorialEnfermedades, HistoriaVacunas,
     EspecialidadDoctor, Especialidad, Consultorio, Horario,
 )
-from .authentication import CustomAuthBackend, is_rate_limited
+from .authentication import CustomAuthBackend, is_rate_limited, get_client_ip
 from .email_config import enviar_correo_confirmacion
 from .services.auth_service import resolve_and_check
 from .services.user_service import (
@@ -51,18 +51,45 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        
+
         # Usar el backend de autenticación personalizado
         auth_backend = CustomAuthBackend()
         user = auth_backend.authenticate(request, username=username, password=password, rol=rol_esperado)
-        
+
         if user is not None:
             # Verificar el rol del usuario - CORREGIDO
             user_rol = auth_backend.get_rol(user)
             print(f"DEBUG: Login - Username: {username}, Rol esperado: {rol_esperado}, Rol obtenido: {user_rol}")
-            
+
             # Permitir cualquier rol que coincida exactamente
             if user_rol == rol_esperado:
+                # Verificar activación para roles de staff
+                if rol_esperado != 'paciente':
+                    pwd = getattr(user, 'password', '') or getattr(user, 'contrasena', '')
+                    if not pwd or not user.status:
+                        try:
+                            from .email_config import generar_token_activacion, enviar_correo_activacion
+                            from django.db import connection
+                            correo = getattr(user, 'email', '') or getattr(user, 'correo', '')
+                            token = generar_token_activacion(user.pk, correo)
+                            tabla_map = {
+                                'UserDoctor': ('user_doctor', 'id_user_doctor'),
+                                'UserRecepcionista': ('user_recepcionista', 'id_user_recepcionista'),
+                                'UserAdmin': ('user_admin', 'id_user_admin'),
+                                'UserSuperAdmin': ('user_superadmin', 'id_user_superadmin'),
+                            }
+                            tabla, pk_col = tabla_map.get(type(user).__name__, ('', ''))
+                            if tabla:
+                                with connection.cursor() as c:
+                                    c.execute(f"UPDATE {tabla} SET token_activacion = %s WHERE {pk_col} = %s", [token, user.pk])
+                            enlace = request.build_absolute_uri(f"/activar-cuenta/{user.pk}/{token}/")
+                            enviar_correo_activacion(user, rol_esperado.title(), enlace)
+                            messages.info(request, "Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu correo.")
+                        except Exception as mail_err:
+                            print(f'WARN: No se pudo reenviar correo de activación: {mail_err}')
+                            messages.info(request, "Tu cuenta aún no está activada. Contacta al administrador.")
+                        return render(request, template_name)
+
                 login(request, user, backend='usuarios.authentication.CustomAuthBackend')
                 request.session['_hl_user_model'] = type(user).__name__
                 registrar_evento(
@@ -80,12 +107,13 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
                 messages.error(request, f"Esta cuenta no tiene perfil de {rol_esperado}. Tu rol es: {user_rol}")
                 print(f"DEBUG: Rol incorrecto - Esperado: {rol_esperado}, Obtenido: {user_rol}")
         else:
-            if is_rate_limited(username):
+            ip = get_client_ip(request)
+            if is_rate_limited(username, ip):
                 messages.error(request, "Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo.")
             else:
                 messages.error(request, "Credenciales incorrectas")
             print(f"DEBUG: Credenciales incorrectas para {username}")
-    
+
     return render(request, template_name)
 def login_paciente(request):
     return login_rol(request, 'paciente', 'usuarios/login_paciente.html', 'dashboard_paciente')
@@ -1203,7 +1231,6 @@ def registrar_doctor(request):
             form = RegistrarDoctorForm(request.POST, sede_id=sede.id_sede if sede else None)
             if form.is_valid():
                 try:
-                    password_plana = form.cleaned_data['password1']
                     user_doctor = form.save(sede)
                     registrar_evento(
                         user=user_doctor,
@@ -1214,20 +1241,25 @@ def registrar_doctor(request):
                         details={'username': user_doctor.username, 'sede': sede.nombre_sede if sede else None},
                         request=request,
                     )
+                    # Enviar correo de activación
                     try:
-                        from .email_config import enviar_correo_doctor
-                        enviar_correo_doctor({
-                            'primer_nombre':  form.cleaned_data.get('nombre_1', ''),
-                            'segundo_nombre': form.cleaned_data.get('nombre_2', ''),
-                            'primer_apellido': form.cleaned_data.get('apellido_1', ''),
-                            'segundo_apellido': form.cleaned_data.get('apellido_2', ''),
-                            'email':    form.cleaned_data.get('email', ''),
-                            'username': user_doctor.username,
-                            'password': password_plana,
-                        })
+                        from .email_config import generar_token_activacion, enviar_correo_activacion
+                        from django.db import connection
+                        token = generar_token_activacion(user_doctor.pk, user_doctor.email)
+                        with connection.cursor() as c:
+                            c.execute("UPDATE user_doctor SET token_activacion = %s WHERE id_user_doctor = %s", [token, user_doctor.pk])
+                        enlace = request.build_absolute_uri(f"/activar-cuenta/{user_doctor.pk}/{token}/")
+                        doctor_profile = Doctor.objects.filter(id_user_doctor=user_doctor).first()
+                        if doctor_profile:
+                            user_doctor.nombre_1 = doctor_profile.nombre_1
+                            user_doctor.nombre_2 = doctor_profile.nombre_2
+                            user_doctor.apellido_1 = doctor_profile.apellido_1
+                            user_doctor.apellido_2 = doctor_profile.apellido_2
+                        enviar_correo_activacion(user_doctor, 'Médico', enlace)
+                        messages.success(request, f'Doctor {user_doctor.username} registrado. Se envió un correo de activación.')
                     except Exception as mail_err:
-                        print(f'WARN: No se pudo enviar correo al médico: {mail_err}')
-                    messages.success(request, f'Doctor {user_doctor.username} registrado. Se envió un correo con sus credenciales.')
+                        print(f'WARN: No se pudo enviar correo de activación al médico: {mail_err}')
+                        messages.success(request, f'Doctor {user_doctor.username} registrado.')
                     return redirect('dashboard_gerente')
                 except Exception as e:
                     messages.error(request, f'Error al registrar el doctor: {str(e)}')
@@ -1267,7 +1299,6 @@ def registrar_recepcionista(request):
             form = RegistrarRecepcionistaForm(request.POST, sede_id=sede.id_sede if sede else None)
             if form.is_valid():
                 try:
-                    password_plana = form.cleaned_data['password1']
                     user_rec = form.save(sede)
                     registrar_evento(
                         user=user_rec,
@@ -1278,20 +1309,25 @@ def registrar_recepcionista(request):
                         details={'username': user_rec.username, 'sede': sede.nombre_sede if sede else None},
                         request=request,
                     )
+                    # Enviar correo de activación
                     try:
-                        from .email_config import enviar_correo_recepcionista
-                        enviar_correo_recepcionista({
-                            'primer_nombre':   form.cleaned_data.get('nombre_1', ''),
-                            'segundo_nombre':  form.cleaned_data.get('nombre_2', ''),
-                            'primer_apellido': form.cleaned_data.get('apellido_1', ''),
-                            'segundo_apellido': form.cleaned_data.get('apellido_2', ''),
-                            'email':    form.cleaned_data.get('email', ''),
-                            'username': user_rec.username,
-                            'password': password_plana,
-                        })
+                        from .email_config import generar_token_activacion, enviar_correo_activacion
+                        from django.db import connection
+                        token = generar_token_activacion(user_rec.pk, user_rec.email)
+                        with connection.cursor() as c:
+                            c.execute("UPDATE user_recepcionista SET token_activacion = %s WHERE id_user_recepcionista = %s", [token, user_rec.pk])
+                        enlace = request.build_absolute_uri(f"/activar-cuenta/{user_rec.pk}/{token}/")
+                        rec_profile = Recepcionista.objects.filter(id_user_recepcionista=user_rec).first()
+                        if rec_profile:
+                            user_rec.nombre_1 = rec_profile.nombre_1
+                            user_rec.nombre_2 = rec_profile.nombre_2
+                            user_rec.apellido_1 = rec_profile.apellido_1
+                            user_rec.apellido_2 = rec_profile.apellido_2
+                        enviar_correo_activacion(user_rec, 'Recepcionista', enlace)
+                        messages.success(request, f'Recepcionista {user_rec.username} registrada. Se envió un correo de activación.')
                     except Exception as mail_err:
-                        print(f'WARN: No se pudo enviar correo a la recepcionista: {mail_err}')
-                    messages.success(request, f'Recepcionista {user_rec.username} registrada. Se envió un correo con sus credenciales.')
+                        print(f'WARN: No se pudo enviar correo de activación a la recepcionista: {mail_err}')
+                        messages.success(request, f'Recepcionista {user_rec.username} registrada.')
                     return redirect('dashboard_gerente')
                 except Exception as e:
                     messages.error(request, f'Error al registrar la recepcionista: {str(e)}')
@@ -1451,8 +1487,11 @@ def recuperar_password(request):
 
         user = UserPaciente.objects.filter(email=correo, status=True).first()
         if not user:
-            messages.error(request, 'No se encontró una cuenta con ese correo electrónico.')
-            return render(request, 'usuarios/recuperar_password.html')
+            messages.success(
+                request,
+                'Si el correo está registrado en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.',
+            )
+            return redirect('login_paciente')
 
         recuperacion = RecuperacionContrasenaPaciente.objects.filter(
             id_user_paciente=user
@@ -1461,27 +1500,12 @@ def recuperar_password(request):
         if not recuperacion or not recuperacion.preguntas_seguridad:
             try:
                 _enviar_correo_config_preguntas(user, request)
-                messages.info(
-                    request,
-                    'No tienes preguntas configuradas. Hemos enviado un enlace a tu correo.',
-                )
             except Exception as _e:
                 print(f'[EMAIL ERROR] {type(_e).__name__}: {_e}')
-                from django.conf import settings as _s
-                if _s.DEBUG:
-                    token  = _hashlib.md5(f"{user.pk}-{user.email}-config".encode()).hexdigest()
-                    enlace = request.build_absolute_uri(f'/configurar-preguntas/{user.pk}/{token}/')
-                    messages.warning(
-                        request,
-                        f'[DEBUG] No se pudo enviar el correo ({type(_e).__name__}). '
-                        f'Enlace directo: {enlace}',
-                    )
-                else:
-                    messages.warning(
-                        request,
-                        'No tienes preguntas configuradas. '
-                        'Contacta al administrador de tu sede.',
-                    )
+            messages.success(
+                request,
+                'Si el correo está registrado en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.',
+            )
             return redirect('login_paciente')
 
         request.session['recuperacion_user_id'] = user.pk
@@ -2033,4 +2057,77 @@ def lista_pacientes(request):
         'pacientes': pacientes,
         'nombre': nombre,
         'q': q,
+    })
+
+
+# ── ACTIVACIÓN DE CUENTA ───────────────────────────────────────────────────────
+
+def activar_cuenta(request, user_id, token):
+    """Página donde el usuario establece su contraseña por primera vez."""
+    import re
+    import hashlib
+    from django.db import connection
+
+    # Tablas y campos PK/contraseña por modelo (usar db_column real)
+    TABLAS = [
+        ('user_doctor', 'id_user_doctor', 'contrasena', 'medico', 'login_medico'),
+        ('user_recepcionista', 'id_user_recepcionista', 'contrasena', 'recepcionista', 'login_recepcionista'),
+        ('user_admin', 'id_user_admin', 'contrasena', 'gerente', 'login_gerente'),
+        ('user_superadmin', 'id_user_superadmin', 'contrasena', 'superadmin', 'login_superadmin'),
+    ]
+
+    user_found = None
+    login_url = None
+    with connection.cursor() as cursor:
+        for tabla, pk_col, pwd_col, rol, url in TABLAS:
+            cursor.execute(
+                f"SELECT {pk_col} FROM {tabla} WHERE {pk_col} = %s AND token_activacion = %s",
+                [user_id, token]
+            )
+            row = cursor.fetchone()
+            if row:
+                user_found = {'tabla': tabla, 'pk_col': pk_col, 'pk_val': row[0], 'pwd_col': pwd_col, 'rol': rol}
+                login_url = url
+                break
+
+    if not user_found:
+        messages.error(request, "Enlace inválido o expirado.")
+        return redirect('home')
+
+    if request.method == 'POST':
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+
+        errores = []
+        if len(password1) < 8:
+            errores.append("Mínimo 8 caracteres.")
+        if len(password1) > 30:
+            errores.append("Máximo 30 caracteres.")
+        if not re.search(r'[A-Z]', password1):
+            errores.append("Debe contener al menos una mayúscula.")
+        if not re.search(r'[a-z]', password1):
+            errores.append("Debe contener al menos una minúscula.")
+        if not re.search(r'[0-9]', password1):
+            errores.append("Debe contener al menos un número.")
+        if not re.search(r'[\W_]', password1):
+            errores.append("Debe contener al menos un carácter especial (@, #, $, etc.).")
+        if password1 != password2:
+            errores.append("Las contraseñas no coinciden.")
+
+        if errores:
+            for error in errores:
+                messages.error(request, error)
+        else:
+            password_hash = hashlib.md5(password1.encode()).hexdigest()
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f"UPDATE {user_found['tabla']} SET {user_found['pwd_col']} = %s, token_activacion = NULL, status = TRUE WHERE {user_found['pk_col']} = %s",
+                    [password_hash, user_found['pk_val']]
+                )
+            messages.success(request, "Contraseña establecida correctamente. Ya puedes iniciar sesión.")
+            return redirect(login_url)
+
+    return render(request, 'usuarios/activar_cuenta.html', {
+        'user_id': user_id,
+        'token': token,
     })

@@ -13,6 +13,7 @@ from .models import (
     Estado, Municipio, Ciudad, Parroquia, AuditLog,
 )
 from .audit_services import registrar_evento
+from .authentication import is_rate_limited, _record_failed, get_client_ip
 
 # Obtener el CentroMedico del superadmin a través de su sede
 def _get_centro(sa):
@@ -54,12 +55,34 @@ def login_superadmin(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
+        ip = get_client_ip(request)
+
+        if is_rate_limited(username, ip):
+            messages.error(request, 'Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo.')
+            return render(request, 'usuarios/login_superadmin.html')
+
         password_hash = hashlib.md5(password.encode()).hexdigest()
 
         user = UserSuperAdmin.objects.filter(
-            username=username, contrasena=password_hash, status=True
+            username=username, contrasena=password_hash
         ).first()
         if user:
+            if not user.status or not user.contrasena:
+                try:
+                    from .email_config import generar_token_activacion, enviar_correo_activacion
+                    from django.db import connection
+                    token = generar_token_activacion(user.pk, user.correo)
+                    with connection.cursor() as c:
+                        c.execute("UPDATE user_superadmin SET token_activacion = %s WHERE id_user_superadmin = %s", [token, user.pk])
+                    enlace = request.build_absolute_uri(f"/activar-cuenta/{user.pk}/{token}/")
+                    sa_profile = Superadmin.objects.filter(id_user_superadmin=user).first()
+                    enviar_correo_activacion(sa_profile, 'Super Admin', enlace)
+                    messages.info(request, "Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu correo.")
+                except Exception as mail_err:
+                    print(f'WARN: No se pudo reenviar correo de activación: {mail_err}')
+                    messages.info(request, "Tu cuenta aún no está activada. Contacta al administrador.")
+                return render(request, 'usuarios/login_superadmin.html')
+
             request.session['_superadmin_user_id'] = user.id_superadmin
             request.session['_superadmin_username'] = user.username
             registrar_evento(
@@ -74,6 +97,7 @@ def login_superadmin(request):
             messages.success(request, f'Bienvenido, {user.username}')
             return redirect('dashboard_superadmin')
         else:
+            _record_failed(username, ip)
             messages.error(request, 'Credenciales incorrectas.')
 
     return render(request, 'usuarios/login_superadmin.html')
@@ -215,7 +239,6 @@ def registrar_gerente(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         correo = request.POST.get('correo', '').strip()
-        password = request.POST.get('password', '')
         nombre_1 = request.POST.get('nombre_1', '').strip().upper()
         nombre_2 = request.POST.get('nombre_2', '').strip().upper() or None
         apellido_1 = request.POST.get('apellido_1', '').strip().upper()
@@ -233,7 +256,7 @@ def registrar_gerente(request):
         direccion = request.POST.get('direccion', '').strip()
 
         errors = []
-        if not all([username, correo, password, nombre_1, apellido_1, cedula, id_sede, telefono]):
+        if not all([username, correo, nombre_1, apellido_1, cedula, id_sede, telefono]):
             errors.append('Completa todos los campos obligatorios.')
         if len(username) > 30:
             errors.append('El username no puede exceder 30 caracteres.')
@@ -249,8 +272,8 @@ def registrar_gerente(request):
             errors.append('Apellido 2: solo letras, maximo 30 caracteres.')
         if tipo_cedula not in ('V', 'E', 'J'):
             errors.append('Tipo de cedula invalido.')
-        if not re.match(r'^\d{7,9}$', cedula):
-            errors.append('La cedula debe tener entre 7 y 9 digitos numericos.')
+        if not re.match(r'^\d{7,8}$', cedula):
+            errors.append('La cedula debe tener entre 7 y 8 digitos numericos.')
         if fecha_nacimiento:
             try:
                 from datetime import date as _date
@@ -263,10 +286,8 @@ def registrar_gerente(request):
                         errors.append('El gerente debe tener al menos 18 años.')
             except ValueError:
                 errors.append('La fecha de nacimiento no es valida.')
-        if not re.match(r'^(0412|0426|0424|0422)-\d{3}-\d{4}$', telefono):
-            errors.append('El telefono debe tener el formato 0412-123-4567.')
-        if len(password) < 8:
-            errors.append('La contrasena debe tener minimo 8 caracteres.')
+        if not re.match(r'^(0412|0426|0424|0422)\d{7}$', telefono):
+            errors.append('El telefono debe tener el formato 04121234567 (11 digitos, sin guiones).')
         if UserAdmin.objects.filter(username=username).exists():
             errors.append('El username ya esta en uso.')
         if UserAdmin.objects.filter(email=correo).exists():
@@ -279,13 +300,12 @@ def registrar_gerente(request):
                 messages.error(request, e)
         else:
             try:
-                password_hash = hashlib.md5(password.encode()).hexdigest()
                 user_admin = UserAdmin.objects.create(
                     username=username,
                     email=correo,
-                    password=password_hash,
+                    password='',
                     id_sede_id=id_sede,
-                    status=True,
+                    status=False,
                 )
 
                 dir_admin = None
@@ -314,6 +334,28 @@ def registrar_gerente(request):
                     id_direccion_admin=dir_admin,
                     status=True,
                 )
+                # Enviar correo de activación
+                try:
+                    from usuarios.email_config import generar_token_activacion, enviar_correo_activacion
+                    from django.db import connection
+                    token = generar_token_activacion(user_admin.pk, user_admin.email)
+                    with connection.cursor() as c:
+                        c.execute("UPDATE user_admin SET token_activacion = %s WHERE id_user_admin = %s", [token, user_admin.pk])
+                    enlace = request.build_absolute_uri(f"/activar-cuenta/{user_admin.pk}/{token}/")
+                    admin_profile = Administrador.objects.filter(id_user_admin=user_admin).first()
+                    # Pasar user_admin con atributos de nombre del perfil para el correo
+                    if admin_profile:
+                        user_admin.nombre_1 = admin_profile.nombre_1
+                        user_admin.nombre_2 = admin_profile.nombre_2
+                        user_admin.apellido_1 = admin_profile.apellido_1
+                        user_admin.apellido_2 = admin_profile.apellido_2
+                    enviar_correo_activacion(user_admin, 'Gerente', enlace)
+                    messages.success(request, f'Gerente {username} registrado. Se envió un correo de activación.')
+                except Exception as mail_err:
+                    import traceback
+                    traceback.print_exc()
+                    messages.warning(request, f'Gerente {username} registrado, pero NO se pudo enviar el correo de activación. Error: {mail_err}')
+
                 registrar_evento(
                     user=user_sa,
                     role='superadmin',
@@ -323,29 +365,6 @@ def registrar_gerente(request):
                     details={'username': username, 'sede_id': id_sede, 'rol': 'gerente'},
                     request=request,
                 )
-
-                try:
-                    send_mail(
-                        subject='Bienvenido a Healthy Life - Tu cuenta ha sido creada',
-                        message=f"""Hola {nombre_1} {apellido_1},
-
-Tu cuenta de gerente ha sido creada exitosamente en Healthy Life.
-
-Usuario: {username}
-Sede asignada: {Sede.objects.filter(id_sede=id_sede).first() or 'N/A'}
-
-Puedes iniciar sesion con tu usuario y contrasena.
-
-Saludos,
-Equipo Healthy Life""",
-                        from_email=None,
-                        recipient_list=[correo],
-                        fail_silently=True,
-                    )
-                except Exception:
-                    pass
-
-                messages.success(request, f'Gerente {username} registrado exitosamente.')
                 return redirect('dashboard_superadmin')
             except Exception as e:
                 messages.error(request, f'Error al registrar el gerente: {e}')
@@ -937,8 +956,8 @@ def audit_log_list(request):
     user_sa, sa = _get_superadmin_user(request)
     centro = _get_centro(sa)
 
-    # Excluir siempre eventos del rol root
-    queryset = AuditLog.objects.exclude(role='root')
+    # Excluir eventos de root y de otros superadmins
+    queryset = AuditLog.objects.exclude(role__in=['root', 'superadmin'])
 
     # Filtros GET
     filtro_user_id = request.GET.get('user_id', '').strip()
@@ -984,8 +1003,8 @@ def audit_log_list(request):
     except Exception:
         page_obj = paginator.page(1)
 
-    # Roles disponibles (todos menos root) para que siempre aparezcan en el filtro
-    roles_unicos = ['gerente', 'medico', 'paciente', 'recepcionista', 'superadmin']
+    # Roles disponibles (todos menos root y superadmin)
+    roles_unicos = ['gerente', 'medico', 'paciente', 'recepcionista']
     acciones_unicas = AuditLog.objects.exclude(role='root').values_list('action', flat=True).distinct().order_by('action')
 
     context = {

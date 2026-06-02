@@ -304,6 +304,7 @@ class UserDoctor(models.Model):
     email = models.EmailField(unique=True, db_column='correo')
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
+    token_activacion = models.CharField(max_length=64, blank=True, null=True, db_column='token_activacion')
     last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
 
     objects = CustomUserManager()
@@ -342,6 +343,7 @@ class UserRecepcionista(models.Model):
     email = models.EmailField(unique=True, db_column='correo')
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
+    token_activacion = models.CharField(max_length=64, blank=True, null=True, db_column='token_activacion')
     last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
 
     objects = CustomUserManager()
@@ -380,6 +382,7 @@ class UserAdmin(models.Model):
     id_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column='id_sede')
     status = models.BooleanField(default=True)
     password = models.CharField(max_length=255, db_column='contrasena')
+    token_activacion = models.CharField(max_length=64, blank=True, null=True, db_column='token_activacion')
     last_login = models.DateTimeField(null=True, blank=True, db_column='last_login')
 
     objects = CustomUserManager()
@@ -615,6 +618,7 @@ class UserSuperAdmin(models.Model):
     id_sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, blank=True, db_column='id_sede')
     status = models.BooleanField(default=True)
     contrasena = models.TextField(blank=True, null=True)
+    token_activacion = models.CharField(max_length=64, blank=True, null=True, db_column='token_activacion')
 
     objects = CustomUserManager()
 
