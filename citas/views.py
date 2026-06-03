@@ -2490,3 +2490,128 @@ def servicio_toggle(request, servicio_id):
     estado = "activado" if servicio.activo else "desactivado"
     messages.success(request, f"Servicio '{servicio.nombre}' {estado}.")
     return redirect('servicios_doctor')
+
+
+@login_required(login_url='/login/gerente/')
+@rol_requerido('gerente')
+def pagar_honorario_doctor(request):
+    """Procesa el pago de un honorario médico pendiente y genera un comprobante PDF."""
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from django.utils import timezone
+    from usuarios.models import UserAdmin
+
+    user_id = request.session.get('_auth_user_id')
+    if not user_id:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    user = UserAdmin.objects.filter(id_user_admin=user_id).first()
+    if not user or CustomAuthBackend().get_rol(user) != 'gerente':
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+    sede = user.id_sede
+
+    if request.method != 'POST':
+        messages.error(request, 'Método no permitido.')
+        return redirect('dashboard_gerente')
+
+    id_honorario = request.POST.get('id_honorario')
+    if not id_honorario:
+        messages.error(request, 'ID de honorario no proporcionado.')
+        return redirect('dashboard_gerente')
+
+    try:
+        honorario = HonorarioMedico.objects.select_related('id_doctor', 'id_cita', 'id_sede').get(
+            id_honorario=id_honorario,
+            estado_pago=HonorarioMedico.ESTADO_PENDIENTE,
+            status=True,
+        )
+    except HonorarioMedico.DoesNotExist:
+        messages.error(request, 'Honorario no encontrado o ya fue pagado.')
+        return redirect('dashboard_gerente')
+
+    now = timezone.now()
+    metodo_pago = request.POST.get('metodo_pago', 'Transferencia')
+    referencia_pago = request.POST.get('referencia_pago', f'PAGO-{now.strftime("%Y%m%d%H%M%S")}')
+
+    # Actualizar honorario
+    honorario.estado_pago = HonorarioMedico.ESTADO_PAGADO
+    honorario.fecha_pago = now
+    honorario.metodo_pago = metodo_pago
+    honorario.referencia_pago = referencia_pago
+    honorario.save()
+
+    # Registrar egreso en caja
+    doctor_nombre = f"{honorario.id_doctor.nombre_1 or ''} {honorario.id_doctor.apellido_1 or ''}".strip() or 'Médico'
+    MovimientoCaja.objects.create(
+        tipo_movimiento=MovimientoCaja.TIPO_EGRESO,
+        monto=honorario.monto_honorario,
+        concepto=f'Pago honorario médico - Dr. {doctor_nombre}',
+        metodo_pago=metodo_pago,
+        id_sede=honorario.id_sede,
+        id_usuario_registro=user.id_user_admin if user else None,
+        observaciones=f'Honorario #{honorario.id_honorario} | Ref: {referencia_pago}',
+    )
+
+    # Generar comprobante PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=2*cm, leftMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'],
+                                   fontSize=18, textColor=colors.HexColor('#0070F3'),
+                                   spaceAfter=6, alignment=1)
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'],
+                                    fontSize=10, textColor=colors.HexColor('#334155'),
+                                    spaceAfter=4)
+    label_style = ParagraphStyle('Label', parent=styles['Normal'],
+                                 fontSize=9, textColor=colors.HexColor('#64748B'),
+                                 spaceAfter=2)
+    value_style = ParagraphStyle('Value', parent=styles['Normal'],
+                                fontSize=11, textColor=colors.HexColor('#0F172A'),
+                                spaceAfter=6)
+
+    elements = []
+    elements.append(Paragraph('COMPROBANTE DE PAGO A MÉDICO', title_style))
+    elements.append(Spacer(1, 0.3*cm))
+    elements.append(Paragraph(f'Fecha de emisión: {now.strftime("%d/%m/%Y %H:%M")}', normal_style))
+    elements.append(Paragraph(f'Referencia: <b>{referencia_pago}</b>', normal_style))
+    elements.append(Spacer(1, 0.4*cm))
+
+    data = [
+        [Paragraph('<b>Doctor</b>', label_style), Paragraph(doctor_nombre, value_style)],
+        [Paragraph('<b>Especialidad</b>', label_style), Paragraph(str(getattr(honorario.id_doctor, 'especialidad', None) or '—'), value_style)],
+        [Paragraph('<b>Monto del honorario</b>', label_style), Paragraph(f"${honorario.monto_honorario}", value_style)],
+        [Paragraph('<b>Porcentaje comisión</b>', label_style), Paragraph(f"{honorario.porcentaje_comision or 40}%", value_style)],
+        [Paragraph('<b>Fecha de atención</b>', label_style), Paragraph((honorario.fecha_atencion.strftime('%d/%m/%Y %H:%M') if honorario.fecha_atencion else '—'), value_style)],
+        [Paragraph('<b>Método de pago</b>', label_style), Paragraph(metodo_pago, value_style)],
+        [Paragraph('<b>Estado</b>', label_style), Paragraph('PAGADO', value_style)],
+    ]
+    t = Table(data, colWidths=[5*cm, 10*cm])
+    t.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LINEABOVE', (0, 0), (-1, 0), 0.5, colors.HexColor('#E2E8F0')),
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 0.6*cm))
+
+    elements.append(Paragraph(f'<b>Total pagado:</b> ${honorario.monto_honorario}', ParagraphStyle('Total', parent=styles['Normal'],
+                               fontSize=14, textColor=colors.HexColor('#059669'), spaceAfter=8)))
+    elements.append(Paragraph('Este documento certifica que el honorario fue pagado y registrado en el sistema.', normal_style))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"comprobante_pago_medico_{honorario.id_honorario}_{now.strftime('%Y%m%d')}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write(pdf)
+    return response

@@ -83,17 +83,9 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Facturacion
         </a>
-        <a href="#" class="sidebar-link">
+        <a href="{% url 'lista_pacientes' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             Pacientes
-        </a>
-        <a href="#" class="sidebar-link">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Horarios
-        </a>
-        <a href="#" class="sidebar-link">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Reportes
         </a>
     </nav>
     <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
@@ -282,7 +274,7 @@
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <button onclick="openDetailModal({{ cita.id_citas }})" class="btn-ghost text-xs px-2 py-1">Ver detalle</button>
+                                <button onclick="openDetailModal('{{ cita.id_citas }}')" class="btn-ghost text-xs px-2 py-1">Ver detalle</button>
                                 {% if cita.id_pago_cita and cita.id_pago_cita.id_factura %}
                                 <a href="{% url 'factura_pdf' cita.id_pago_cita.id_factura.id_factura %}" class="btn-primary text-xs px-2 py-1">PDF</a>
                                 {% endif %}
@@ -363,7 +355,7 @@
                     {% endif %}
                 </p>
                 <div class="flex gap-2">
-                    <button onclick="openDetailModal({{ cita.id_citas }})" class="btn-ghost flex-1 text-xs py-1.5">Ver detalle</button>
+                    <button onclick="openDetailModal('{{ cita.id_citas }}')" class="btn-ghost flex-1 text-xs py-1.5">Ver detalle</button>
                     {% if cita.id_pago_cita and cita.id_pago_cita.id_factura %}
                     <a href="{% url 'factura_pdf' cita.id_pago_cita.id_factura.id_factura %}" class="btn-primary flex-1 text-xs py-1.5 text-center">PDF</a>
                     {% endif %}
@@ -516,7 +508,7 @@ function showToast(message,type){
 
 var facturasData = {};
 {% for cita in page_obj %}
-facturasData[{{ cita.id_citas }}] = {
+facturasData['{{ cita.id_citas }}'] = {
     paciente: "{% if cita.id_paciente %}{{ cita.id_paciente.nombre_1|escapejs }} {{ cita.id_paciente.apellido_1|escapejs }}{% else %}Sin paciente{% endif %}",
     medico: "{% if cita.id_doctor %}Dr. {{ cita.id_doctor.nombre_1|escapejs }} {{ cita.id_doctor.apellido_1|escapejs }}{% else %}Sin medico{% endif %}",
     fecha: "{% if cita.fecha_consulta %}{{ cita.fecha_consulta|date:'d/m/Y H:i' }}{% else %}—{% endif %}",

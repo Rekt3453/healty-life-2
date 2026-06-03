@@ -297,6 +297,67 @@ class ReportesService:
         }
 
     @staticmethod
+    def reporte_pagos_recepcionistas(fecha_inicio, fecha_fin, id_sede=None):
+        """
+        Reporte de pagos a recepcionistas basado en movimientos de caja (egresos).
+
+        Args:
+            fecha_inicio: Fecha de inicio del período
+            fecha_fin: Fecha de fin del período
+            id_sede: ID de la sede (opcional)
+
+        Returns:
+            dict con datos de pagos a recepcionistas
+        """
+        movimientos = MovimientoCaja.objects.filter(
+            fecha_movimiento__date__gte=fecha_inicio,
+            fecha_movimiento__date__lte=fecha_fin,
+            tipo_movimiento=MovimientoCaja.TIPO_EGRESO,
+            status=True
+        )
+
+        if id_sede:
+            movimientos = movimientos.filter(id_sede_id=id_sede)
+
+        # Filtrar conceptos relacionados con recepcionista / nómina
+        recepcionista_movimientos = movimientos.filter(
+            Q(concepto__icontains='recepcionista') |
+            Q(concepto__icontains='recepcion') |
+            Q(concepto__icontains='nomina') |
+            Q(concepto__icontains='salario')
+        )
+
+        totales = recepcionista_movimientos.aggregate(
+            total_pagado=Coalesce(Sum('monto'), Decimal('0.00')),
+            cantidad_pagos=Count('id_movimiento')
+        )
+
+        # Detalle individual de movimientos
+        detalle = list(
+            recepcionista_movimientos.values(
+                'concepto', 'monto', 'fecha_movimiento', 'metodo_pago'
+            ).order_by('-fecha_movimiento')
+        )
+
+        # También calcular total egresos del período para contexto
+        total_egresos = movimientos.aggregate(
+            total=Coalesce(Sum('monto'), Decimal('0.00'))
+        )['total']
+
+        return {
+            'fecha_inicio': fecha_inicio,
+            'fecha_fin': fecha_fin,
+            'total_pagado': totales['total_pagado'],
+            'cantidad_pagos': totales['cantidad_pagos'],
+            'detalle': detalle,
+            'total_egresos': total_egresos,
+            'porcentaje_del_total': round(
+                (totales['total_pagado'] / total_egresos * 100), 2
+            ) if total_egresos and total_egresos > 0 else 0,
+            'por_sede': id_sede is not None,
+        }
+
+    @staticmethod
     def obtener_sedes():
         """Obtener lista de sedes activas."""
         return Sede.objects.filter(status=True).values('id_sede', 'nombre_sede')

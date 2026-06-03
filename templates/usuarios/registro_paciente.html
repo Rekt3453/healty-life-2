@@ -340,19 +340,6 @@
                     </div>
                 </div>
 
-                <!-- Condicion especial -->
-                <div>
-                    <div class="hl-section-label">Condicion Medica Especial</div>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        {{ form.tiene_condicion_especial }}
-                        <span class="text-sm" style="color:#1E293B;">{{ form.tiene_condicion_especial.label }}</span>
-                    </label>
-                    <div id="seccion-condicion-especial" style="display:none; margin-top:0.75rem;">
-                        <label for="{{ form.descripcion_condicion.id_for_label }}" class="block text-sm font-semibold mb-1.5" style="color:#1E293B;">{{ form.descripcion_condicion.label }}</label>
-                        {{ form.descripcion_condicion }}
-                    </div>
-                </div>
-
                 <!-- Datos del tutor -->
                 <div id="seccion-tutor" style="display:none;">
                     <div class="hl-section-label">Datos del Tutor o Representante Legal</div>

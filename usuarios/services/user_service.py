@@ -293,7 +293,9 @@ def get_recepcionista_dashboard_context():
     hoy = date.today()
 
     try:
-        citas_pendientes = Cita.objects.filter(status=True).count()
+        citas_pendientes = Cita.objects.filter(
+            estado__in=[Cita.ESTADO_SOLICITADA, Cita.ESTADO_PAGO_PENDIENTE]
+        ).count()
         citas_hoy        = Cita.objects.filter(fecha_consulta__date=hoy).count()
         citas_en_consulta = Cita.objects.filter(fecha_consulta__date=hoy, estado=Cita.ESTADO_EN_CONSULTA).count()
         citas_recientes  = Cita.objects.select_related('id_paciente', 'id_doctor').order_by('-fecha_emision')[:10]
@@ -448,8 +450,8 @@ def get_gerente_dashboard_context():
     # --- Citas por estado ---
     estados_interes = {
         'pendientes': [Cita.ESTADO_SOLICITADA, Cita.ESTADO_PAGO_PENDIENTE],
-        'aprobadas': [Cita.ESTADO_APROBADA, Cita.ESTADO_CONFIRMADA],
-        'canceladas': [Cita.ESTADO_CANCELADA],
+        'aprobadas': [Cita.ESTADO_APROBADA, Cita.ESTADO_CONFIRMADA, Cita.ESTADO_PAGADA_ADELANTO, Cita.ESTADO_EN_CONSULTA],
+        'canceladas': [Cita.ESTADO_CANCELADA, Cita.ESTADO_RECHAZADA, Cita.ESTADO_NO_ASISTIO],
         'completadas': [Cita.ESTADO_ATENDIDA],
     }
     citas_por_estado = {}
@@ -542,6 +544,32 @@ def get_gerente_dashboard_context():
     except Exception:
         pass
 
+    # --- Pagos a recepcionistas (mes actual) ---
+    pagos_recepcionistas_mes = 0
+    cantidad_pagos_recepcionistas = 0
+    try:
+        from citas.models import MovimientoCaja
+        from django.db.models import Q
+        recepcionista_qs = MovimientoCaja.objects.filter(
+            fecha_movimiento__date__gte=inicio_mes,
+            fecha_movimiento__date__lte=hoy,
+            tipo_movimiento=MovimientoCaja.TIPO_EGRESO,
+            status=True,
+        ).filter(
+            Q(concepto__icontains='recepcionista') |
+            Q(concepto__icontains='recepcion') |
+            Q(concepto__icontains='nomina') |
+            Q(concepto__icontains='salario')
+        )
+        pagos_recepcionistas_mes = recepcionista_qs.aggregate(total=Sum('monto'))['total'] or 0
+        cantidad_pagos_recepcionistas = recepcionista_qs.count()
+    except Exception:
+        pass
+
+    promedio_pago_recepcionista = round(
+        pagos_recepcionistas_mes / cantidad_pagos_recepcionistas, 2
+    ) if cantidad_pagos_recepcionistas > 0 else 0
+
     return {
         'total_citas':          total_citas,
         'total_pacientes':      total_pacientes,
@@ -565,6 +593,9 @@ def get_gerente_dashboard_context():
         'actividades':          actividades,
         'honorarios_pendientes': honorarios_pendientes,
         'total_honorarios_pendientes': float(total_honorarios_pendientes),
+        'pagos_recepcionistas_mes': float(pagos_recepcionistas_mes),
+        'cantidad_pagos_recepcionistas': cantidad_pagos_recepcionistas,
+        'promedio_pago_recepcionista': float(promedio_pago_recepcionista),
     }
 
 

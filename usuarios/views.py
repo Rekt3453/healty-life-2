@@ -1914,11 +1914,12 @@ def reporte_gerente_pdf(request):
     id_sede = sede.id_sede if sede else None
     nombre_sede = sede.nombre_sede if sede else 'Sede'
 
-    # Obtener datos de los 4 reportes
+    # Obtener datos de los 5 reportes
     datos_atencion = ReportesService.reporte_diario_atencion(inicio_mes, fin_mes, id_sede)
     datos_caja = ReportesService.reporte_caja(inicio_mes, fin_mes, id_sede)
     datos_balance = ReportesService.reporte_balance(inicio_mes, fin_mes, id_sede)
     datos_pagos = ReportesService.reporte_pagos_medicos(inicio_mes, fin_mes, id_sede)
+    datos_recepcionistas = ReportesService.reporte_pagos_recepcionistas(inicio_mes, fin_mes, id_sede)
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
@@ -2021,6 +2022,28 @@ def reporte_gerente_pdf(request):
         elements.append(build_table(data_medicos, [5*cm, 2.5*cm, 3*cm, 3*cm, 3*cm]))
     else:
         elements.append(Paragraph('No hay registros de honorarios en el periodo.', normal_style))
+
+    # 5. Pagos a recepcionistas
+    elements.append(Paragraph('5. Pagos a recepcionistas', section_style))
+    data_recepcionistas = [
+        ['Concepto', 'Cantidad de pagos', 'Monto total'],
+        ['Pagos a recepcionistas', str(datos_recepcionistas['cantidad_pagos']), f"${datos_recepcionistas['total_pagado']}"],
+    ]
+    elements.append(build_table(data_recepcionistas, [6*cm, 3*cm, 3*cm]))
+    if datos_recepcionistas['detalle']:
+        elements.append(Paragraph('<b>Detalle de movimientos:</b>', normal_style))
+        data_detalle = [['Fecha', 'Concepto', 'Monto', 'Metodo']]
+        for mov in datos_recepcionistas['detalle']:
+            fecha_str = mov['fecha_movimiento'].strftime('%d/%m/%Y') if mov['fecha_movimiento'] else '—'
+            data_detalle.append([
+                fecha_str,
+                mov['concepto'] or '—',
+                f"${mov['monto']}",
+                mov['metodo_pago'] or '—'
+            ])
+        elements.append(build_table(data_detalle, [3*cm, 5*cm, 2.5*cm, 2.5*cm]))
+    elements.append(Paragraph(f"<b>Total pagado a recepcionistas:</b> ${datos_recepcionistas['total_pagado']}  |  <b>Porcentaje sobre egresos totales:</b> {datos_recepcionistas['porcentaje_del_total']}%", normal_style))
+    elements.append(Spacer(1, 0.2*cm))
 
     doc.build(elements)
     pdf = buffer.getvalue()

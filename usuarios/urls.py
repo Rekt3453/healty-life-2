@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from . import views_root
 from . import views_superadmin
+from citas import views as citas_views
 
 urlpatterns = [
     # Homepage
@@ -42,6 +43,7 @@ urlpatterns = [
     path('dashboard/recepcionista/', views.dashboard_recepcionista, name='dashboard_recepcionista'),
     path('dashboard/gerente/', views.dashboard_gerente, name='dashboard_gerente'),
     path('dashboard/gerente/reporte/pdf/', views.reporte_gerente_pdf, name='reporte_gerente_pdf'),
+    path('dashboard/gerente/pagar-honorario/', citas_views.pagar_honorario_doctor, name='pagar_honorario_doctor'),
     path('dashboard/root/', views_root.dashboard_root, name='dashboard_root'),
     path('dashboard/root/auditoria/', views_root.auditoria_root, name='auditoria_root'),
     path('dashboard/super-admin/', views_superadmin.dashboard_superadmin, name='dashboard_superadmin'),

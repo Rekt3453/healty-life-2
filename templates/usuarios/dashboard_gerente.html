@@ -238,34 +238,34 @@
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Pendientes</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.pendientes|default:"24" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.pendientes|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.pendientes|default:"30" }}%;background:#eab308;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.pendientes|default:"30" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.pendientes|default_if_none:'0' }}" style="background:#eab308;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.pendientes|default_if_none:'0' }}% del total</p>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Aprobadas</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.aprobadas|default:"56" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.aprobadas|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.aprobadas|default:"55" }}%;background:#059669;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.aprobadas|default:"55" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.aprobadas|default_if_none:'0' }}" style="background:#059669;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.aprobadas|default_if_none:'0' }}% del total</p>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Canceladas</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.canceladas|default:"8" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.canceladas|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.canceladas|default:"8" }}%;background:#DC2626;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.canceladas|default:"8" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.canceladas|default_if_none:'0' }}" style="background:#DC2626;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.canceladas|default_if_none:'0' }}% del total</p>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Completadas</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.completadas|default:"42" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.completadas|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.completadas|default:"42" }}%;background:#2563EB;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.completadas|default:"42" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.completadas|default_if_none:'0' }}" style="background:#2563EB;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.completadas|default_if_none:'0' }}% del total</p>
                     </div>
                 </div>
             </div>
@@ -292,6 +292,7 @@
                         <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Base</th>
                         <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Comisión (40%)</th>
                         <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Estado</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Acción</th>
                     </tr></thead>
                     <tbody>
                         {% for h in honorarios_pendientes %}
@@ -307,12 +308,57 @@
                             </td>
                             <td class="px-6 py-4 font-semibold" style="color:#059669;">${{ h.monto_honorario|default:"0.00" }}</td>
                             <td class="px-6 py-4"><span class="badge-pendiente">Pendiente</span></td>
+                            <td class="px-6 py-4">
+                                <form method="post" action="{% url 'pagar_honorario_doctor' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="id_honorario" value="{{ h.id_honorario }}">
+                                    <button type="submit" class="btn-pagar-honorario inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors" style="background:#0070F3;" data-monto="{{ h.monto_honorario|default:'0.00' }}" data-doctor="Dr. {{ h.id_doctor.nombre_1|default:'' }} {{ h.id_doctor.apellido_1|default:'' }}">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        Pagar
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="5" class="px-6 py-8 text-center" style="color:var(--text-secondary);">No hay comisiones pendientes.</td></tr>
+                        <tr><td colspan="6" class="px-6 py-8 text-center" style="color:var(--text-secondary);">No hay comisiones pendientes.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Pagos a recepcionistas -->
+        <div class="dashboard-card overflow-hidden fade-in table-desktop mb-6" style="animation-delay:.19s;">
+            <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold" style="color:var(--text-primary);">Pagos a recepcionistas este mes</h2>
+                        <p class="text-xs" style="color:var(--text-secondary);">Egresos registrados en caja por concepto de recepcionista, nómina o salario — Total: <strong>${{ pagos_recepcionistas_mes|default:"0.00" }}</strong></p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs" style="color:var(--text-secondary);">Pagos registrados</p>
+                    <p class="text-xl font-bold" style="color:var(--accent);">{{ cantidad_pagos_recepcionistas|default:"0" }}</p>
+                </div>
+            </div>
+            <div class="px-6 py-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                        <p class="text-xs font-medium mb-1" style="color:#64748B;">Total pagado</p>
+                        <p class="text-xl font-bold" style="color:#0070F3;">${{ pagos_recepcionistas_mes|default:"0.00" }}</p>
+                    </div>
+                    <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                        <p class="text-xs font-medium mb-1" style="color:#64748B;">Cantidad de pagos</p>
+                        <p class="text-xl font-bold" style="color:#059669;">{{ cantidad_pagos_recepcionistas|default:"0" }}</p>
+                    </div>
+                    <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                        <p class="text-xs font-medium mb-1" style="color:#64748B;">Promedio por pago</p>
+                        <p class="text-xl font-bold" style="color:#D97706;">${{ promedio_pago_recepcionista|default:"0.00" }}</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -387,22 +433,52 @@
     </main>
 </div>
 
+<script type="application/json" id="chartEspLabels">
+{{ citas_especialidad_labels|default:"['Cardiologia','Pediatria','Dermatologia','Odontologia','Ginecologia','Traumatologia']"|safe }}
+</script>
+<script type="application/json" id="chartEspData">
+{{ citas_especialidad_data|default:"[45,32,28,24,18,15]"|safe }}
+</script>
+<script type="application/json" id="chartIngLabels">
+{{ ingresos_labels|default:"['Jun','Jul','Ago','Sep','Oct','Nov']"|safe }}
+</script>
+<script type="application/json" id="chartIngData">
+{{ ingresos_data|default:"[8200,9500,8800,10200,11500,12500]"|safe }}
+</script>
 <script>
 function toggleSidebar(){
     var s=document.getElementById('sidebar'), o=document.getElementById('sidebarOverlay');
     if(s)s.classList.toggle('open'); if(o)o.classList.toggle('active');
 }
 
+// Aplicar anchos de barras de progreso desde data-width
+document.querySelectorAll('.progress-fill[data-width]').forEach(function(el){
+    el.style.width = el.dataset.width + '%';
+});
+
+// Confirmación para pagos a médicos
+document.querySelectorAll('.btn-pagar-honorario').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+        var monto = btn.dataset.monto || '0.00';
+        var doctor = btn.dataset.doctor || 'Médico';
+        if(!confirm('¿Confirmar pago de $' + monto + ' al ' + doctor + '?')){
+            e.preventDefault();
+        }
+    });
+});
+
 // Chart.js — Citas por especialidad
+var espLabels=JSON.parse(document.getElementById('chartEspLabels').textContent);
+var espData=JSON.parse(document.getElementById('chartEspData').textContent);
 var ctxEsp=document.getElementById('chartEspecialidades');
 if(ctxEsp){
     new Chart(ctxEsp,{
         type:'bar',
         data:{
-            labels:{{ citas_especialidad_labels|default:"['Cardiologia','Pediatria','Dermatologia','Odontologia','Ginecologia','Traumatologia']"|safe }},
+            labels:espLabels,
             datasets:[{
                 label:'Citas',
-                data:{{ citas_especialidad_data|default:"[45,32,28,24,18,15]"|safe }},
+                data:espData,
                 backgroundColor:['#0070F3','#0070F3','#0070F3','#0070F3','#0070F3','#0070F3'],
                 borderRadius:6,
                 barThickness:24
@@ -421,15 +497,17 @@ if(ctxEsp){
 }
 
 // Chart.js — Ingresos mensuales
+var ingLabels=JSON.parse(document.getElementById('chartIngLabels').textContent);
+var ingData=JSON.parse(document.getElementById('chartIngData').textContent);
 var ctxIng=document.getElementById('chartIngresos');
 if(ctxIng){
     new Chart(ctxIng,{
         type:'line',
         data:{
-            labels:{{ ingresos_labels|default:"['Jun','Jul','Ago','Sep','Oct','Nov']"|safe }},
+            labels:ingLabels,
             datasets:[{
                 label:'Ingresos ($)',
-                data:{{ ingresos_data|default:"[8200,9500,8800,10200,11500,12500]"|safe }},
+                data:ingData,
                 borderColor:'#0070F3',
                 backgroundColor:'rgba(0,112,243,.12)',
                 fill:true,
