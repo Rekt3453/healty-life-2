@@ -4,194 +4,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Menor - Healthy Life</title>
+    <title>Registrar Menor — Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .dashboard-header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .form-card { background: white; border: 1px solid #e5e7eb; transition: box-shadow 0.3s; }
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -4px rgba(16,185,129,.4); }
+        .dashboard-sidebar { width:260px; background:#FFFFFF; border-right:1px solid rgba(0,0,0,0.06); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:40; transition:transform .3s ease; }
+        .dashboard-main { flex:1; margin-left:260px; min-height:100vh; transition:margin-left .3s ease; }
+        .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.25); z-index:35; }
+        .sidebar-overlay.active { display:block; }
+        .sidebar-nav-link { display:flex; align-items:center; gap:12px; padding:12px 20px; margin:0 12px; border-radius:10px; font-size:0.9rem; font-weight:500; color:#64748B; transition:all .2s ease; text-decoration:none; }
+        .sidebar-nav-link:hover, .sidebar-nav-link.active { background:rgba(0,112,243,0.06); color:#0070F3; }
+        .sidebar-nav-link.active { font-weight:600; }
+        .sidebar-icon { width:20px; height:20px; flex-shrink:0; }
+        .dashboard-card { background:#FFFFFF; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid rgba(0,0,0,0.04); transition:all .25s cubic-bezier(0.4,0,0.2,1); }
+        .dashboard-card:hover { box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+        .input-wrap { display:flex; flex-direction:column; gap:6px; }
+        .input-label { font-size:0.82rem; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:0.4px; }
+        .input-required { color:#DC2626; }
+        .input-error { font-size:0.78rem; color:#DC2626; margin-top:2px; }
+        .input-help { font-size:0.78rem; color:#94A3B8; margin-top:2px; }
+        .form-grid-2 { display:grid; grid-template-columns:1fr; gap:16px; }
+        @media(min-width:768px){ .form-grid-2 { grid-template-columns:1fr 1fr; } }
+        @media(max-width:1024px){ .dashboard-sidebar { transform:translateX(-100%); } .dashboard-sidebar.open { transform:translateX(0); } .dashboard-main { margin-left:0; } }
+        @media(min-width:1025px){ .sidebar-overlay { display:none !important; } }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="hl-redesign" style="font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; background:#F7F9FC; color:#1E293B;">
 
-    <!-- Header -->
-    <header class="dashboard-header text-white">
-        <nav class="container mx-auto px-4 py-5">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
-                    </svg>
-                    <span class="text-2xl font-bold">Healthy Life</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-green-100 text-sm">{{ nombre }}</span>
-                    <a href="{% url 'dashboard_paciente' %}" class="text-white hover:text-green-100 text-sm underline">← Volver al Dashboard</a>
+    <!-- Mobile sidebar overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="dashboard-sidebar">
+        <div class="p-6">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:#1E293B;">
+                <svg class="w-8 h-8" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Healthy Life</span>
+            </a>
+        </div>
+        <nav class="flex-1 px-2 space-y-1" aria-label="Navegación del paciente">
+            <a href="{% url 'dashboard_paciente' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>Mi Dashboard</span>
+            </a>
+            <a href="{% url 'mis_citas' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Mis Citas</span>
+            </a>
+            <a href="{% url 'perfil_paciente' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Mi Perfil</span>
+            </a>
+            <a href="{% url 'historial_medico' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Historial Médico</span>
+            </a>
+            <a href="{% url 'mis_facturas' %}" class="sidebar-nav-link">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                <span>Mis Facturas</span>
+            </a>
+            <a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link active">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>Menores a Cargo</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t" style="border-color:rgba(0,0,0,0.06);">
+            <a href="{% url 'logout' %}" class="sidebar-nav-link" style="color:#EF4444;">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="dashboard-main">
+        <!-- Sticky Header -->
+        <header class="hl-header" style="position:sticky; top:0; z-index:30;">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="Abrir menú">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        </button>
+                        <span class="font-semibold text-lg" style="color:#1E293B;">Registrar Menor</span>
+                    </div>
+                    <div class="relative" id="userMenuContainer">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors" aria-haspopup="true" aria-expanded="false" id="userMenuBtn">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:linear-gradient(135deg,#0070F3,#005CC2);">
+                                {{ request.user.first_name|default:request.user.username|first|upper }}
+                            </div>
+                            <div class="hidden sm:block text-left">
+                                <p class="text-sm font-semibold leading-tight" style="color:#1E293B;">{{ request.user.first_name|default:request.user.username }}</p>
+                                <p class="text-xs" style="color:#64748B;">Paciente</p>
+                            </div>
+                            <svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="userMenu" class="hl-dropdown absolute right-0 mt-2 w-48 hidden">
+                            <a href="{% url 'perfil_paciente' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors" style="color:#1E293B;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                Mi Perfil
+                            </a>
+                            <div class="border-t" style="border-color:rgba(0,0,0,0.06);"></div>
+                            <a href="{% url 'logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors" style="color:#EF4444;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </nav>
-        <div class="container mx-auto px-4 pb-8">
-            <h1 class="text-3xl font-bold">Registrar Paciente Especial</h1>
-            <p class="text-green-100 mt-1">Registra a un menor de edad bajo tu tutela</p>
-        </div>
-    </header>
+        </header>
 
-    <!-- Messages -->
-    <div class="container mx-auto px-4 mt-4">
-        {% for msg in messages %}
-        <div class="mb-3 px-4 py-3 rounded-lg text-sm font-medium
-            {% if msg.tags == 'success' %}bg-green-100 text-green-800
-            {% elif msg.tags == 'warning' %}bg-yellow-100 text-yellow-800
-            {% elif msg.tags == 'error' %}bg-red-100 text-red-800
-            {% else %}bg-blue-100 text-blue-800{% endif %}">
-            {{ msg }}
-        </div>
-        {% endfor %}
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Breadcrumb -->
+            <nav class="flex items-center gap-2 text-xs font-medium mb-6" style="color:#94A3B8;">
+                <a href="{% url 'home' %}" class="hover:text-[#0070F3] transition-colors">Inicio</a><span>/</span>
+                <a href="{% url 'lista_pacientes_especiales' %}" class="hover:text-[#0070F3] transition-colors">Menores a Cargo</a><span>/</span>
+                <span style="color:#1E293B;">Registrar Menor</span>
+            </nav>
+
+            <!-- Messages -->
+            {% for msg in messages %}
+            <div class="mb-5 px-4 py-3 rounded-xl text-sm font-medium dashboard-card
+                {% if msg.tags == 'success' %}bg-green-50 text-green-700 border border-green-200{% endif %}
+                {% if msg.tags == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200{% endif %}
+                {% if msg.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+                {{ msg }}
+            </div>
+            {% endfor %}
+
+            <div class="max-w-2xl">
+                <div class="dashboard-card p-6 sm:p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background:rgba(0,112,243,0.08);">
+                            <svg class="w-6 h-6" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold" style="color:#1E293B;">Datos del Menor</h1>
+                            <p class="text-sm" style="color:#64748B;">Todos los campos marcados con <span class="input-required">*</span> son obligatorios</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="form-grid-2 mb-4">
+                            <div class="input-wrap">
+                                <label class="input-label">Primer Nombre <span class="input-required">*</span></label>
+                                {{ form.nombre_1 }}
+                                {% if form.nombre_1.errors %}<p class="input-error">{{ form.nombre_1.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="input-wrap">
+                                <label class="input-label">Segundo Nombre</label>
+                                {{ form.nombre_2 }}
+                                {% if form.nombre_2.errors %}<p class="input-error">{{ form.nombre_2.errors|join:", " }}</p>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2 mb-4">
+                            <div class="input-wrap">
+                                <label class="input-label">Primer Apellido <span class="input-required">*</span></label>
+                                {{ form.apellido_1 }}
+                                {% if form.apellido_1.errors %}<p class="input-error">{{ form.apellido_1.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="input-wrap">
+                                <label class="input-label">Segundo Apellido</label>
+                                {{ form.apellido_2 }}
+                                {% if form.apellido_2.errors %}<p class="input-error">{{ form.apellido_2.errors|join:", " }}</p>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2 mb-4">
+                            <div class="input-wrap">
+                                <label class="input-label">Sexo <span class="input-required">*</span></label>
+                                {{ form.sexo }}
+                                {% if form.sexo.errors %}<p class="input-error">{{ form.sexo.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="input-wrap">
+                                <label class="input-label">Fecha de Nacimiento <span class="input-required">*</span></label>
+                                {{ form.fecha_nacimiento }}
+                                {% if form.fecha_nacimiento.errors %}<p class="input-error">{{ form.fecha_nacimiento.errors|join:", " }}</p>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="input-wrap mb-4">
+                            <label class="input-label">Teléfono de Contacto</label>
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}<p class="input-error">{{ form.telefono.errors|join:", " }}</p>{% endif %}
+                            <p class="input-help">Opcional. Número de contacto de emergencia.</p>
+                        </div>
+
+                        <div class="form-grid-2 mb-5">
+                            <div class="input-wrap">
+                                <label class="input-label">Tipo de Cédula</label>
+                                {{ form.tipo_cedula }}
+                                {% if form.tipo_cedula.errors %}<p class="input-error">{{ form.tipo_cedula.errors|join:", " }}</p>{% endif %}
+                                <p class="input-help">Opcional.</p>
+                            </div>
+                            <div class="input-wrap">
+                                <label class="input-label">Número de Cédula</label>
+                                {{ form.cedula }}
+                                {% if form.cedula.errors %}<p class="input-error">{{ form.cedula.errors|join:", " }}</p>{% endif %}
+                                <p class="input-help">Opcional. Solo si el menor tiene cédula.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-6 p-4 rounded-xl text-sm" style="background:rgba(0,112,243,0.04); border:1px solid rgba(0,112,243,0.12); color:#2563EB;">
+                            <strong>Nota:</strong> El menor no tendrá credenciales de acceso propias. Será gestionado por usted como tutor desde este panel.
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button type="submit" class="hl-btn-primary flex-1 justify-center" style="border-radius:10px; padding:12px 24px;">
+                                Registrar Menor
+                            </button>
+                            <a href="{% url 'lista_pacientes_especiales' %}" class="hl-btn-secondary flex-1 justify-center" style="border-radius:10px; padding:12px 24px;">
+                                Ver Mis Menores
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8 max-w-2xl">
-        <div class="form-card rounded-xl shadow-lg p-8">
-
-            <div class="flex items-center space-x-3 mb-6">
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900">Datos del Menor</h2>
-                    <p class="text-sm text-gray-500">Todos los campos marcados con * son obligatorios</p>
-                </div>
-            </div>
-
-            <form method="POST" novalidate>
-                {% csrf_token %}
-
-                <!-- Non-field errors -->
-                {% if form.non_field_errors %}
-                <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- Nombres -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Primer Nombre <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.nombre_1 }}
-                        {% if form.nombre_1.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.nombre_1.errors|join:", " }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Segundo Nombre</label>
-                        {{ form.nombre_2 }}
-                        {% if form.nombre_2.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.nombre_2.errors|join:", " }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Apellidos -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Primer Apellido <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.apellido_1 }}
-                        {% if form.apellido_1.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.apellido_1.errors|join:", " }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Segundo Apellido</label>
-                        {{ form.apellido_2 }}
-                        {% if form.apellido_2.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.apellido_2.errors|join:", " }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Sexo y Fecha -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Sexo <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.sexo }}
-                        {% if form.sexo.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.sexo.errors|join:", " }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Fecha de Nacimiento <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.fecha_nacimiento }}
-                        {% if form.fecha_nacimiento.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.fecha_nacimiento.errors|join:", " }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Teléfono -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono de Contacto</label>
-                    {{ form.telefono }}
-                    {% if form.telefono.errors %}
-                    <p class="mt-1 text-xs text-red-600">{{ form.telefono.errors|join:", " }}</p>
-                    {% endif %}
-                    <p class="mt-1 text-xs text-gray-400">Opcional. Número de contacto de emergencia.</p>
-                </div>
-
-                <!-- Tipo y número de cédula -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Cédula</label>
-                        {{ form.tipo_cedula }}
-                        {% if form.tipo_cedula.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.tipo_cedula.errors|join:", " }}</p>
-                        {% endif %}
-                        <p class="mt-1 text-xs text-gray-400">Opcional.</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número de Cédula</label>
-                        {{ form.cedula }}
-                        {% if form.cedula.errors %}
-                        <p class="mt-1 text-xs text-red-600">{{ form.cedula.errors|join:", " }}</p>
-                        {% endif %}
-                        <p class="mt-1 text-xs text-gray-400">Opcional. Solo si el menor tiene cédula.</p>
-                    </div>
-                </div>
-
-                <!-- Nota informativa -->
-                <div class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
-                    <strong>Nota:</strong> El menor no tendrá credenciales de acceso propias.
-                    Será gestionado por usted como tutor desde este panel.
-                </div>
-
-                <!-- Buttons -->
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <button type="submit" class="btn-primary flex-1 py-3 px-6 rounded-lg text-white font-semibold text-center">
-                        Registrar Menor
-                    </button>
-                    <a href="{% url 'lista_pacientes_especiales' %}"
-                       class="flex-1 py-3 px-6 rounded-lg border border-gray-300 text-gray-700 font-medium text-center hover:bg-gray-50 transition-colors">
-                        Ver Mis Menores
-                    </a>
-                </div>
-            </form>
-        </div>
-    </main>
-
+    <script>
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('sidebarOverlay');
+            sb.classList.toggle('open');
+            ov.classList.toggle('active');
+        }
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            const btn = document.getElementById('userMenuBtn');
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); }
+            else { menu.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); }
+        }
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('userMenuContainer');
+            const menu = document.getElementById('userMenu');
+            if (container && !container.contains(e.target) && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                document.getElementById('userMenuBtn').setAttribute('aria-expanded', 'false');
+            }
+        });
+        document.addEventListener('scroll', function() {
+            const header = document.querySelector('.hl-header');
+            if (window.scrollY > 10) { header.classList.add('scrolled'); }
+            else { header.classList.remove('scrolled'); }
+        });
+    </script>
 </body>
 </html>
