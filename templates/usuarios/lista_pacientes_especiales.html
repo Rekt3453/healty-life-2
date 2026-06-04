@@ -130,10 +130,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 <h1 class="text-2xl font-extrabold tracking-tight" style="color:#1E293B;">Mis Menores a Cargo</h1>
 <p class="text-sm font-medium mt-1" style="color:#64748B;">Gestiona los perfiles de tus hijos o dependientes para agendar citas en su nombre</p>
 </div>
-<button type="button" onclick="openModal('modalAgregar')" class="btn-primary">
+<a href="{% url 'registrar_paciente_especial' %}" class="btn-primary">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
 Agregar menor
-</button>
+</a>
 </div>
 
 {% if menores %}
@@ -237,10 +237,10 @@ Agendar cita
 </div>
 <h3 class="text-lg font-bold mb-2" style="color:#1E293B;">Aún no tienes menores a cargo registrados</h3>
 <p class="text-sm mb-6" style="color:#64748B;">Registra a tus hijos o dependientes para poder agendar citas médicas en su nombre y gestionar su historial.</p>
-<button type="button" onclick="openModal('modalAgregar')" class="btn-primary">
+<a href="{% url 'registrar_paciente_especial' %}" class="btn-primary">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
 Agregar menor
-</button>
+</a>
 </div>
 {% endif %}
 </main>
