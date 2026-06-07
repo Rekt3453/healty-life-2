@@ -30,7 +30,7 @@ from .authentication import CustomAuthBackend, is_rate_limited, get_client_ip
 from .email_config import enviar_correo_confirmacion
 from .services.auth_service import resolve_and_check
 from .services.user_service import (
-    update_perfil_paciente, change_password, update_direccion_paciente,
+    update_perfil_paciente, update_contacto_paciente, change_password, update_direccion_paciente,
     get_paciente_dashboard_context, get_medico_dashboard_context,
     get_recepcionista_dashboard_context, get_gerente_dashboard_context,
     calcular_edad,
@@ -319,6 +319,14 @@ def perfil_paciente(request):
 
         elif action == 'update_direccion':
             ok, msg = update_direccion_paciente(paciente, request.POST)
+            if ok:
+                messages.success(request, f'✅ {msg}')
+            else:
+                messages.error(request, msg)
+            return redirect('perfil_paciente')
+
+        elif action == 'update_contacto':
+            ok, msg = update_contacto_paciente(user, paciente, request.POST)
             if ok:
                 messages.success(request, f'✅ {msg}')
             else:

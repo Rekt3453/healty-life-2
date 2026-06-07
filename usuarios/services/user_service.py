@@ -136,6 +136,42 @@ def update_perfil_paciente(user, paciente, post_data):
         return False, f'Error al actualizar perfil: {e}'
 
 
+def update_contacto_paciente(user, paciente, post_data):
+    """
+    Actualiza solo los datos de contacto del paciente (email y teléfono).
+
+    Returns:
+        (True, mensaje_exito) | (False, mensaje_error)
+    """
+    _RE_TELEFONO = re.compile(r'^[\d\s\-\+\(\)]+$')
+
+    telefono = post_data.get('telefono', '').strip() or None
+    if telefono:
+        if len(telefono) < 7:
+            return False, 'El teléfono debe tener al menos 7 caracteres.'
+        if len(telefono) > 20:
+            return False, 'El teléfono no puede exceder 20 caracteres.'
+        if not _RE_TELEFONO.match(telefono):
+            return False, 'El teléfono solo puede contener números, espacios, guiones, paréntesis y +.'
+
+    nuevo_email = post_data.get('email', '').strip()
+    if nuevo_email and nuevo_email != user.email:
+        if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', nuevo_email):
+            return False, 'El correo electrónico no es válido.'
+        user.email = nuevo_email
+        user.save()
+
+    if not paciente:
+        return False, 'No se encontraron datos personales del paciente.'
+
+    try:
+        paciente.telefono = telefono
+        paciente.save()
+        return True, 'Información de contacto actualizada correctamente.'
+    except Exception as e:
+        return False, f'Error al actualizar contacto: {e}'
+
+
 def change_password(user, pwd_actual, pwd_nuevo, pwd_confirm):
     """
     Cambia la contraseña del usuario tras validar la actual.
@@ -270,7 +306,18 @@ def get_medico_dashboard_context(datos_medico):
     try:
         hoy              = date.today()
         citas_hoy        = Cita.objects.filter(id_doctor=datos_medico, fecha_consulta__date=hoy, status=True)
-        citas_pendientes = Cita.objects.filter(id_doctor=datos_medico, status=True).select_related('id_paciente').order_by('fecha_consulta')[:5]
+        citas_pendientes = Cita.objects.filter(
+            id_doctor=datos_medico,
+            fecha_consulta__date__gte=hoy,
+            status=True,
+            estado__in=[
+                Cita.ESTADO_CONFIRMADA,
+                Cita.ESTADO_EN_CONSULTA,
+                Cita.ESTADO_APROBADA,
+                Cita.ESTADO_PAGADA_ADELANTO,
+                Cita.ESTADO_PAGO_PENDIENTE,
+            ]
+        ).select_related('id_paciente').order_by('fecha_consulta')[:5]
         total_citas      = Cita.objects.filter(id_doctor=datos_medico).count()
     except Exception:
         citas_hoy = citas_pendientes = Cita.objects.none()

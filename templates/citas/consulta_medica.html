@@ -142,26 +142,26 @@ Volver a mis citas
 <div class="p-5 space-y-4">
 <div>
 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Nombre completo</p>
-<p class="text-gray-900 font-semibold">{{ cita.id_paciente.nombre_completo|default:"María Elena Gómez" }}</p>
+<p class="text-gray-900 font-semibold">{{ cita.id_paciente.nombre_completo|default:"—" }}</p>
 </div>
 <div class="grid grid-cols-2 gap-4">
 <div>
 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Edad</p>
-<p class="text-gray-900">{{ cita.id_paciente.edad|default:"34 años" }}</p>
+{% if edad is not None %}<p class="text-gray-900">{{ edad }} años</p>{% else %}<p class="text-gray-900">—</p>{% endif %}
 </div>
 <div>
 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Sexo</p>
-<p class="text-gray-900">{{ cita.id_paciente.sexo|default:"Femenino" }}</p>
+<p class="text-gray-900">{{ cita.id_paciente.sexo|default:"—" }}</p>
 </div>
 </div>
 <div>
 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Identificación</p>
-<p class="text-gray-900">{{ cita.id_paciente.cedula|default:"V-12.345.678" }}</p>
+<p class="text-gray-900">{{ cita.id_paciente.cedula|default:"—" }}</p>
 </div>
 <div>
 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Contacto</p>
-<p class="text-gray-900">{{ cita.id_paciente.telefono|default:"+58 412-1234567" }}</p>
-<p class="text-gray-900 text-sm">{{ cita.id_paciente.email|default:"paciente@email.com" }}</p>
+<p class="text-gray-900">{{ cita.id_paciente.telefono|default:"—" }}</p>
+<p class="text-gray-900 text-sm">{{ cita.id_paciente.id_user_paciente.email|default:"—" }}</p>
 </div>
 {% if alergias %}
 <div class="p-3 bg-red-50 border border-red-100 rounded-lg">
@@ -176,7 +176,7 @@ Volver a mis citas
 {% endif %}
 <div>
 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Motivo de la consulta</p>
-<p class="text-gray-900 text-sm mt-1">{{ cita.motivo|default:"Dolor abdominal recurrente y náuseas." }}</p>
+<p class="text-gray-900 text-sm mt-1">{{ cita.motivo|default:"—" }}</p>
 </div>
 </div>
 </div>
@@ -381,7 +381,7 @@ Cancelar consulta
 </div>
 <p class="text-sm text-gray-600 mb-4">Revisa el resumen antes de cerrar la consulta. Esta acción marcará la cita como atendida y no se puede deshacer.</p>
 <div class="bg-gray-50 rounded-lg p-4 text-sm space-y-2 mb-5" id="modalResumen">
-<p><strong>Paciente:</strong> {{ cita.id_paciente.nombre_completo|default:"María Elena Gómez" }}</p>
+<p><strong>Paciente:</strong> {{ cita.id_paciente.nombre_completo|default:"—" }}</p>
 <p><strong>Diagnóstico:</strong> <span id="resumenDiagnostico" class="text-gray-700">—</span></p>
 <p><strong>Medicamentos:</strong> <span id="resumenMedicamentos" class="text-gray-700">—</span></p>
 <p><strong>Signos vitales:</strong> <span id="resumenSignos" class="text-gray-700">—</span></p>

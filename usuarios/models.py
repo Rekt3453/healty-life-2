@@ -451,6 +451,31 @@ class PacienteDatosPersonales(models.Model):
         apellidos = f"{self.apellido_1} {self.apellido_2 or ''}".strip()
         return f"{nombres} {apellidos}".strip()
 
+    @property
+    def edad(self):
+        from datetime import date, datetime
+        try:
+            if not self.fecha_nacimiento:
+                return None
+            fn = self.fecha_nacimiento
+            if isinstance(fn, str):
+                for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y-%m-%d %H:%M:%S', '%d/%m/%Y %H:%M:%S'):
+                    try:
+                        fn = datetime.strptime(fn, fmt)
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    return None
+            if hasattr(fn, 'date'):
+                nacimiento = fn.date()
+            else:
+                nacimiento = fn
+            hoy = date.today()
+            return hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
+        except Exception:
+            return None
+
 class Doctor(models.Model):
     id_doctor = models.BigAutoField(primary_key=True)
     nombre_1 = models.TextField(blank=True, null=True)

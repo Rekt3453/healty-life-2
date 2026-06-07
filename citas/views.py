@@ -1389,7 +1389,10 @@ def iniciar_consulta(request, cita_id):
     """Médico inicia o continúa una consulta médica."""
     from usuarios.authentication import CustomAuthBackend
     datos_medico = CustomAuthBackend().get_datos_personales(request.user)
-    cita = get_object_or_404(Cita, pk=cita_id)
+    cita = get_object_or_404(
+        Cita.objects.select_related('id_paciente', 'id_paciente__id_user_paciente', 'id_especialidades', 'id_doctor'),
+        pk=cita_id
+    )
 
     # Verificar que la cita pertenezca al médico autenticado
     if cita.id_doctor_id != datos_medico.pk:
@@ -1398,6 +1401,7 @@ def iniciar_consulta(request, cita_id):
 
     # Historial médico del paciente
     paciente = cita.id_paciente
+    edad = paciente.edad if paciente else None
     # Soporte para managed=False: la columna puede existir en BD aunque no esté declarada
     paciente_especial = getattr(cita, 'id_paciente_especial', None)
 
@@ -1523,6 +1527,7 @@ def iniciar_consulta(request, cita_id):
         'alergias': alergias,
         'enfermedades': enfermedades,
         'tipo_sangre': tipo_sangre,
+        'edad': edad,
     })
 
 
@@ -1530,8 +1535,12 @@ def iniciar_consulta(request, cita_id):
 @rol_requerido('medico')
 def cerrar_consulta(request, cita_id):
     """Médico cierra la consulta y marca la cita como atendida."""
-    cita = get_object_or_404(Cita, pk=cita_id)
+    cita = get_object_or_404(
+        Cita.objects.select_related('id_paciente', 'id_paciente__id_user_paciente', 'id_especialidades', 'id_doctor'),
+        pk=cita_id
+    )
     consulta = get_object_or_404(ConsultaMedica, id_cita=cita)
+    edad = cita.id_paciente.edad if cita.id_paciente else None
 
     if consulta.estado == ConsultaMedica.ESTADO_CERRADA:
         messages.warning(request, 'Esta consulta ya está cerrada.')
@@ -1560,6 +1569,7 @@ def cerrar_consulta(request, cita_id):
         'form':     ConsultaMedicaForm(instance=consulta),
         'cita':     cita,
         'consulta': consulta,
+        'edad':     edad,
     })
 
 

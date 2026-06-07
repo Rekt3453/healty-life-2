@@ -366,8 +366,9 @@
                     <div class="dashboard-card p-6">
                         <div class="flex items-center justify-between mb-5">
                             <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">Información de contacto</h2>
+                            {% if paciente %}<button onclick="toggleEdit('form-contacto','view-contacto',this)" class="btn-ghost">Editar</button>{% endif %}
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div id="view-contacto" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <p class="field-label">Correo electrónico</p>
                                 <p class="field-value">{{ user.email }}</p>
@@ -377,6 +378,26 @@
                                 <p class="field-value">{{ paciente.telefono|default:"—" }}</p>
                             </div>
                         </div>
+                        {% if paciente %}
+                        <form id="form-contacto" method="POST" class="hidden mt-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_contacto">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="field-label">Correo electrónico</label>
+                                    <input type="email" name="email" value="{{ user.email|default:'' }}" maxlength="150" class="input-modern">
+                                </div>
+                                <div>
+                                    <label class="field-label">Teléfono móvil</label>
+                                    <input type="tel" name="telefono" value="{{ paciente.telefono|default:'' }}" maxlength="20" class="input-modern" placeholder="+58 412-1234567">
+                                </div>
+                            </div>
+                            <div class="flex gap-3 mt-5">
+                                <button type="submit" class="btn-primary">Guardar contacto</button>
+                                <button type="button" onclick="toggleEdit('form-contacto','view-contacto',null)" class="btn-secondary">Cancelar</button>
+                            </div>
+                        </form>
+                        {% endif %}
                     </div>
 
                     <!-- DIRECCIÓN -->

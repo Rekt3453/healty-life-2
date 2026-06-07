@@ -135,7 +135,7 @@
                         {% for cita in citas_pendientes %}
                         <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
                             <div class="flex items-center space-x-4">
-                                <div class="text-sm font-medium text-gray-900">{{ cita.fecha }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ cita.fecha_consulta|date:"d/m/Y" }}</div>
                                 <div>
                                     <p class="font-medium text-gray-900">{{ cita.id_paciente.nombre_completo|default:cita.id_paciente }}</p>
                                     <p class="text-sm text-gray-600">{{ cita.fecha_consulta|date:"H:i" }}</p>

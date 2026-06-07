@@ -120,23 +120,10 @@ Nuevo Servicio
 {% endif %}
 
 <!-- Stats -->
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-8">
 <div class="card p-5 text-center">
 <p class="text-sm text-gray-500 font-medium">Total servicios</p>
 <p class="text-3xl font-bold text-blue-600 mt-1">{{ servicios|length }}</p>
-</div>
-<div class="card p-5 text-center">
-<p class="text-sm text-gray-500 font-medium">Precio promedio</p>
-<p class="text-3xl font-bold text-gray-800 mt-1">
-{% if servicios %}
-{% load l10n %}
-${{ servicios_precio_promedio|default:"65.00" }}
-{% else %}$0.00{% endif %}
-</p>
-</div>
-<div class="card p-5 text-center">
-<p class="text-sm text-gray-500 font-medium">Estado</p>
-<p class="text-3xl font-bold text-green-600 mt-1">Activo</p>
 </div>
 </div>
 
