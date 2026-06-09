@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -61,73 +62,34 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </head>
 <body>
 <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-<aside id="sidebar" class="dashboard-sidebar">
-<div class="p-6">
-<a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:#1E293B;">
-<svg class="w-8 h-8" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-<span>Healthy Life</span>
-</a>
-</div>
-<nav class="flex-1 px-2 space-y-1" aria-label="Navegación del paciente">
-<a href="{% url 'dashboard_paciente' %}" class="sidebar-nav-link">
-<svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-<span>Mi Dashboard</span>
-</a>
-<a href="{% url 'mis_citas' %}" class="sidebar-nav-link">
-<svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-<span>Mis Citas</span>
-</a>
-<a href="{% url 'perfil_paciente' %}" class="sidebar-nav-link">
-<svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-<span>Mi Perfil</span>
-</a>
-<a href="{% url 'historial_medico' %}" class="sidebar-nav-link">
-<svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-<span>Historial Médico</span>
-</a>
-<a href="{% url 'mis_facturas' %}" class="sidebar-nav-link">
-<svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
-<span>Mis Facturas</span>
-</a>
-<a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link active">
-<svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-<span>Menores a Cargo</span>
-</a>
-</nav>
-<div class="p-4 border-t" style="border-color:rgba(0,0,0,0.06);">
-<a href="{% url 'logout' %}" class="sidebar-nav-link" style="color:#EF4444;">
-<svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-<span>Cerrar Sesión</span>
-</a>
-</div>
-</aside>
+{% include "partials/_sidebar_paciente.html" %}
 
 <div class="dashboard-main">
 <header style="position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid rgba(0,0,0,0.06);">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 <div class="flex items-center justify-between h-16">
 <div class="flex items-center gap-3">
-<button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="Abrir menú">
+<button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="{% trans 'Abrir menú' %}">
 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
-<span class="font-semibold text-lg" style="color:#1E293B;">Historial médico del menor</span>
+<span class="font-semibold text-lg" style="color:#1E293B;">{% trans "Historial médico del menor" %}</span>
 </div>
 <div class="relative" id="userMenuContainer">
 <button onclick="toggleUserMenu()" class="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors" aria-haspopup="true" aria-expanded="false" id="userMenuBtn">
 <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:linear-gradient(135deg,#0070F3,#005CC2);">{{ request.user.first_name|default:request.user.username|first|upper }}</div>
 <div class="hidden sm:block text-left">
 <p class="text-sm font-semibold leading-tight" style="color:#1E293B;">{{ request.user.first_name|default:request.user.username }}</p>
-<p class="text-xs" style="color:#64748B;">Paciente</p>
+<p class="text-xs" style="color:#64748B;">{% trans "Paciente" %}</p>
 </div>
 <svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
 </button>
 <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border" style="border-color:rgba(0,0,0,0.06);">
 <a href="{% url 'perfil_paciente' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors rounded-t-xl" style="color:#1E293B;">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Mi Perfil
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>{% trans "Mi Perfil" %}
 </a>
 <div class="border-t" style="border-color:rgba(0,0,0,0.06);"></div>
 <a href="{% url 'logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors rounded-b-xl" style="color:#EF4444;">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Cerrar Sesión
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>{% trans "Cerrar Sesión" %}
 </a>
 </div>
 </div>
@@ -137,29 +99,29 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 <nav class="flex items-center gap-2 text-xs font-medium mb-4" style="color:#94A3B8;">
-<a href="{% url 'home' %}" class="hover:text-[#0070F3] transition-colors">Inicio</a><span>/</span>
-<a href="{% url 'lista_pacientes_especiales' %}" class="hover:text-[#0070F3] transition-colors">Mis Menores</a><span>/</span>
+<a href="{% url 'home' %}" class="hover:text-[#0070F3] transition-colors">{% trans "Inicio" %}</a><span>/</span>
+<a href="{% url 'lista_pacientes_especiales' %}" class="hover:text-[#0070F3] transition-colors">{% trans "Mis Menores" %}</a><span>/</span>
 <span style="color:#64748B;">{{ menor.nombre_1 }} {{ menor.apellido_1 }}</span><span>/</span>
-<span style="color:#1E293B;">Historial</span>
+<span style="color:#1E293B;">{% trans "Historial" %}</span>
 </nav>
 
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
 <div>
-<h1 class="text-2xl font-extrabold tracking-tight" style="color:#1E293B;">Historial médico de {{ menor.nombre_1 }} {{ menor.apellido_1 }}</h1>
-<p class="text-sm font-medium mt-1" style="color:#64748B;">Consulta y edita la información clínica de tu hijo/a o dependiente</p>
+<h1 class="text-2xl font-extrabold tracking-tight" style="color:#1E293B;">{% trans "Historial médico de" %} {{ menor.nombre_1 }} {{ menor.apellido_1 }}</h1>
+<p class="text-sm font-medium mt-1" style="color:#64748B;">{% trans "Consulta y edita la información clínica de tu hijo/a o dependiente" %}</p>
 </div>
 <div class="flex flex-wrap gap-2">
 <a href="{% url 'lista_pacientes_especiales' %}" class="btn-ghost">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-Volver a mis menores
+{% trans "Volver a mis menores" %}
 </a>
 <button type="button" onclick="toggleEditMode(true)" class="btn-secondary" style="border-color:#0070F3;color:#0070F3;">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-Editar historial
+{% trans "Editar historial" %}
 </button>
 <a href="{% url 'solicitar_cita' %}" class="btn-primary">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-Agendar cita
+{% trans "Agendar cita" %}
 </a>
 </div>
 </div>
@@ -179,7 +141,7 @@ Agendar cita
 <div class="flex flex-wrap items-center gap-2">
 <span class="badge-blue">{{ menor.get_parentesco_display|default:"Hijo/a" }}</span>
 {% if menor.numero_identificacion %}<span class="badge-gray">ID: {{ menor.numero_identificacion }}</span>{% endif %}
-<span class="badge-green">Activo</span>
+<span class="badge-green">{% trans "Activo" %}</span>
 </div>
 </div>
 {% if historial %}
@@ -197,9 +159,9 @@ Agendar cita
 <div class="dashboard-card">
 <div class="border-b px-6" style="border-color:#E2E8F0;">
 <div class="flex gap-1 overflow-x-auto">
-<button type="button" class="tab-btn active" data-tab="tabSalud">Información de salud</button>
-<button type="button" class="tab-btn" data-tab="tabConsultas">Consultas pasadas</button>
-<button type="button" class="tab-btn" data-tab="tabRecetas">Recetas médicas</button>
+<button type="button" class="tab-btn active" data-tab="tabSalud">{% trans "Información de salud" %}</button>
+<button type="button" class="tab-btn" data-tab="tabConsultas">{% trans "Consultas pasadas" %}</button>
+<button type="button" class="tab-btn" data-tab="tabRecetas">{% trans "Recetas médicas" %}</button>
 </div>
 </div>
 <div class="p-6">
@@ -212,32 +174,32 @@ Agendar cita
 {% if historial %}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 <div class="p-4 rounded-xl" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Tipo de sangre</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Tipo de sangre" %}</p>
 <p class="text-sm font-semibold" style="color:#1E293B;">{{ historial.id_tipo_sangre|default:"Sin registrar" }}</p>
 </div>
 <div class="p-4 rounded-xl" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Alergias</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Alergias" %}</p>
 {% if historial.alergias.all %}
 <div class="flex flex-wrap gap-2">
 {% for a in historial.alergias.all %}<span class="badge-red">{{ a.nombre_alergia }}</span>{% endfor %}
 </div>
-{% else %}<p class="text-sm" style="color:#64748B;">Sin alergias registradas</p>{% endif %}
+{% else %}<p class="text-sm" style="color:#64748B;">{% trans "Sin alergias registradas" %}</p>{% endif %}
 </div>
 <div class="p-4 rounded-xl" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Vacunas</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Vacunas" %}</p>
 {% if historial.vacunas.all %}
 <div class="flex flex-wrap gap-2">
 {% for v in historial.vacunas.all %}<span class="badge-blue">{{ v.nombre_vacuna }}</span>{% endfor %}
 </div>
-{% else %}<p class="text-sm" style="color:#64748B;">Sin vacunas registradas</p>{% endif %}
+{% else %}<p class="text-sm" style="color:#64748B;">{% trans "Sin vacunas registradas" %}</p>{% endif %}
 </div>
 <div class="p-4 rounded-xl" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Enfermedades / condiciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Enfermedades / condiciones" %}</p>
 {% if historial.enfermedades.all %}
 <div class="flex flex-wrap gap-2">
 {% for e in historial.enfermedades.all %}<span class="badge-yellow">{{ e.nombre_enfermedad }}</span>{% endfor %}
 </div>
-{% else %}<p class="text-sm" style="color:#64748B;">Sin enfermedades registradas</p>{% endif %}
+{% else %}<p class="text-sm" style="color:#64748B;">{% trans "Sin enfermedades registradas" %}</p>{% endif %}
 </div>
 </div>
 {% else %}
@@ -245,7 +207,7 @@ Agendar cita
 <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style="background:#DBEAFE;">
 <svg class="w-8 h-8" style="color:#2563EB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
 </div>
-<h3 class="text-sm font-bold mb-1" style="color:#1E293B;">Sin historial registrado</h3>
+<h3 class="text-sm font-bold mb-1" style="color:#1E293B;">{% trans "Sin historial registrado" %}</h3>
 <p class="text-xs mb-4" style="color:#64748B;">Aún no hay información médica registrada para este menor.</p>
 </div>
 {% endif %}
@@ -254,36 +216,36 @@ Agendar cita
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
 <div class="p-4 rounded-xl" style="background:#F8FAFC;">
 <div class="flex items-center justify-between mb-2">
-<p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Medicamentos habituales</p>
-<button type="button" onclick="editSeccion('meds')" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>Editar</button>
+<p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">{% trans "Medicamentos habituales" %}</p>
+<button type="button" onclick="editSeccion('meds')" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>{% trans "Editar" %}</button>
 </div>
 <div id="viewMeds"><p class="text-sm" style="color:#1E293B;">Salbutamol según necesidad.</p></div>
 <div id="editMeds" style="display:none;">
 <textarea id="inputMeds" class="input-modern" rows="2">Salbutamol según necesidad.</textarea>
 <div class="flex gap-2 mt-2">
-<button type="button" onclick="guardarSeccion('meds')" class="btn-primary" style="padding:6px 12px;font-size:.75rem;">Guardar</button>
-<button type="button" onclick="cancelarSeccion('meds')" class="btn-secondary" style="padding:6px 12px;font-size:.75rem;">Cancelar</button>
+<button type="button" onclick="guardarSeccion('meds')" class="btn-primary" style="padding:6px 12px;font-size:.75rem;">{% trans "Guardar" %}</button>
+<button type="button" onclick="cancelarSeccion('meds')" class="btn-secondary" style="padding:6px 12px;font-size:.75rem;">{% trans "Cancelar" %}</button>
 </div>
 </div>
 </div>
 <div class="p-4 rounded-xl" style="background:#F8FAFC;">
 <div class="flex items-center justify-between mb-2">
-<p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Notas importantes</p>
-<button type="button" onclick="editSeccion('notas')" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>Editar</button>
+<p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">{% trans "Notas importantes" %}</p>
+<button type="button" onclick="editSeccion('notas')" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>{% trans "Editar" %}</button>
 </div>
 <div id="viewNotas"><p class="text-sm" style="color:#1E293B;">Ninguna.</p></div>
 <div id="editNotas" style="display:none;">
 <textarea id="inputNotas" class="input-modern" rows="2">Ninguna.</textarea>
 <div class="flex gap-2 mt-2">
-<button type="button" onclick="guardarSeccion('notas')" class="btn-primary" style="padding:6px 12px;font-size:.75rem;">Guardar</button>
-<button type="button" onclick="cancelarSeccion('notas')" class="btn-secondary" style="padding:6px 12px;font-size:.75rem;">Cancelar</button>
+<button type="button" onclick="guardarSeccion('notas')" class="btn-primary" style="padding:6px 12px;font-size:.75rem;">{% trans "Guardar" %}</button>
+<button type="button" onclick="cancelarSeccion('notas')" class="btn-secondary" style="padding:6px 12px;font-size:.75rem;">{% trans "Cancelar" %}</button>
 </div>
 </div>
 </div>
 <div class="p-4 rounded-xl md:col-span-2" style="background:#F8FAFC;">
 <div class="flex items-center justify-between mb-2">
-<p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">Documentos adjuntos</p>
-<button type="button" onclick="simularSubida()" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>Subir</button>
+<p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">{% trans "Documentos adjuntos" %}</p>
+<button type="button" onclick="simularSubida()" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>{% trans "Subir" %}</button>
 </div>
 <ul id="listaDocs" class="space-y-2">
 <li class="flex items-center justify-between p-2 rounded-lg bg-white border" style="border-color:#E2E8F0;">
@@ -291,7 +253,7 @@ Agendar cita
 <svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
 <span class="text-sm" style="color:#1E293B;">Autorización_tratamiento.pdf</span>
 </div>
-<button type="button" onclick="eliminarDoc(this)" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;color:#EF4444;border-color:#FECACA;">Eliminar</button>
+<button type="button" onclick="eliminarDoc(this)" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;color:#EF4444;border-color:#FECACA;">{% trans "Eliminar" %}</button>
 </li>
 </ul>
 </div>
@@ -317,22 +279,22 @@ Editar historial
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 <div class="p-4 rounded-xl" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Tipo de sangre</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Tipo de sangre" %}</p>
 {{ form.id_tipo_sangre }}
 {% if form.id_tipo_sangre.errors %}<p class="field-error">{{ form.id_tipo_sangre.errors|join:", " }}</p>{% endif %}
 </div>
 <div class="p-4 rounded-xl md:col-span-2" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Alergias</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Alergias" %}</p>
 <div class="flex flex-wrap gap-3">{{ form.alergias }}</div>
 {% if form.alergias.errors %}<p class="field-error">{{ form.alergias.errors|join:", " }}</p>{% endif %}
 </div>
 <div class="p-4 rounded-xl md:col-span-2" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Vacunas</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Vacunas" %}</p>
 <div class="flex flex-wrap gap-3">{{ form.vacunas }}</div>
 {% if form.vacunas.errors %}<p class="field-error">{{ form.vacunas.errors|join:", " }}</p>{% endif %}
 </div>
 <div class="p-4 rounded-xl md:col-span-2" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">Enfermedades / condiciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:#94A3B8;">{% trans "Enfermedades / condiciones" %}</p>
 <div class="flex flex-wrap gap-3">{{ form.enfermedades }}</div>
 {% if form.enfermedades.errors %}<p class="field-error">{{ form.enfermedades.errors|join:", " }}</p>{% endif %}
 </div>
@@ -343,7 +305,7 @@ Editar historial
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
 Guardar cambios
 </button>
-<button type="button" onclick="toggleEditMode(false)" class="btn-secondary flex-1">Cancelar</button>
+<button type="button" onclick="toggleEditMode(false)" class="btn-secondary flex-1">{% trans "Cancelar" %}</button>
 </div>
 </form>
 </div>
@@ -358,56 +320,56 @@ Guardar cambios
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
 <div>
 <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">15 de marzo de 2026 · 09:30</p>
-<p class="text-sm font-bold mt-0.5" style="color:#1E293B;">Consulta general pediátrica</p>
+<p class="text-sm font-bold mt-0.5" style="color:#1E293B;">{% trans "Consulta general pediátrica" %}</p>
 </div>
-<span class="badge-blue">Completada</span>
+<span class="badge-blue">{% trans "Completada" %}</span>
 </div>
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
 <div>
-<p class="text-xs" style="color:#94A3B8;">Médico</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Médico" %}</p>
 <p class="font-medium" style="color:#1E293B;">Dr. Carlos Mendoza</p>
 </div>
 <div>
-<p class="text-xs" style="color:#94A3B8;">Especialidad</p>
-<p class="font-medium" style="color:#1E293B;">Pediatría</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Especialidad" %}</p>
+<p class="font-medium" style="color:#1E293B;">{% trans "Pediatría" %}</p>
 </div>
 <div>
-<p class="text-xs" style="color:#94A3B8;">Sede</p>
-<p class="font-medium" style="color:#1E293B;">Sede Principal</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Sede" %}</p>
+<p class="font-medium" style="color:#1E293B;">{% trans "Sede Principal" %}</p>
 </div>
 </div>
-<p class="text-xs" style="color:#64748B;">Motivo: Control de crecimiento y desarrollo. El menor se encuentra en buen estado general.</p>
+<p class="text-xs" style="color:#64748B;">{% trans "Motivo: Control de crecimiento y desarrollo. El menor se encuentra en buen estado general." %}</p>
 <div class="flex flex-wrap gap-2 mt-3">
-<button type="button" onclick="openModal('modalConsulta1')" class="btn-ghost">Ver detalles</button>
-<a href="{% url 'detalle_cita' 1 %}" class="btn-ghost">Ver cita</a>
+<button type="button" onclick="openModal('modalConsulta1')" class="btn-ghost">{% trans "Ver detalles" %}</button>
+<a href="{% url 'detalle_cita' 1 %}" class="btn-ghost">{% trans "Ver cita" %}</a>
 </div>
 </div>
 <div class="p-4 rounded-xl border" style="background:#fff;border-color:#E2E8F0;">
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
 <div>
 <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">02 de febrero de 2026 · 14:00</p>
-<p class="text-sm font-bold mt-0.5" style="color:#1E293B;">Consulta por fiebre</p>
+<p class="text-sm font-bold mt-0.5" style="color:#1E293B;">{% trans "Consulta por fiebre" %}</p>
 </div>
-<span class="badge-blue">Completada</span>
+<span class="badge-blue">{% trans "Completada" %}</span>
 </div>
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
 <div>
-<p class="text-xs" style="color:#94A3B8;">Médico</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Médico" %}</p>
 <p class="font-medium" style="color:#1E293B;">Dra. Ana López</p>
 </div>
 <div>
-<p class="text-xs" style="color:#94A3B8;">Especialidad</p>
-<p class="font-medium" style="color:#1E293B;">Medicina general</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Especialidad" %}</p>
+<p class="font-medium" style="color:#1E293B;">{% trans "Medicina general" %}</p>
 </div>
 <div>
-<p class="text-xs" style="color:#94A3B8;">Sede</p>
-<p class="font-medium" style="color:#1E293B;">Sede Norte</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Sede" %}</p>
+<p class="font-medium" style="color:#1E293B;">{% trans "Sede Norte" %}</p>
 </div>
 </div>
-<p class="text-xs" style="color:#64748B;">Motivo: Fiebre persistente de 38.5°C. Se prescribió antipirético y reposo.</p>
+<p class="text-xs" style="color:#64748B;">{% trans "Motivo: Fiebre persistente de 38.5°C. Se prescribió antipirético y reposo." %}</p>
 <div class="flex flex-wrap gap-2 mt-3">
-<button type="button" onclick="openModal('modalConsulta2')" class="btn-ghost">Ver detalles</button>
-<a href="{% url 'detalle_cita' 2 %}" class="btn-ghost">Ver cita</a>
+<button type="button" onclick="openModal('modalConsulta2')" class="btn-ghost">{% trans "Ver detalles" %}</button>
+<a href="{% url 'detalle_cita' 2 %}" class="btn-ghost">{% trans "Ver cita" %}</a>
 </div>
 </div>
 </div>
@@ -423,14 +385,14 @@ Guardar cambios
 <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">15 de marzo de 2026</p>
 <p class="text-sm font-bold mt-0.5" style="color:#1E293B;">Receta #R-2026-0315</p>
 </div>
-<span class="badge-green">Activa</span>
+<span class="badge-green">{% trans "Activa" %}</span>
 </div>
 <div class="text-sm mb-3">
-<p class="text-xs" style="color:#94A3B8;">Médico</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Médico" %}</p>
 <p class="font-medium" style="color:#1E293B;">Dr. Carlos Mendoza · Pediatría</p>
 </div>
 <div class="p-3 rounded-lg mb-3" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Medicamentos</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Medicamentos" %}</p>
 <ul class="text-sm space-y-1" style="color:#1E293B;">
 <li>• Vitamina D 400 UI — 1 gota oral diaria</li>
 <li>• Multivitamínico pediátrico — 1 cucharada diaria</li>
@@ -438,8 +400,8 @@ Guardar cambios
 </div>
 <p class="text-xs" style="color:#64748B;">Indicaciones: Administrar durante 3 meses. Retorno en 90 días.</p>
 <div class="flex flex-wrap gap-2 mt-3">
-<button type="button" onclick="openModal('modalReceta1')" class="btn-ghost">Ver receta completa</button>
-<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-ghost">Descargar PDF</button>
+<button type="button" onclick="openModal('modalReceta1')" class="btn-ghost">{% trans "Ver receta completa" %}</button>
+<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-ghost">{% trans "Descargar PDF" %}</button>
 </div>
 </div>
 <div class="p-4 rounded-xl border" style="background:#fff;border-color:#E2E8F0;">
@@ -448,14 +410,14 @@ Guardar cambios
 <p class="text-xs font-bold uppercase tracking-wide" style="color:#94A3B8;">02 de febrero de 2026</p>
 <p class="text-sm font-bold mt-0.5" style="color:#1E293B;">Receta #R-2026-0202</p>
 </div>
-<span class="badge-gray">Finalizada</span>
+<span class="badge-gray">{% trans "Finalizada" %}</span>
 </div>
 <div class="text-sm mb-3">
-<p class="text-xs" style="color:#94A3B8;">Médico</p>
+<p class="text-xs" style="color:#94A3B8;">{% trans "Médico" %}</p>
 <p class="font-medium" style="color:#1E293B;">Dra. Ana López · Medicina general</p>
 </div>
 <div class="p-3 rounded-lg mb-3" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Medicamentos</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Medicamentos" %}</p>
 <ul class="text-sm space-y-1" style="color:#1E293B;">
 <li>• Paracetamol 120mg/5ml — 5ml cada 6 horas por 3 días</li>
 <li>• Ibuprofeno 100mg/5ml — 5ml cada 8 horas por 2 días</li>
@@ -463,8 +425,8 @@ Guardar cambios
 </div>
 <p class="text-xs" style="color:#64748B;">Indicaciones: Reposo, hidratación abundante. Retorno si fiebre persiste.</p>
 <div class="flex flex-wrap gap-2 mt-3">
-<button type="button" onclick="openModal('modalReceta2')" class="btn-ghost">Ver receta completa</button>
-<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-ghost">Descargar PDF</button>
+<button type="button" onclick="openModal('modalReceta2')" class="btn-ghost">{% trans "Ver receta completa" %}</button>
+<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-ghost">{% trans "Descargar PDF" %}</button>
 </div>
 </div>
 </div>
@@ -481,19 +443,19 @@ Guardar cambios
 <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#DBEAFE;">
 <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
 </div>
-<h3 class="text-lg font-bold" style="color:#1E293B;">Detalle de consulta</h3>
+<h3 class="text-lg font-bold" style="color:#1E293B;">{% trans "Detalle de consulta" %}</h3>
 </div>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Fecha</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Fecha" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">15 de marzo de 2026 · 09:30</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Médico</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Médico" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Dr. Carlos Mendoza · Pediatría</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Diagnóstico</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Diagnóstico" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Control de crecimiento y desarrollo. Peso y talla dentro de los percentiles normales.</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Tratamiento</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Tratamiento" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Suplementación con vitamina D y multivitamínico pediátrico por 3 meses.</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Observaciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Observaciones" %}</p>
 <p class="text-sm mb-4" style="color:#1E293B;">Se recomienda dieta balanceada y actividad física regular.</p>
-<button type="button" onclick="closeModal('modalConsulta1')" class="btn-secondary w-full">Cerrar</button>
+<button type="button" onclick="closeModal('modalConsulta1')" class="btn-secondary w-full">{% trans "Cerrar" %}</button>
 </div>
 </div>
 
@@ -504,19 +466,19 @@ Guardar cambios
 <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#DBEAFE;">
 <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
 </div>
-<h3 class="text-lg font-bold" style="color:#1E293B;">Detalle de consulta</h3>
+<h3 class="text-lg font-bold" style="color:#1E293B;">{% trans "Detalle de consulta" %}</h3>
 </div>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Fecha</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Fecha" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">02 de febrero de 2026 · 14:00</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Médico</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Médico" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Dra. Ana López · Medicina general</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Diagnóstico</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Diagnóstico" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Infección viral de vías respiratorias altas. Fiebre de 38.5°C.</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Tratamiento</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Tratamiento" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Paracetamol e ibuprofeno antipiréticos. Reposo e hidratación.</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Observaciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Observaciones" %}</p>
 <p class="text-sm mb-4" style="color:#1E293B;">Retorno si fiebre persiste más de 48 horas o aparecen nuevos síntomas.</p>
-<button type="button" onclick="closeModal('modalConsulta2')" class="btn-secondary w-full">Cerrar</button>
+<button type="button" onclick="closeModal('modalConsulta2')" class="btn-secondary w-full">{% trans "Cerrar" %}</button>
 </div>
 </div>
 
@@ -527,24 +489,24 @@ Guardar cambios
 <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#D1FAE5;">
 <svg class="w-5 h-5" style="color:#059669;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
 </div>
-<h3 class="text-lg font-bold" style="color:#1E293B;">Receta completa</h3>
+<h3 class="text-lg font-bold" style="color:#1E293B;">{% trans "Receta completa" %}</h3>
 </div>
 <p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Receta #R-2026-0315</p>
-<p class="text-sm mb-3" style="color:#1E293B;">15 de marzo de 2026 · Dr. Carlos Mendoza · Pediatría</p>
+<p class="text-sm mb-3" style="color:#1E293B;">15 de marzo de 2026 · Dr. Carlos Mendoza · {% trans "Pediatría" %}</p>
 <div class="p-3 rounded-lg mb-3" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Medicamentos</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Medicamentos" %}</p>
 <ul class="text-sm space-y-1" style="color:#1E293B;">
 <li>• Vitamina D 400 UI — 1 gota oral diaria por 90 días</li>
 <li>• Multivitamínico pediátrico — 1 cucharada diaria por 90 días</li>
 </ul>
 </div>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Indicaciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Indicaciones" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Administrar durante 3 meses. Retorno en 90 días para evaluación.</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Observaciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Observaciones" %}</p>
 <p class="text-sm mb-4" style="color:#1E293B;">Mantener dieta balanceada rica en calcio y exposición solar moderada.</p>
 <div class="flex flex-col sm:flex-row gap-2">
-<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-primary flex-1">Descargar PDF</button>
-<button type="button" onclick="closeModal('modalReceta1')" class="btn-secondary flex-1">Cerrar</button>
+<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-primary flex-1">{% trans "Descargar PDF" %}</button>
+<button type="button" onclick="closeModal('modalReceta1')" class="btn-secondary flex-1">{% trans "Cerrar" %}</button>
 </div>
 </div>
 </div>
@@ -556,24 +518,24 @@ Guardar cambios
 <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#D1FAE5;">
 <svg class="w-5 h-5" style="color:#059669;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
 </div>
-<h3 class="text-lg font-bold" style="color:#1E293B;">Receta completa</h3>
+<h3 class="text-lg font-bold" style="color:#1E293B;">{% trans "Receta completa" %}</h3>
 </div>
 <p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Receta #R-2026-0202</p>
-<p class="text-sm mb-3" style="color:#1E293B;">02 de febrero de 2026 · Dra. Ana López · Medicina general</p>
+<p class="text-sm mb-3" style="color:#1E293B;">02 de febrero de 2026 · Dra. Ana López · {% trans "Medicina general" %}</p>
 <div class="p-3 rounded-lg mb-3" style="background:#F8FAFC;">
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Medicamentos</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Medicamentos" %}</p>
 <ul class="text-sm space-y-1" style="color:#1E293B;">
 <li>• Paracetamol 120mg/5ml — 5ml cada 6 horas por 3 días</li>
 <li>• Ibuprofeno 100mg/5ml — 5ml cada 8 horas por 2 días</li>
 </ul>
 </div>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Indicaciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Indicaciones" %}</p>
 <p class="text-sm mb-3" style="color:#1E293B;">Reposo absoluto, hidratación abundante. Control de fiebre.</p>
-<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">Observaciones</p>
+<p class="text-xs font-bold uppercase tracking-wide mb-1" style="color:#94A3B8;">{% trans "Observaciones" %}</p>
 <p class="text-sm mb-4" style="color:#1E293B;">Retorno si fiebre persiste más de 48 horas o aparece dificultad respiratoria.</p>
 <div class="flex flex-col sm:flex-row gap-2">
-<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-primary flex-1">Descargar PDF</button>
-<button type="button" onclick="closeModal('modalReceta2')" class="btn-secondary flex-1">Cerrar</button>
+<button type="button" onclick="alert('Descargando receta PDF... (simulado)')" class="btn-primary flex-1">{% trans "Descargar PDF" %}</button>
+<button type="button" onclick="closeModal('modalReceta2')" class="btn-secondary flex-1">{% trans "Cerrar" %}</button>
 </div>
 </div>
 </div>
@@ -680,7 +642,7 @@ function simularSubida() {
     const li = document.createElement('li');
     li.className = 'flex items-center justify-between p-2 rounded-lg bg-white border fade-in';
     li.style.borderColor = '#E2E8F0';
-    li.innerHTML = '<div class="flex items-center gap-2"><svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="text-sm" style="color:#1E293B;">' + nombre + '</span></div><button type="button" onclick="eliminarDoc(this)" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;color:#EF4444;border-color:#FECACA;">Eliminar</button>';
+    li.innerHTML = '<div class="flex items-center gap-2"><svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="text-sm" style="color:#1E293B;">' + nombre + '</span></div><button type="button" onclick="eliminarDoc(this)" class="btn-ghost" style="padding:4px 8px;font-size:.7rem;color:#EF4444;border-color:#FECACA;">{% trans "Eliminar" %}</button>';
     lista.appendChild(li);
     showToast('Documento subido correctamente.');
 }

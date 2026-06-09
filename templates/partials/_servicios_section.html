@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Sección de Servicios — Estilo Moderno DeepSeek -->
 <section id="servicios" class="hl-section" style="background: #FFFFFF;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -5,11 +6,11 @@
         <div class="text-center mb-16">
             <div class="hl-badge hl-badge-blue mb-4">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/></svg>
-                Nuestros Servicios
+                {% trans "Nuestros Servicios" %}
             </div>
-            <h2 class="hl-section-title mb-4">Especialidades Médicas <span style="color: #0070F3;">Completas</span></h2>
+            <h2 class="hl-section-title mb-4">{% trans "Especialidades Médicas" %} <span style="color: #0070F3;">{% trans "Completas" %}</span></h2>
             <p class="hl-section-subtitle mx-auto">
-                Contamos con un equipo multidisciplinario de especialistas para cubrir todas tus necesidades de salud
+                {% trans "Contamos con un equipo multidisciplinario de especialistas para cubrir todas tus necesidades de salud" %}
             </p>
         </div>
 
@@ -22,31 +23,31 @@
                     <svg class="w-6 h-6" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                 </div>
                 <h3 class="text-lg font-bold mb-2" style="color: #1E293B;">{{ esp.tipo_especialidad|default:"Especialidad" }}</h3>
-                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">Consulta especializada en {{ esp.tipo_especialidad|default:"medicina" }}. Atención profesional y personalizada.</p>
+                <p class="text-sm leading-relaxed mb-4" style="color: #64748B;">{% trans "Consulta especializada en" %} {{ esp.tipo_especialidad|default:"medicina" }}. {% trans "Atención profesional y personalizada." %}</p>
                 {% if user.is_authenticated and user|has_role:"paciente" %}
                     <a href="{% url 'solicitar_cita' %}?especialidad={{ esp.id_especialidad }}" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                        Agendar cita
+                        {% trans "Agendar cita" %}
                         <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 {% else %}
                     <a href="{% url 'login_paciente' %}?next={% url 'solicitar_cita' %}%3Fespecialidad%3D{{ esp.id_especialidad }}" class="inline-flex items-center text-sm font-semibold transition-colors" style="color: #0070F3;">
-                        Agendar cita
+                        {% trans "Agendar cita" %}
                         <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 {% endif %}
             </div>
             {% empty %}
             <div class="col-span-full text-center py-8">
-                <p class="text-sm" style="color: #64748B;">No hay especialidades disponibles en este momento.</p>
+                <p class="text-sm" style="color: #64748B;">{% trans "No hay especialidades disponibles en este momento." %}</p>
             </div>
             {% endfor %}
         </div>
 
         <!-- CTA -->
         <div class="text-center mt-14">
-            <p class="text-sm mb-4" style="color: #64748B;">¿No ves tu especialidad?</p>
+            <p class="text-sm mb-4" style="color: #64748B;">{% trans "¿No ves tu especialidad?" %}</p>
             <a href="{% url 'registro' %}" class="hl-btn-primary text-sm" style="padding: 10px 22px; border-radius: 9999px;">
-                Ver todas las especialidades
+                {% trans "Ver todas las especialidades" %}
             </a>
         </div>
     </div>

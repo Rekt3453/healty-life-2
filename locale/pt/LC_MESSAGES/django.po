@@ -1,0 +1,2091 @@
+# Portuguese translations for Healthy Life
+# Copyright (C) 2026
+# This file is distributed under the same license as the PACKAGE package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-09 12:00+0000\n"
+"PO-Revision-Date: 2026-06-09 12:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: clinica_root/settings/base.py:125
+msgid "Español"
+msgstr "Espanhol"
+
+#: clinica_root/settings/base.py:126
+msgid "English"
+msgstr "Inglês"
+
+#: clinica_root/settings/base.py:127
+msgid "Português"
+msgstr "Português"
+
+#: usuarios/views.py
+msgid ""
+"Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu"
+" correo."
+msgstr ""
+"Sua conta ainda não está ativada. Reenviamos o link de ativação para seu "
+"e-mail."
+
+#: usuarios/views.py
+msgid "Tu cuenta aún no está activada. Contacta al administrador."
+msgstr ""
+"Sua conta ainda não está ativada. Entre em contato com o administrador."
+
+#: usuarios/views.py
+msgid "Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo."
+msgstr "Muitas tentativas falhadas. Aguarde 1 minuto e tente novamente."
+
+#: usuarios/views.py
+msgid "Credenciales incorrectas"
+msgstr "Credenciais incorretas"
+
+#: usuarios/views.py
+msgid "Has cerrado sesión correctamente"
+msgstr "Você saiu com sucesso"
+
+#: usuarios/views.py
+msgid ""
+"Cuenta creada con éxito. Has sido registrado como paciente especial (menor "
+"de edad). Los datos de tu tutor han sido guardados. Revisa tu correo "
+"electrónico."
+msgstr ""
+"Conta criada com sucesso. Você foi registrado como paciente especial (menor "
+"de idade). Os dados do seu responsável foram salvos. Verifique seu e-mail."
+
+#: usuarios/views.py
+msgid ""
+"Cuenta creada con éxito. Has sido registrado como paciente especial. Revisa "
+"tu correo electrónico."
+msgstr ""
+"Conta criada com sucesso. Você foi registrado como paciente especial. "
+"Verifique seu e-mail."
+
+#: usuarios/views.py
+msgid ""
+"Cuenta creada con éxito. Bienvenido al sistema. Revisa tu correo "
+"electrónico."
+msgstr "Conta criada com sucesso. Bem-vindo ao sistema. Verifique seu e-mail."
+
+#: usuarios/views.py
+msgid "Ingresa tu correo electrónico."
+msgstr "Digite seu e-mail."
+
+#: usuarios/views.py
+msgid ""
+"Si el correo está registrado en nuestro sistema, recibirás instrucciones "
+"para recuperar tu contraseña."
+msgstr ""
+"Se o e-mail estiver registrado em nosso sistema, você receberá instruções "
+"para recuperar sua senha."
+
+#: usuarios/views.py
+msgid "Mínimo 8 caracteres."
+msgstr "Mínimo 8 caracteres."
+
+#: usuarios/views.py
+msgid "Las contraseñas no coinciden."
+msgstr "As senhas não coincidem."
+
+#: usuarios/views.py
+msgid "Contraseña actualizada. Inicia sesión."
+msgstr "Senha atualizada. Inicie sessão."
+
+#: usuarios/views.py
+msgid "Enlace vencido"
+msgstr "Link expirado"
+
+#: usuarios/views.py
+msgid "Máximo 30 caracteres."
+msgstr "Máximo 30 caracteres."
+
+#: usuarios/views.py
+msgid "Debe contener al menos una mayúscula."
+msgstr "Deve conter pelo menos uma letra maiúscula."
+
+#: usuarios/views.py
+msgid "Debe contener al menos una minúscula."
+msgstr "Deve conter pelo menos uma letra minúscula."
+
+#: usuarios/views.py
+msgid "Debe contener al menos un número."
+msgstr "Deve conter pelo menos um número."
+
+#: usuarios/views.py
+msgid "Debe contener al menos un carácter especial (@, #, $, etc.)."
+msgstr "Deve conter pelo menos um caractere especial (@, #, $, etc.)."
+
+#: usuarios/views.py
+msgid "No se pudo actualizar la cuenta. Contacta al administrador."
+msgstr ""
+"Não foi possível atualizar a conta. Entre em contato com o administrador."
+
+#: usuarios/views.py
+msgid "Error al guardar la contraseña. Intenta de nuevo."
+msgstr "Erro ao salvar a senha. Tente novamente."
+
+#: usuarios/views.py
+msgid "Contraseña establecida correctamente. Ya puedes iniciar sesión."
+msgstr "Senha definida corretamente. Agora você pode iniciar sessão."
+
+#: usuarios/views.py
+msgid "Usuario o contraseña incorrectos"
+msgstr "Usuário ou senha incorretos"
+
+#: usuarios/views.py
+msgid "No tienes permisos para acceder a esta página"
+msgstr "Você não tem permissão para acessar esta página"
+
+#: usuarios/views.py
+msgid "No se encontró tu perfil de paciente."
+msgstr "Seu perfil de paciente não foi encontrado."
+
+#: usuarios/views.py
+msgid "No se encontró tu perfil de médico."
+msgstr "Seu perfil de médico não foi encontrado."
+
+#: templates/usuarios/login_paciente.html
+msgid "Volver"
+msgstr "Voltar"
+
+#: templates/usuarios/login_paciente.html
+msgid "Acceso Pacientes"
+msgstr "Acesso Pacientes"
+
+#: templates/usuarios/login_paciente.html
+msgid "Ingresa tus credenciales para continuar"
+msgstr "Digite suas credenciais para continuar"
+
+#: templates/usuarios/login_paciente.html
+msgid "Nombre de Usuario"
+msgstr "Nome de Usuário"
+
+#: templates/usuarios/login_paciente.html
+msgid "Tu nombre de usuario"
+msgstr "Seu nome de usuário"
+
+#: templates/usuarios/login_paciente.html
+msgid "Contrasena"
+msgstr "Senha"
+
+#: templates/usuarios/login_paciente.html
+msgid "Tu contrasena"
+msgstr "Sua senha"
+
+#: templates/usuarios/login_paciente.html
+msgid "Iniciar Sesion"
+msgstr "Iniciar Sessão"
+
+#: templates/usuarios/login_paciente.html
+msgid "Olvidaste tu contrasena?"
+msgstr "Esqueceu sua senha?"
+
+#: templates/usuarios/login_paciente.html
+msgid "No tienes cuenta?"
+msgstr "Não tem conta?"
+
+#: templates/usuarios/login_paciente.html
+msgid "Registrate aqui"
+msgstr "Registre-se aqui"
+
+#: templates/usuarios/login_paciente.html
+msgid "Medico"
+msgstr "Médico"
+
+#: templates/usuarios/login_paciente.html
+msgid "Recepcionista"
+msgstr "Recepcionista"
+
+#: templates/usuarios/login_paciente.html
+msgid "Gerente"
+msgstr "Gerente"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Volver al dashboard"
+msgstr "Voltar ao painel"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Volver al inicio"
+msgstr "Voltar ao início"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Crea tu cuenta"
+msgstr "Crie sua conta"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Registrate para acceder a nuestros servicios medicos"
+msgstr "Registre-se para acessar nossos serviços médicos"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mi Dashboard"
+msgstr "Meu Painel"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mis Citas"
+msgstr "Minhas Consultas"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mi Perfil"
+msgstr "Meu Perfil"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Historial Médico"
+msgstr "Histórico Médico"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mis Facturas"
+msgstr "Minhas Faturas"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Menores a Cargo"
+msgstr "Menores a Cargo"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Cerrar Sesión"
+msgstr "Sair"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Abrir menú"
+msgstr "Abrir menu"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Dashboard"
+msgstr "Painel"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Paciente"
+msgstr "Paciente"
+
+#: templates/partials/_header_public.html
+msgid "Inicio"
+msgstr "Início"
+
+#: templates/partials/_header_public.html
+msgid "Servicios"
+msgstr "Serviços"
+
+#: templates/partials/_header_public.html
+msgid "Centros"
+msgstr "Centros"
+
+#: templates/partials/_header_public.html
+msgid "Nosotros"
+msgstr "Sobre Nós"
+
+#: templates/partials/_header_public.html
+msgid "Contacto"
+msgstr "Contato"
+
+#: templates/partials/_header_public.html
+msgid "Super Admin"
+msgstr "Super Admin"
+
+#: templates/partials/_header_public.html
+msgid "Root"
+msgstr "Root"
+
+msgid "Acceso Gerencia"
+msgstr "Acesso Gerência"
+
+msgid "Acceso Medicos"
+msgstr "Acesso Médicos"
+
+msgid "Acceso Recepcion"
+msgstr "Acesso Recepção"
+
+msgid "Acceso Root"
+msgstr "Acesso Root"
+
+msgid "Acceso Super Admin"
+msgstr "Acesso Super Admin"
+
+msgid "Accion"
+msgstr "Ação"
+
+msgid "Acciones"
+msgstr "Ações"
+
+msgid "Activar Cuenta"
+msgstr "Ativar Conta"
+
+msgid "Alergias"
+msgstr "Alergias"
+
+msgid "Antecedentes"
+msgstr "Antecedentes"
+
+msgid "Auditoria del Sistema"
+msgstr "Auditoria do Sistema"
+
+msgid "Buscar cuenta"
+msgstr "Buscar conta"
+
+msgid "Cancelar"
+msgstr "Cancelar"
+
+msgid "Ciudad"
+msgstr "Cidade"
+
+msgid "Comprobante"
+msgstr "Comprovante"
+
+msgid "Crear"
+msgstr "Criar"
+
+msgid "Diagnostico"
+msgstr "Diagnóstico"
+
+msgid "Direccion"
+msgstr "Endereço"
+
+msgid "Doctor"
+msgstr "Médico"
+
+msgid "Editar Doctor"
+msgstr "Editar Médico"
+
+msgid "Editar Especialidad"
+msgstr "Editar Especialidade"
+
+msgid "Editar Gerente"
+msgstr "Editar Gerente"
+
+msgid "Editar Recepcionista"
+msgstr "Editar Recepcionista"
+
+msgid "Editar Sede"
+msgstr "Editar Sede"
+
+msgid "Editar Super Admin"
+msgstr "Editar Super Admin"
+
+msgid "Eliminar"
+msgstr "Excluir"
+
+msgid "Eliminar Super Admin"
+msgstr "Excluir Super Admin"
+
+msgid "Enfermedades"
+msgstr "Doenças"
+
+msgid "Entre 8 y 30 caracteres"
+msgstr "Entre 8 e 30 caracteres"
+
+msgid "Estado"
+msgstr "Estado"
+
+msgid "Estudios"
+msgstr "Exames"
+
+msgid "Hora"
+msgstr "Hora"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "IP"
+msgstr "IP"
+
+msgid "Lista de Pacientes"
+msgstr "Lista de Pacientes"
+
+msgid "Medicamentos"
+msgstr "Medicamentos"
+
+msgid "Municipio"
+msgstr "Município"
+
+msgid "Nombre"
+msgstr "Nome"
+
+msgid "Nombre de la Sede"
+msgstr "Nome da Sede"
+
+msgid "O accede como:"
+msgstr "Ou acesse como:"
+
+msgid "Panel de Gerencia"
+msgstr "Painel de Gerência"
+
+msgid "Panel de administracion del sistema"
+msgstr "Painel de Administração do Sistema"
+
+msgid "Panel de gestion de centros medicos"
+msgstr "Painel de Gestão de Centros Médicos"
+
+msgid "Parroquia"
+msgstr "Paróquia"
+
+msgid "Preguntas de Seguridad"
+msgstr "Perguntas de Segurança"
+
+msgid "RIF"
+msgstr "RIF"
+
+msgid "Recuperar Contrasena"
+msgstr "Recuperar Senha"
+
+msgid "Referencia"
+msgstr "Referência"
+
+msgid "Registrar"
+msgstr "Registrar"
+
+msgid "Registrar Gerente"
+msgstr "Registrar Gerente"
+
+msgid "Registrar Recepcionista"
+msgstr "Registrar Recepcionista"
+
+msgid "Registrar Sede"
+msgstr "Registrar Sede"
+
+msgid "Registrar Super Admin"
+msgstr "Registrar Super Admin"
+
+msgid "Reportes"
+msgstr "Relatórios"
+
+msgid "Reposo"
+msgstr "Repouso"
+
+msgid "Rol"
+msgstr "Função"
+
+msgid "Sedes"
+msgstr "Sedes"
+
+msgid "Solicitar Cita"
+msgstr "Solicitar Consulta"
+
+msgid "Super Admins"
+msgstr "Super Admins"
+
+msgid "Telefono"
+msgstr "Telefone"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Username root"
+msgstr "Username root"
+
+msgid "Usuario"
+msgstr "Usuário"
+
+msgid "Vacunas"
+msgstr "Vacinas"
+
+msgid "Verificar"
+msgstr "Verificar"
+
+msgid "Volver al inicio de sesion"
+msgstr "Voltar ao início de sessão"
+
+msgid "pacientes registrados"
+msgstr "pacientes registrados"
+
+msgid "1 caracter especial"
+msgstr "1 caractere especial"
+
+msgid "1 mayuscula"
+msgstr "1 letra maiúscula"
+
+msgid "1 numero"
+msgstr "1 número"
+
+msgid ""
+"Accede a atención médica de calidad en nuestros centros médicos de "
+"Venezuela."
+msgstr ""
+"Acesse atendimento médico de qualidade em nossos centros médicos na "
+"Venezuela."
+
+msgid "Acciones Rápidas"
+msgstr "Ações rápidas"
+
+msgid "Acción"
+msgstr "Ação"
+
+msgid "Agendar Consulta"
+msgstr "Agendar Consulta"
+
+msgid "Agendar cita"
+msgstr "Agendar consulta"
+
+msgid "Aprobada"
+msgstr "Aprovado"
+
+msgid "Atención"
+msgstr "Atenção"
+
+msgid "Atención 24/7"
+msgstr "Atenção 24 horas por dia, 7 dias por semana"
+
+msgid "Atención profesional y personalizada."
+msgstr "Atendimento profissional e personalizado."
+
+msgid "Atendida"
+msgstr "Participou"
+
+msgid "Atrás"
+msgstr "Voltar"
+
+msgid "Auditoría Completa del Sistema"
+msgstr "Auditoria completa do sistema"
+
+msgid "Años de experiencia"
+msgstr "Anos de experiência"
+
+msgid "Barquisimeto: +58 424-5782611"
+msgstr "Barquisimeto: +58 424-5782611"
+
+msgid "Bienvenido de vuelta,"
+msgstr "Bem vindo de volta,"
+
+msgid "Bienvenido,"
+msgstr "Bem-vindo,"
+
+msgid "Calidad Certificada"
+msgstr "Qualidade Certificada"
+
+msgid "Canceladas"
+msgstr "Cancelado"
+
+msgid "Caracas: +58 414-5281090"
+msgstr "Caracas: +58 414-5281090"
+
+msgid "Cargando especialidades..."
+msgstr "Carregando especialidades..."
+
+msgid "Cargando fechas disponibles..."
+msgstr "Carregando datas disponíveis..."
+
+msgid "Cargando horarios..."
+msgstr "Carregando horários..."
+
+msgid "Cargando médicos..."
+msgstr "Carregando médicos..."
+
+msgid "Cedula de Identidad *"
+msgstr "Bilhete de Identidade *"
+
+msgid "Centro Medico:"
+msgstr "Centro Médico:"
+
+msgid "Centro Médico"
+msgstr "Centro Médico"
+
+msgid "Citas Activas"
+msgstr "Compromissos ativos"
+
+msgid "Citas Hoy"
+msgstr "Citações hoje"
+
+msgid "Citas Recientes"
+msgstr "Citações recentes"
+
+msgid "Citas hoy"
+msgstr "Cotações hoje"
+
+msgid "Ciudad *"
+msgstr "Cidade *"
+
+msgid "Completa los pasos para agendar tu consulta médica"
+msgstr "Complete os passos para agendar sua consulta médica"
+
+msgid "Completas"
+msgstr "Completo"
+
+msgid "Comprometidos con tu"
+msgstr "Comprometido com você"
+
+msgid "Comunícate con nosotros para cualquier consulta o para agendar tu cita"
+msgstr "Entre em contato conosco para tirar dúvidas ou agendar seu horário"
+
+msgid "Confirma tu cita"
+msgstr "Confirme seu agendamento"
+
+msgid "Confirmada"
+msgstr "Confirmado"
+
+msgid "Confirmar"
+msgstr "Confirmar"
+
+msgid "Conoce más sobre nosotros"
+msgstr "Saiba mais sobre nós"
+
+msgid "Consulta especializada en"
+msgstr "Consultoria especializada em"
+
+msgid "Contactar por email"
+msgstr "Contato por e-mail"
+
+msgid ""
+"Contamos con un equipo multidisciplinario de especialistas para cubrir todas"
+" tus necesidades de salud"
+msgstr ""
+"Contamos com uma equipe multidisciplinar de especialistas para cobrir todas "
+"as suas necessidades de saúde"
+
+msgid "Continuar"
+msgstr "Continuar"
+
+msgid "Correo Electronico"
+msgstr "E-mail"
+
+msgid "Crear Cuenta"
+msgstr "Criar uma conta"
+
+msgid "Cuidamos tu salud con"
+msgstr "Cuidamos da sua saúde com"
+
+msgid "Datos del Tutor o Representante Legal"
+msgstr "Dados do Guardião ou Representante Legal"
+
+msgid "Describe brevemente el motivo de tu consulta..."
+msgstr "Descreva resumidamente o motivo da sua consulta..."
+
+msgid "Dom"
+msgstr "Sol"
+
+msgid "Editar mi perfil"
+msgstr "Editar meu perfil"
+
+msgid "Elige fecha y hora"
+msgstr "Escolha data e hora"
+
+msgid "Elige la sede más conveniente para tu consulta"
+msgstr "Escolha o local mais conveniente para sua consulta"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Emergencias"
+msgstr "Emergências"
+
+msgid "Emergencias: 24/7"
+msgstr "Emergências: 24 horas por dia, 7 dias por semana"
+
+msgid "En Consulta"
+msgstr "Em consulta"
+
+msgid ""
+"En Healthy Life combinamos tecnología médica avanzada con un equipo de "
+"profesionales altamente calificados"
+msgstr ""
+"Na Healthy Life aliamos tecnologia médica avançada a uma equipa de "
+"profissionais altamente qualificados"
+
+msgid "Envíanos un mensaje"
+msgstr "Envie-nos uma mensagem"
+
+msgid "Equipamiento moderno"
+msgstr "Equipamento moderno"
+
+msgid ""
+"Eres menor de edad. Por favor completa los datos de tu tutor o representante"
+" legal."
+msgstr ""
+"Você é menor de idade. Preencha os dados do seu responsável ou representante"
+" legal."
+
+msgid "Especialidad"
+msgstr "Especialidade"
+
+msgid "Especialidades"
+msgstr "Especialidades"
+
+msgid "Especialidades Médicas"
+msgstr "Especialidades Médicas"
+
+msgid "Especialidades disponibles en la sede seleccionada"
+msgstr "Especialidades disponíveis no local selecionado"
+
+msgid "Especialistas en todas las áreas de la medicina para ti y tu familia."
+msgstr "Especialistas em todas as áreas da medicina para você e sua família."
+
+msgid "Especialistas reconocidos"
+msgstr "Especialistas reconhecidos"
+
+msgid "Estado *"
+msgstr "Estado *"
+
+msgid "Estamos para"
+msgstr "Nós somos para"
+
+msgid "Estándares internacionales"
+msgstr "Padrões internacionais"
+
+msgid "Expertos"
+msgstr "Especialistas"
+
+msgid "Expertos Médicos"
+msgstr "Especialistas Médicos"
+
+msgid "Fecha"
+msgstr "Data"
+
+msgid "Fecha / Hora"
+msgstr "Data/Hora"
+
+msgid "Fecha de Nacimiento *"
+msgstr "Data de nascimento *"
+
+msgid "Fecha seleccionada:"
+msgstr "Data selecionada:"
+
+msgid "Fecha y hora"
+msgstr "Data e hora"
+
+msgid "Gerentes"
+msgstr "Gerentes"
+
+msgid "Gestiona citas, pacientes y horarios del día"
+msgstr "Gerenciar consultas, pacientes e horários do dia"
+
+msgid "Gestiona tus consultas y pacientes de manera eficiente."
+msgstr "Gerencie suas dúvidas e pacientes com eficiência."
+
+msgid "Gestión global de centros médicos y super administradores"
+msgstr "Gestão global de centros médicos e superadministradores"
+
+msgid "Healthy Life - Sistema de Gestión de Citas Médicas"
+msgstr "Vida Saudável - Sistema de Gerenciamento de Consultas Médicas"
+
+msgid "Healtylifesede@gmail.com"
+msgstr "Healthylifesede@gmail.com"
+
+msgid "Hora seleccionada:"
+msgstr "Horário selecionado:"
+
+msgid "Horarios"
+msgstr "Horários"
+
+msgid "Horarios disponibles"
+msgstr "Horários disponíveis"
+
+msgid "Hoy, 2:00 PM"
+msgstr "Hoje, 14h"
+
+msgid "Informacion Basica"
+msgstr "Informações Básicas"
+
+msgid "Informacion Personal"
+msgstr "Informações pessoais"
+
+msgid "Informacion.healtylife@gmail.com"
+msgstr "Informações.healthlife@gmail.com"
+
+msgid "Ingresar"
+msgstr "Entre"
+
+msgid "Inicia sesion aqui"
+msgstr "Faça login aqui"
+
+msgid "Jue"
+msgstr "qui"
+
+msgid "Las especialidades se filtran según el tipo de paciente seleccionado."
+msgstr ""
+"As especialidades são filtradas de acordo com o tipo de paciente "
+"selecionado."
+
+msgid "Llamar"
+msgstr "Chamar"
+
+msgid "Llamar ahora"
+msgstr "Ligue agora"
+
+msgid "Lun"
+msgstr "seg"
+
+msgid "Lun–Vie: 6:00 AM – 10:00 PM"
+msgstr "Seg a Sex: 6h00 - 22h00"
+
+msgid "Mar"
+msgstr "Mar"
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Menú"
+msgstr "Menu"
+
+msgid "Mes anterior"
+msgstr "Mês anterior"
+
+msgid "Mes siguiente"
+msgstr "Próximo mês"
+
+msgid "Minimo 8 caracteres"
+msgstr "Mínimo 8 caracteres"
+
+msgid "Mié"
+msgstr "qua"
+
+msgid "Motivo de la consulta"
+msgstr "Motivo da consulta"
+
+msgid "Municipio *"
+msgstr "Município *"
+
+msgid "Médico"
+msgstr "Doutor"
+
+msgid "Médicos disponibles para"
+msgstr "Médicos disponíveis para"
+
+msgid "Ninguno / General"
+msgstr "Nenhum/Geral"
+
+msgid "No hay centros médicos registrados actualmente."
+msgstr "Não há centros médicos registrados atualmente."
+
+msgid ""
+"No hay días disponibles en este mes para este médico. Intenta con otro mes o"
+" selecciona otro doctor."
+msgstr ""
+"Não há dias disponíveis este mês para este médico. Tente outro mês ou "
+"selecione outro médico."
+
+msgid "No hay especialidades disponibles en este momento."
+msgstr "Não há especialidades disponíveis neste momento."
+
+msgid "No hay especialidades disponibles para esta sede y tipo de paciente."
+msgstr ""
+"Não existem especialidades disponíveis para esta localidade e tipo de "
+"paciente."
+
+msgid "No hay médicos disponibles para esta especialidad y sede."
+msgstr "Não há médicos disponíveis para esta especialidade e localidade."
+
+msgid "No hay sedes disponibles."
+msgstr "Não há locais disponíveis."
+
+msgid "No tienes citas registradas."
+msgstr "Você não tem compromissos cadastrados."
+
+msgid ""
+"Nuestro equipo de atención al cliente te ayudará a encontrar el centro "
+"médico más cercano y el especialista que necesitas."
+msgstr ""
+"Nossa equipe de atendimento ao cliente irá ajudá-lo a encontrar o centro "
+"médico e especialista mais próximo de que você precisa."
+
+msgid "Nuestros Centros Médicos"
+msgstr "Nossos Centros Médicos"
+
+msgid "Nuestros Servicios"
+msgstr "Nossos serviços"
+
+msgid "Pagar"
+msgstr "Pagar"
+
+msgid "Pago en revisión"
+msgstr "Pagamento em revisão"
+
+msgid "Panel Root"
+msgstr "Painel raiz"
+
+msgid "Panel Super Admin"
+msgstr "Painel de superadministrador"
+
+msgid "Panel de Administración Root"
+msgstr "Painel de administração raiz"
+
+msgid "Panel de Recepción"
+msgstr "Painel de recepção"
+
+msgid "Para mi menor:"
+msgstr "Para o meu mais novo:"
+
+msgid "Para mí"
+msgstr "Para mim"
+
+msgid "Parentesco"
+msgstr "Relação"
+
+msgid "Parroquia *"
+msgstr "Freguesia *"
+
+msgid "Pendientes"
+msgstr "Brincos"
+
+msgid "Presencia en"
+msgstr "Presença em"
+
+msgid "Primer Apellido *"
+msgstr "Primeiro Sobrenome *"
+
+msgid "Primer Nombre *"
+msgstr "Primeiro nome *"
+
+msgid "Privacidad"
+msgstr "Privacidade"
+
+msgid "Programadas"
+msgstr "Agendado"
+
+msgid "Proximas Citas"
+msgstr "Próximos compromissos"
+
+msgid "Próxima Cita"
+msgstr "Próximo compromisso"
+
+msgid "Red de centros médicos con atención de calidad en cada rincón del país"
+msgstr ""
+"Rede de centros médicos com atendimento de qualidade em todos os cantos do "
+"país"
+
+msgid "Registrarse"
+msgstr "Cadastre-se"
+
+msgid "Registro de eventos de todos los roles y centros médicos."
+msgstr "Log de eventos para todas as funções e centros médicos."
+
+msgid "Resumen de la cita"
+msgstr "Resumo do compromisso"
+
+msgid "Revisa los detalles y solicita tu cita"
+msgstr "Confira os detalhes e solicite seu agendamento"
+
+msgid "Salir"
+msgstr "Sair"
+
+msgid "Sede"
+msgstr "Sede"
+
+msgid "Sede de Atencion"
+msgstr "Atenção Sede"
+
+msgid "Sedes:"
+msgstr "Sede:"
+
+msgid "Segundo Apellido"
+msgstr "Segundo sobrenome"
+
+msgid "Segundo Nombre"
+msgstr "Nome do meio"
+
+msgid "Selecciona un día disponible y luego un horario"
+msgstr "Selecione um dia disponível e depois um horário"
+
+msgid "Selecciona un médico"
+msgstr "Selecione um médico"
+
+msgid "Selecciona una especialidad para continuar"
+msgstr "Selecione uma especialidade para continuar"
+
+msgid "Selecciona una fecha para ver los horarios disponibles."
+msgstr "Selecione uma data para ver os horários disponíveis."
+
+msgid "Selecciona una fecha y una hora para continuar"
+msgstr "Selecione uma data e hora para continuar"
+
+msgid "Selecciona una sede"
+msgstr "Selecione um local"
+
+msgid "Seleccione la sede donde desea recibir atencion *"
+msgstr "Selecione o local onde deseja receber atendimento*"
+
+msgid "Seleccione un centro médico"
+msgstr "Selecione um centro médico"
+
+msgid "Seleccione un municipio"
+msgstr "Selecione um município"
+
+msgid "Seleccione una ciudad"
+msgstr "Selecione uma cidade"
+
+msgid "Seleccione una parroquia"
+msgstr "Selecione uma freguesia"
+
+msgid "Servicio"
+msgstr "Serviço"
+
+msgid "Servicio de Especialidad"
+msgstr "Serviço Especializado"
+
+msgid "Servicios médicos del doctor"
+msgstr "Serviços médicos médicos"
+
+msgid "Sexo *"
+msgstr "Sexo *"
+
+msgid "Siempre disponibles"
+msgstr "Sempre disponível"
+
+msgid "Sistema Médico Líder en Venezuela"
+msgstr "Sistema médico líder na Venezuela"
+
+msgid "Sobre Nosotros"
+msgstr "Sobre nós"
+
+msgid "Solicitada"
+msgstr "Solicitado"
+
+msgid "Solicitar Nueva Cita"
+msgstr "Solicitar novo compromisso"
+
+msgid "Solicitar cita"
+msgstr "Solicitar agendamento"
+
+msgid "Solicitar nueva cita"
+msgstr "Solicitar novo agendamento"
+
+msgid "Solicitar primera cita"
+msgstr "Solicitar primeira consulta"
+
+msgid "Sáb"
+msgstr "Sentado"
+
+msgid "Sáb: 7:00 AM – 9:00 PM"
+msgstr "Sábado: 7h00 – 21h00"
+
+msgid "Tecnología Avanzada"
+msgstr "Tecnologia Avançada"
+
+msgid "Telefono *"
+msgstr "Telefone *"
+
+msgid "Teléfonos"
+msgstr "Telefones"
+
+msgid "Tipo de Cedula *"
+msgstr "Tipo de identificação *"
+
+msgid "Total Citas"
+msgstr "Total de compromissos"
+
+msgid "Total de Citas"
+msgstr "Total de compromissos"
+
+msgid "Total estimado:"
+msgstr "Total estimado:"
+
+msgid "Términos"
+msgstr "Termos"
+
+msgid "Ubicacion"
+msgstr "Localização"
+
+msgid "Ver"
+msgstr "Ver"
+
+msgid "Ver todas las especialidades"
+msgstr "Veja todas as especialidades"
+
+msgid "Vie"
+msgstr "sex"
+
+msgid "Vision general del negocio y gestion de la clinica"
+msgstr "Visão geral do negócio e gestão da clínica"
+
+msgid "Volver al Dashboard"
+msgstr "Retornar ao painel"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "ayudarte"
+msgstr "ajudar você"
+
+msgid "disponibles"
+msgstr "disponível"
+
+msgid "medicina"
+msgstr "medicamento"
+
+msgid "para ofrecerte la mejor atención médica en Venezuela."
+msgstr "para lhe oferecer o melhor atendimento médico na Venezuela."
+
+msgid "salud y bienestar"
+msgstr "saúde e bem-estar"
+
+msgid "tecnología y humanidad"
+msgstr "tecnologia e humanidade"
+
+msgid "© 2024 Healthy Life. Todos los derechos reservados."
+msgstr "© 2024 Vida Saudável. Todos os direitos reservados."
+
+msgid "¿Necesitas ayuda para elegir?"
+msgstr "Precisa de ajuda para escolher?"
+
+msgid "¿No ves tu especialidad?"
+msgstr "Você não vê sua especialidade?"
+
+msgid "¿Para quién es la cita?"
+msgstr "Para quem é a consulta?"
+
+msgid "¿Qué especialidad necesitas?"
+msgstr "Qual especialidade você precisa?"
+
+msgid "¿Ya tienes cuenta?"
+msgstr "Você já tem uma conta?"
+
+msgid "Abrir WhatsApp"
+msgstr "Abrir WhatsApp"
+
+msgid "Conocer Centros"
+msgstr "Conhecer Centros"
+
+msgid "Horario"
+msgstr "Horário"
+
+msgid "Identidad"
+msgstr "Identidade"
+
+msgid "Pagar Saldo"
+msgstr "Pagar Saldo"
+
+msgid "Ver Detalles"
+msgstr "Ver Detalhes"
+
+msgid "Ver todas"
+msgstr "Ver todas"
+
+msgid "Ver todas mis citas"
+msgstr "Ver todas as minhas consultas"
+
+msgid ""
+"¿Tienes dudas? Escríbenos por WhatsApp y te responderemos lo antes posible."
+msgstr ""
+"Tem dúvidas? Escreva-nos pelo WhatsApp e responderemos o mais breve "
+"possível."
+
+msgid "Accesos rápidos"
+msgstr "Acessos rápidos"
+
+msgid "Activas"
+msgstr "Ativas"
+
+msgid "Activo"
+msgstr "Ativo"
+
+msgid "Actualizar"
+msgstr "Atualizar"
+
+msgid "Actualizar contraseña"
+msgstr "Atualizar senha"
+
+msgid "Alerta 24h antes de cada cita"
+msgstr "Alerta 24h antes de cada consulta"
+
+msgid "Anterior"
+msgstr "Anterior"
+
+msgid "Apellido"
+msgstr "Sobrenome"
+
+msgid ""
+"Aún no tienes datos personales registrados. Completa el formulario de "
+"información personal para acceder a todas las funciones."
+msgstr ""
+"Você ainda não tem dados pessoais registrados. Complete o formulário de "
+"informações pessoais para acessar todos os recursos."
+
+msgid "Aún no tienes facturas"
+msgstr "Você ainda não tem faturas"
+
+msgid "Buscar"
+msgstr "Buscar"
+
+msgid "Cambiar"
+msgstr "Mudar"
+
+msgid "Cambiar contraseña"
+msgstr "Alterar senha"
+
+msgid "Cancelar cita"
+msgstr "Cancelar consulta"
+
+msgid "Cerrar"
+msgstr "Fechar"
+
+msgid "Citas"
+msgstr "Consultas"
+
+msgid "Comienza agendando tu primera consulta médica."
+msgstr "Comece agendando sua primeira consulta médica."
+
+msgid "Completada"
+msgstr "Concluída"
+
+msgid "Configurar"
+msgstr "Configurar"
+
+msgid "Confirmar nueva contraseña"
+msgstr "Confirmar nova senha"
+
+msgid "Consulta general"
+msgstr "Consulta geral"
+
+msgid "Consulta y actualiza tu información médica personal"
+msgstr "Consulte e atualize suas informações médicas pessoais"
+
+msgid "Consulta y descarga tus comprobantes de pago"
+msgstr "Consulte e baixe seus comprovantes de pagamento"
+
+msgid "Consulta y edita la información clínica de tu hijo/a o dependiente"
+msgstr "Consulte e edite as informações clínicas de seu filho/a ou dependente"
+
+msgid "Consultas pasadas"
+msgstr "Consultas passadas"
+
+msgid "Contraseña"
+msgstr "Senha"
+
+msgid "Contraseña actual"
+msgstr "Senha atual"
+
+msgid "Correo electrónico"
+msgstr "E-mail"
+
+msgid "Cuenta Activa"
+msgstr "Conta Ativa"
+
+msgid "Cuenta Inactiva"
+msgstr "Conta Inativa"
+
+msgid "Datos médicos"
+msgstr "Dados médicos"
+
+msgid "Descargar PDF"
+msgstr "Baixar PDF"
+
+msgid "Detalle de consulta"
+msgstr "Detalhe da consulta"
+
+msgid "Detalle de factura"
+msgstr "Detalhe da fatura"
+
+msgid "Diagnóstico"
+msgstr "Diagnóstico"
+
+msgid "Dirección *"
+msgstr "Endereço *"
+
+msgid "Documento"
+msgstr "Documento"
+
+msgid "Documentos adjuntos"
+msgstr "Documentos anexos"
+
+msgid "Editar"
+msgstr "Editar"
+
+msgid "Emisor"
+msgstr "Emissor"
+
+msgid "En consulta"
+msgstr "Em consulta"
+
+msgid "Enfermedades / condiciones"
+msgstr "Doenças / condições"
+
+msgid ""
+"Esta acción no se puede deshacer. ¿Confirmas que deseas cancelar esta cita?"
+msgstr ""
+"Esta ação não pode ser desfeita. Confirma que deseja cancelar esta consulta?"
+
+msgid "Este año"
+msgstr "Este ano"
+
+msgid "Facturas totales"
+msgstr "Faturas totais"
+
+msgid "Fecha de Nacimiento"
+msgstr "Data de Nascimento"
+
+msgid "Femenino"
+msgstr "Feminino"
+
+msgid "Filtrar"
+msgstr "Filtrar"
+
+msgid "Gestiona tu información personal y de contacto"
+msgstr "Gerencie suas informações pessoais e de contato"
+
+msgid "Gestiona tus citas médicas agendadas"
+msgstr "Gerencie suas consultas médicas agendadas"
+
+msgid "Guardar"
+msgstr "Salvar"
+
+msgid "Guardar cambios"
+msgstr "Salvar alterações"
+
+msgid "Guardar dirección"
+msgstr "Salvar endereço"
+
+msgid "Historial médico del menor"
+msgstr "Histórico médico do menor"
+
+msgid "Impuestos (0%)"
+msgstr "Impostos (0%)"
+
+msgid "Inactivas"
+msgstr "Inativas"
+
+msgid "Inactivo"
+msgstr "Inativo"
+
+msgid "Indicaciones"
+msgstr "Indicações"
+
+msgid "Información de contacto"
+msgstr "Informação de contato"
+
+msgid "Información de salud"
+msgstr "Informação de saúde"
+
+msgid "Información médica personal"
+msgstr "Informação médica pessoal"
+
+msgid "Información personal"
+msgstr "Informação pessoal"
+
+msgid "Ingresa tu contraseña actual y la nueva para actualizarla."
+msgstr "Digite sua senha atual e a nova para atualizá-la."
+
+msgid "Limpiar"
+msgstr "Limpar"
+
+msgid "Masculino"
+msgstr "Masculino"
+
+msgid "Medicamentos habituales"
+msgstr "Medicamentos habituais"
+
+msgid "Mi Historial Médico"
+msgstr "Meu Histórico Médico"
+
+msgid "Miembro desde"
+msgstr "Membro desde"
+
+msgid "Monto total"
+msgstr "Valor total"
+
+msgid "Motivo:"
+msgstr "Motivo:"
+
+msgid "Nacimiento"
+msgstr "Nascimento"
+
+msgid "Navegación del paciente"
+msgstr "Navegação do paciente"
+
+msgid "Ninguna"
+msgstr "Nenhuma"
+
+msgid "No configuradas"
+msgstr "Não configuradas"
+
+msgid "No hay historial registrado."
+msgstr "Nenhum histórico registrado."
+
+msgid "No tienes citas agendadas"
+msgstr "Você não tem consultas agendadas"
+
+msgid "No, volver"
+msgstr "Não, voltar"
+
+msgid "Notas importantes"
+msgstr "Notas importantes"
+
+msgid "Notificaciones por correo"
+msgstr "Notificações por e-mail"
+
+msgid "Nueva Cita"
+msgstr "Nova Consulta"
+
+msgid "Nueva contraseña"
+msgstr "Nova senha"
+
+msgid "Nº Factura"
+msgstr "Nº Fatura"
+
+msgid "Observaciones"
+msgstr "Observações"
+
+msgid "Otro"
+msgstr "Outro"
+
+msgid "Pagada (adelanto)"
+msgstr "Paga (adiantamento)"
+
+msgid "Pagar ahora"
+msgstr "Pagar agora"
+
+msgid "Pagar saldo"
+msgstr "Pagar saldo"
+
+msgid "Pago pendiente"
+msgstr "Pagamento pendente"
+
+msgid "Perfil incompleto"
+msgstr "Perfil incompleto"
+
+msgid "Período"
+msgstr "Período"
+
+msgid "Por asignar"
+msgstr "A designar"
+
+msgid "Preferencias"
+msgstr "Preferências"
+
+msgid "Preguntas de seguridad"
+msgstr "Perguntas de segurança"
+
+msgid "Primer Apellido"
+msgstr "Primeiro Sobrenome"
+
+msgid "Primer Nombre"
+msgstr "Primeiro Nome"
+
+msgid "Recetas médicas"
+msgstr "Receitas médicas"
+
+msgid "Recibir actualizaciones y promociones"
+msgstr "Receber atualizações e promoções"
+
+msgid "Recordatorios de citas"
+msgstr "Lembretes de consultas"
+
+msgid "Registradas en el sistema"
+msgstr "Registradas no sistema"
+
+msgid "Resumen"
+msgstr "Resumo"
+
+msgid "Seguridad"
+msgstr "Segurança"
+
+msgid "Seleccionar"
+msgstr "Selecionar"
+
+msgid "Seleccionar ciudad"
+msgstr "Selecionar cidade"
+
+msgid "Seleccionar estado"
+msgstr "Selecionar estado"
+
+msgid "Seleccionar municipio"
+msgstr "Selecionar município"
+
+msgid "Seleccionar parroquia"
+msgstr "Selecionar paróquia"
+
+msgid "Servicios realizados"
+msgstr "Serviços realizados"
+
+msgid "Sexo"
+msgstr "Sexo"
+
+msgid "Siguiente"
+msgstr "Próximo"
+
+msgid "Sin alergias registradas"
+msgstr "Sem alergias registradas"
+
+msgid "Sin enfermedades registradas"
+msgstr "Sem doenças registradas"
+
+msgid "Sin historial registrado"
+msgstr "Sem histórico registrado"
+
+msgid "Sin vacunas registradas"
+msgstr "Sem vacinas registradas"
+
+msgid "Subir"
+msgstr "Enviar"
+
+msgid "Subtotal"
+msgstr "Subtotal"
+
+msgid "Sí, cancelar"
+msgstr "Sim, cancelar"
+
+msgid "Teléfono"
+msgstr "Telefone"
+
+msgid "Teléfono móvil"
+msgstr "Telefone móvel"
+
+msgid "Tipo de sangre"
+msgstr "Tipo sanguíneo"
+
+msgid "Todos"
+msgstr "Todos"
+
+msgid "Todos los períodos"
+msgstr "Todos os períodos"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total adeudado"
+msgstr "Total devido"
+
+msgid "Total pagado"
+msgstr "Total pago"
+
+msgid "Tratamiento"
+msgstr "Tratamento"
+
+msgid "Tus facturas aparecerán aquí después de agendar y pagar citas médicas."
+msgstr "Suas faturas aparecerão aqui após agendar e pagar consultas médicas."
+
+msgid "Tutor / Paciente especial"
+msgstr "Tutor / Paciente especial"
+
+msgid "Ver cita"
+msgstr "Ver consulta"
+
+msgid "Ver detalle"
+msgstr "Ver detalhe"
+
+msgid "Ver detalles"
+msgstr "Ver detalhes"
+
+msgid "Ver receta completa"
+msgstr "Ver receita completa"
+
+msgid "¿Cancelar cita?"
+msgstr "Cancelar consulta?"
+
+msgid "Última actualización: hace 3 meses"
+msgstr "Última atualização: há 3 meses"
+
+msgid "Últimos 3 meses"
+msgstr "Últimos 3 meses"
+
+msgid "Últimos 6 meses"
+msgstr "Últimos 6 meses"
+
+msgid "Activa"
+msgstr "Ativa"
+
+msgid "Borrador"
+msgstr "Rascunho"
+
+msgid "Cancelada"
+msgstr "Cancelada"
+
+msgid "Consulta general pediátrica"
+msgstr "Consulta pediátrica geral"
+
+msgid "Consulta por fiebre"
+msgstr "Consulta por febre"
+
+msgid "Dirección"
+msgstr "Endereço"
+
+msgid "Editar historial"
+msgstr "Editar histórico"
+
+msgid "Emitida"
+msgstr "Emitida"
+
+msgid "En proceso"
+msgstr "Em processo"
+
+msgid "Finalizada"
+msgstr "Finalizada"
+
+msgid "Guardar contacto"
+msgstr "Salvar contato"
+
+msgid "Historial"
+msgstr "Histórico"
+
+msgid "Historial médico de"
+msgstr "Histórico médico de"
+
+msgid "Medicina general"
+msgstr "Medicina geral"
+
+msgid "Mis Menores"
+msgstr "Meus Menores"
+
+msgid ""
+"Motivo: Control de crecimiento y desarrollo. El menor se encuentra en buen "
+"estado general."
+msgstr ""
+"Motivo: Controle de crescimento e desenvolvimento. O menor encontra-se em "
+"bom estado geral."
+
+msgid ""
+"Motivo: Fiebre persistente de 38.5°C. Se prescribió antipirético y reposo."
+msgstr ""
+"Motivo: Febre persistente de 38.5°C. Foi prescrito antipirético e repouso."
+
+msgid "No hay dirección registrada. Haz clic en Editar para agregar una."
+msgstr "Nenhum endereço registrado. Clique em Editar para adicionar um."
+
+msgid "Pagada"
+msgstr "Paga"
+
+msgid "Pediatría"
+msgstr "Pediatria"
+
+msgid "Pendiente"
+msgstr "Pendente"
+
+msgid "Receta completa"
+msgstr "Receita completa"
+
+msgid "Sede Norte"
+msgstr "Sede Norte"
+
+msgid "Sede Principal"
+msgstr "Sede Principal"
+
+msgid "Selecciona municipio primero"
+msgstr "Selecione o município primeiro"
+
+msgid "Volver a mis menores"
+msgstr "Voltar aos meus menores"
+
+msgid "? Esta acción no se puede deshacer."
+msgstr "? Esta ação não pode ser desfeita."
+
+msgid "Activos"
+msgstr "Ativos"
+
+msgid "Agregar menor"
+msgstr "Adicionar menor"
+
+msgid "Agregar menor a cargo"
+msgstr "Adicionar menor a cargo"
+
+msgid "Alergias o condiciones médicas"
+msgstr "Alergias ou condições médicas"
+
+msgid "Aún no tienes menores a cargo registrados"
+msgstr "Você não tem menores a cargo registrados"
+
+msgid "Datos del Menor"
+msgstr "Dados do Menor"
+
+msgid "Edad"
+msgstr "Idade"
+
+msgid ""
+"El menor no tendrá credenciales de acceso propias. Será gestionado por usted"
+" como tutor desde este panel."
+msgstr ""
+"O menor não terá credenciais de acesso próprias. Será gerenciado por você "
+"como tutor a partir deste painel."
+
+msgid "El nombre completo es obligatorio."
+msgstr "O nome completo é obrigatório."
+
+msgid "Eliminar menor"
+msgstr "Excluir menor"
+
+msgid "Fecha de nacimiento"
+msgstr "Data de nascimento"
+
+msgid ""
+"Gestiona los perfiles de tus hijos o dependientes para agendar citas en su "
+"nombre"
+msgstr ""
+"Gerencie os perfis de seus filhos ou dependentes para agendar consultas em "
+"nome deles"
+
+msgid "Guardar menor"
+msgstr "Salvar menor"
+
+msgid "Hija"
+msgstr "Filha"
+
+msgid "Hijo"
+msgstr "Filho"
+
+msgid "Identificación"
+msgstr "Identificação"
+
+msgid "Menor"
+msgstr "Menor"
+
+msgid "Menor eliminado correctamente."
+msgstr "Menor excluído com sucesso."
+
+msgid "Menores registrados"
+msgstr "Menores registrados"
+
+msgid "Mis Menores a Cargo"
+msgstr "Menores a Cargo"
+
+msgid "Nombre completo"
+msgstr "Nome completo"
+
+msgid "Nota:"
+msgstr "Nota:"
+
+msgid "Número de Cédula"
+msgstr "Número de Cédula"
+
+msgid "Número de identificación"
+msgstr "Número de identificação"
+
+msgid "Opcional."
+msgstr "Opcional."
+
+msgid "Opcional. Número de contacto de emergencia."
+msgstr "Opcional. Número de contato de emergência."
+
+msgid "Opcional. Solo si el menor tiene cédula."
+msgstr "Opcional. Apenas se o menor tiver cédula."
+
+msgid "Pupilo"
+msgstr "Pupilo"
+
+msgid ""
+"Registra a tus hijos o dependientes para poder agendar citas médicas en su "
+"nombre y gestionar su historial."
+msgstr ""
+"Registre seus filhos ou dependentes para poder agendar consultas médicas em "
+"nome deles e gerenciar seu histórico."
+
+msgid "Registrar Menor"
+msgstr "Registrar Menor"
+
+msgid "Selecciona..."
+msgstr "Selecione..."
+
+msgid "Sobrina"
+msgstr "Sobrinha"
+
+msgid "Sobrino"
+msgstr "Sobrinho"
+
+msgid "Sí, eliminar"
+msgstr "Sim, excluir"
+
+msgid "Teléfono de Contacto"
+msgstr "Telefone de Contato"
+
+msgid "Teléfono de contacto"
+msgstr "Telefone de contato"
+
+msgid "Tipo de Cédula"
+msgstr "Tipo de Cédula"
+
+msgid "Todos los campos marcados con"
+msgstr "Todos os campos marcados com"
+
+msgid "guardado correctamente."
+msgstr "salvo com sucesso."
+
+msgid "son obligatorios"
+msgstr "são obrigatórios"
+
+msgid "¿Estás seguro de que deseas eliminar a"
+msgstr "Tem certeza de que deseja excluir"
+
+msgid "Acepto los"
+msgstr "Aceito os"
+
+msgid "Banco"
+msgstr "Banco"
+
+msgid "Banco de Venezuela, Mercantil, etc."
+msgstr "Banco de Venezuela, Mercantil, etc."
+
+msgid "Banco emisor"
+msgstr "Banco emissor"
+
+msgid "Bancos locales o Pago Móvil"
+msgstr "Bancos locais ou Pagamento Móvel"
+
+msgid "Cargo por reserva"
+msgstr "Taxa de reserva"
+
+msgid "Checkout de Reserva"
+msgstr "Checkout de Reserva"
+
+msgid "Confirmar Reserva"
+msgstr "Confirmar Reserva"
+
+msgid "Confirmar pago y reservar"
+msgstr "Confirmar pagamento e reservar"
+
+msgid "Copiado"
+msgstr "Copiado"
+
+msgid "Copiar"
+msgstr "Copiar"
+
+msgid "Cédula del titular"
+msgstr "Documento do titular"
+
+msgid "Datos para transferencia / Pago Móvil"
+msgstr "Dados para transferência / Pagamento Móvel"
+
+msgid "Debes aceptar los términos y condiciones para continuar."
+msgstr "Você deve aceitar os termos e condições para continuar."
+
+msgid "Ej: 123456"
+msgstr "Ex: 123456"
+
+msgid "El banco emisor debe tener entre 2 y 30 caracteres."
+msgstr "O banco emissor deve ter entre 2 e 30 caracteres."
+
+msgid "El monto del pago debe tener formato 0,00 (ej: 5,00)."
+msgstr "O valor do pagamento deve estar no formato 0,00 (ex: 5,00)."
+
+msgid ""
+"El pago por reserva es un cargo adicional por reservar la cita, es "
+"independiente del precio del servicio."
+msgstr ""
+"O pagamento de reserva é uma taxa adicional para agendar a consulta, é "
+"independente do preço do serviço."
+
+msgid "El teléfono debe tener 10 o 11 dígitos numéricos."
+msgstr "O telefone deve ter 10 ou 11 dígitos numéricos."
+
+msgid "Especialidad / Servicio"
+msgstr "Especialidade / Serviço"
+
+msgid "Exactamente 6 dígitos numéricos"
+msgstr "Exatamente 6 dígitos numéricos"
+
+msgid "Ingresa el monto con formato"
+msgstr "Digite o valor no formato"
+
+msgid "Ingresa el monto con formato 0,00 (ej: 5,00)"
+msgstr "Digite o valor no formato 0,00 (ex: 5,00)"
+
+msgid "La cédula debe tener entre 6 y 9 dígitos numéricos."
+msgstr "O documento deve ter entre 6 e 9 dígitos numéricos."
+
+msgid "La referencia debe tener exactamente 6 dígitos numéricos."
+msgstr "A referência deve ter exatamente 6 dígitos numéricos."
+
+msgid "Monto a pagar"
+msgstr "Valor a pagar"
+
+msgid "Monto del pago"
+msgstr "Valor do pagamento"
+
+msgid "Motivo"
+msgstr "Motivo"
+
+msgid "Método de pago"
+msgstr "Método de pagamento"
+
+msgid "Número de cuenta"
+msgstr "Número da conta"
+
+msgid "Número de referencia (últimos 6 dígitos)"
+msgstr "Número de referência (últimos 6 dígitos)"
+
+msgid "Por definir"
+msgstr "A definir"
+
+msgid "Revisa los detalles y completa el pago para agendar tu cita."
+msgstr "Revise os detalhes e complete o pagamento para agendar sua consulta."
+
+msgid "Saldo:"
+msgstr "Saldo:"
+
+msgid "Solo números, 10-11 dígitos"
+msgstr "Apenas números, 10-11 dígitos"
+
+msgid "Solo números, entre 6 y 9 dígitos"
+msgstr "Apenas números, entre 6 e 9 dígitos"
+
+msgid "Tipo de cuenta"
+msgstr "Tipo de conta"
+
+msgid "Titular"
+msgstr "Titular"
+
+msgid "Transferencia / Pago Móvil"
+msgstr "Transferência / Pagamento Móvel"
+
+msgid ""
+"Tu pago ha sido registrado correctamente. La recepcionista verificará y "
+"confirmará tu cita en breve. Te hemos enviado un comprobante al correo."
+msgstr ""
+"Seu pagamento foi registrado corretamente. A recepcionista verificará e "
+"confirmará sua consulta em breve. Enviamos um comprovante para o seu e-mail."
+
+msgid "Ver citas"
+msgstr "Ver consultas"
+
+msgid "Ver historial"
+msgstr "Ver histórico"
+
+msgid "adeudado"
+msgstr "devido"
+
+msgid "de la clínica."
+msgstr "da clínica."
+
+msgid "ej: 5,00"
+msgstr "ex: 5,00"
+
+msgid "política de cancelación"
+msgstr "política de cancelamento"
+
+msgid "términos y condiciones"
+msgstr "termos e condições"
+
+msgid "y la"
+msgstr "e a"
+
+msgid "¡Cita reservada!"
+msgstr "Consulta reservada!"
+
+msgid "0,00"
+msgstr "0,00"
+
+msgid "Banco:"
+msgstr "Banco:"
+
+msgid "Canceladas / Rechazadas"
+msgstr ""
+
+msgid "Completadas"
+msgstr ""
+
+msgid "Confirmadas"
+msgstr ""
+
+msgid "Confirmar pago de consulta"
+msgstr "Confirmar pagamento da consulta"
+
+msgid "Confirmar pago en clínica"
+msgstr "Confirmar pagamento na clínica"
+
+msgid "Costo de consulta"
+msgstr "Custo da consulta"
+
+msgid "Cuenta:"
+msgstr "Conta:"
+
+msgid "Cédula"
+msgstr ""
+
+msgid "Describe el método de pago"
+msgstr "Descreva o método de pagamento"
+
+msgid "Desglose de cargos"
+msgstr ""
+
+msgid "Ej: 04121234567"
+msgstr ""
+
+msgid "Ej: 12345678"
+msgstr ""
+
+msgid "Ej: Zelle, PayPal, Binance"
+msgstr "Ex: Zelle, PayPal, Binance"
+
+msgid ""
+"El monto total deberá ser cancelado en la recepción el día de tu cita. Tu "
+"reserva quedará pendiente de confirmación."
+msgstr ""
+"O valor total deverá ser pago na recepção no dia da sua consulta. Sua "
+"reserva ficará pendente de confirmação."
+
+msgid "Has seleccionado"
+msgstr "Você selecionou"
+
+msgid "Monto"
+msgstr "Valor"
+
+msgid "Número de teléfono"
+msgstr "Número de telefone"
+
+msgid "Número de transacción"
+msgstr "Número da transação"
+
+msgid "Otro método acordado"
+msgstr ""
+
+msgid "Paga en la recepción el día de la consulta"
+msgstr ""
+
+msgid "Pagadas"
+msgstr ""
+
+msgid "Pago de Consulta"
+msgstr "Pagamento da Consulta"
+
+msgid "Por pagar"
+msgstr ""
+
+msgid "Referencia (últimos 6 dígitos)"
+msgstr ""
+
+msgid "Referencia / Comprobante"
+msgstr "Referência / Comprovante"
+
+msgid "Revisa los datos de tu cita y completa el pago para finalizar."
+msgstr ""
+"Revise os dados da sua consulta e complete o pagamento para finalizar."
+
+msgid "Titular:"
+msgstr "Titular:"
+
+msgid "Total a pagar"
+msgstr "Total a pagar"
+
+msgid ""
+"Tu pago ha sido registrado correctamente. La recepcionista verificará y "
+"confirmará tu pago en breve."
+msgstr ""
+"Seu pagamento foi registrado corretamente. A recepcionista verificará e "
+"confirmará seu pagamento em breve."
+
+msgid "Una vez realizado el pago, ingresa los datos abajo."
+msgstr "Após realizar o pagamento, insira os dados abaixo."
+
+msgid "pago en efectivo"
+msgstr "pagamento em dinheiro"
+
+msgid "{% trans \"Registrar Super Admin"
+msgstr ""
+
+msgid "{{ count }} factura pagada{% plural %}{{ count }} facturas pagadas"
+msgstr ""
+
+msgid ""
+"{{ count }} factura pendiente{% plural %}{{ count }} facturas pendientes"
+msgstr ""
+
+msgid "¡Pago registrado!"
+msgstr "Pagamento registrado!"
+
+msgid "Efectivo"
+msgstr "Dinheiro"
+
+msgid "Transferencia bancaria"
+msgstr "Transferência bancária"
+
+msgid "Tus datos están protegidos con encriptación SSL"
+msgstr ""
+
+msgid "Ver mis citas"
+msgstr ""
+
+msgid "Volver atrás"
+msgstr "Voltar"
+
+msgid "Volver a mis citas"
+msgstr "Voltar às minhas consultas"

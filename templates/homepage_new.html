@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healthy Life - Sistema de Gestión de Citas Médicas</title>
+    <title>{% trans "Healthy Life - Sistema de Gestión de Citas Médicas" %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
     <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
@@ -29,11 +30,11 @@
                     Sobre Nosotros
                 </div>
                 <h2 class="hl-section-title mb-6">
-                    Comprometidos con tu <span style="color: #0070F3;">salud y bienestar</span>
+                    {% trans "Comprometidos con tu" %} <span style="color: #0070F3;">{% trans "salud y bienestar" %}</span>
                 </h2>
                 <p class="text-lg leading-relaxed mb-8" style="color: #64748B;">
                     En Healthy Life combinamos tecnología médica avanzada con un equipo de profesionales altamente calificados
-                    para ofrecerte la mejor atención médica en Venezuela.
+                    {% trans "para ofrecerte la mejor atención médica en Venezuela." %}
                 </p>
                 <div class="grid grid-cols-2 gap-4 mb-8">
                     <div class="hl-card p-4 flex items-center gap-3">
@@ -41,7 +42,7 @@
                             <svg class="w-5 h-5" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold" style="color: #1E293B;">Calidad Certificada</h4>
+                            <h4 class="text-sm font-bold" style="color: #1E293B;">{% trans "Calidad Certificada" %}</h4>
                             <p class="text-xs" style="color: #64748B;">Estándares internacionales</p>
                         </div>
                     </div>
@@ -50,8 +51,8 @@
                             <svg class="w-5 h-5" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold" style="color: #1E293B;">Atención 24/7</h4>
-                            <p class="text-xs" style="color: #64748B;">Siempre disponibles</p>
+                            <h4 class="text-sm font-bold" style="color: #1E293B;">{% trans "Atención 24/7" %}</h4>
+                            <p class="text-xs" style="color: #64748B;">{% trans "Siempre disponibles" %}</p>
                         </div>
                     </div>
                     <div class="hl-card p-4 flex items-center gap-3">
@@ -60,7 +61,7 @@
                         </div>
                         <div>
                             <h4 class="text-sm font-bold" style="color: #1E293B;">Expertos Médicos</h4>
-                            <p class="text-xs" style="color: #64748B;">Especialistas reconocidos</p>
+                            <p class="text-xs" style="color: #64748B;">{% trans "Especialistas reconocidos" %}</p>
                         </div>
                     </div>
                     <div class="hl-card p-4 flex items-center gap-3">
@@ -68,13 +69,13 @@
                             <svg class="w-5 h-5" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold" style="color: #1E293B;">Tecnología Avanzada</h4>
+                            <h4 class="text-sm font-bold" style="color: #1E293B;">{% trans "Tecnología Avanzada" %}</h4>
                             <p class="text-xs" style="color: #64748B;">Equipamiento moderno</p>
                         </div>
                     </div>
                 </div>
                 <a href="{% url 'registro' %}" class="hl-btn-primary">
-                    Conoce más sobre nosotros
+                    {% trans "Conoce más sobre nosotros" %}
                 </a>
             </div>
             <div class="relative hidden lg:block">
@@ -90,7 +91,7 @@
                         </div>
                         <div>
                             <div class="text-xl font-extrabold" style="color: #1E293B;">15+</div>
-                            <div class="text-xs" style="color: #64748B;">Años de experiencia</div>
+                            <div class="text-xs" style="color: #64748B;">{% trans "Años de experiencia" %}</div>
                         </div>
                     </div>
                 </div>
@@ -108,29 +109,29 @@
         <div class="text-center mb-16">
             <div class="hl-badge hl-badge-blue mb-4">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                Contacto
+                {% trans "Contacto" %}
             </div>
-            <h2 class="hl-section-title mb-4">Estamos para <span style="color: #0070F3;">ayudarte</span></h2>
+            <h2 class="hl-section-title mb-4">{% trans "Estamos para" %} <span style="color: #0070F3;">ayudarte</span></h2>
             <p class="hl-section-subtitle mx-auto">
-                Comunícate con nosotros para cualquier consulta o para agendar tu cita
+                {% trans "Comunícate con nosotros para cualquier consulta o para agendar tu cita" %}
             </p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Formulario -->
             <div class="hl-card p-8">
-                <h3 class="text-xl font-bold mb-6" style="color: #1E293B;">Envíanos un mensaje</h3>
-                <p class="text-sm mb-5" style="color: #64748B;">¿Tienes dudas? Escríbenos por WhatsApp y te responderemos lo antes posible.</p>
+                <h3 class="text-xl font-bold mb-6" style="color: #1E293B;">{% trans "Envíanos un mensaje" %}</h3>
+                <p class="text-sm mb-5" style="color: #64748B;">{% trans "¿Tienes dudas? Escríbenos por WhatsApp y te responderemos lo antes posible." %}</p>
                 <a href="https://wa.me/584245782611?text=Hola,%20me%20gustaría%20recibir%20más%20información" target="_blank" rel="noopener noreferrer" class="hl-btn-primary w-full justify-center text-sm" style="padding: 10px 22px; border-radius: 9999px; display: inline-flex;">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    Abrir WhatsApp
+                    {% trans "Abrir WhatsApp" %}
                 </a>
             </div>
 
             <!-- Info de contacto -->
             <div class="space-y-6">
                 <div class="hl-card p-6">
-                    <h3 class="text-lg font-bold mb-5" style="color: #1E293B;">Información de Contacto</h3>
+                    <h3 class="text-lg font-bold mb-5" style="color: #1E293B;">Información de {% trans "Contacto" %}</h3>
                     <div class="space-y-4">
                         <div class="flex items-start gap-3">
                             <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(0,112,243,0.08);">
@@ -138,8 +139,8 @@
                             </div>
                             <div>
                                 <h4 class="text-sm font-semibold" style="color: #1E293B;">Teléfonos</h4>
-                                <a href="tel:+584145281090" class="text-xs hover:underline block" style="color: #64748B;">Caracas: +58 414-5281090</a>
-                                <a href="tel:+584245782611" class="text-xs hover:underline block" style="color: #64748B;">Barquisimeto: +58 424-5782611</a>
+                                <a href="tel:+584145281090" class="text-xs hover:underline block" style="color: #64748B;">{% trans "Caracas: +58 414-5281090" %}</a>
+                                <a href="tel:+584245782611" class="text-xs hover:underline block" style="color: #64748B;">{% trans "Barquisimeto: +58 424-5782611" %}</a>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
@@ -157,10 +158,10 @@
                                 <svg class="w-4 h-4" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-semibold" style="color: #1E293B;">Horarios</h4>
+                                <h4 class="text-sm font-semibold" style="color: #1E293B;">{% trans "Horarios" %}</h4>
                                 <p class="text-xs" style="color: #64748B;">Lun–Vie: 6:00 AM – 10:00 PM</p>
-                                <p class="text-xs" style="color: #64748B;">Sáb: 7:00 AM – 9:00 PM</p>
-                                <p class="text-xs font-medium" style="color: #0070F3;">Emergencias: 24/7</p>
+                                <p class="text-xs" style="color: #64748B;">{% trans "Sáb: 7:00 AM – 9:00 PM" %}</p>
+                                <p class="text-xs font-medium" style="color: #0070F3;">{% trans "Emergencias: 24/7" %}</p>
                             </div>
                         </div>
                     </div>
@@ -173,7 +174,7 @@
                     </a>
                     <a href="https://wa.me/584245782611?text=Hola,%20me%20gustaría%20recibir%20más%20información" target="_blank" rel="noopener noreferrer" class="hl-btn-secondary text-sm justify-center" style="padding: 10px 16px; border-radius: 9999px;">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                        WhatsApp
+                        {% trans "WhatsApp" %}
                     </a>
                 </div>
             </div>

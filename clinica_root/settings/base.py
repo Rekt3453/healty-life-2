@@ -5,6 +5,7 @@ Django base settings for clinica_root project.
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'usuarios.middleware.UserModelHintMiddleware',
@@ -117,11 +119,22 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'es-ve'
+LANGUAGE_CODE = 'es'
+
+LANGUAGES = [
+    ('es', _('Español')),
+    ('en', _('English')),
+    ('pt', _('Português')),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 TIME_ZONE = 'America/Caracas'
 
 USE_I18N = True
+USE_L10N = True
 
 USE_TZ = True
 

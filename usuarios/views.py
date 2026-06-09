@@ -1,5 +1,6 @@
 import logging
 from datetime import date
+from django.utils.translation import gettext as _
 from django.db.models import Prefetch
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
@@ -48,7 +49,7 @@ def home(request):
     ).order_by('id_cm')
     from citas.models import Especialidad
     especialidades = Especialidad.objects.filter(status=True).order_by('tipo_especialidad')
-    return render(request, 'home.html', {'centros': centros, 'especialidades': especialidades})
+    return render(request, 'homepage_new.html', {'centros': centros, 'especialidades': especialidades})
 
 def login_rol(request, rol_esperado, template_name, dashboard_name):
     from django.utils.http import url_has_allowed_host_and_scheme
@@ -93,10 +94,10 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
                                     c.execute(f"UPDATE {tabla} SET token_activacion = %s WHERE {pk_col} = %s", [token, user.pk])
                             enlace = request.build_absolute_uri(f"/activar-cuenta/{user.pk}/{token}/")
                             enviar_correo_activacion(user, rol_esperado.title(), enlace)
-                            messages.info(request, "Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu correo.")
+                            messages.info(request, _("Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu correo."))
                         except Exception as mail_err:
                             logger.warning(f"No se pudo reenviar correo de activación: {mail_err}")
-                            messages.info(request, "Tu cuenta aún no está activada. Contacta al administrador.")
+                            messages.info(request, _("Tu cuenta aún no está activada. Contacta al administrador."))
                         return render(request, template_name)
 
                 login(request, user, backend='usuarios.authentication.CustomAuthBackend')
@@ -120,9 +121,9 @@ def login_rol(request, rol_esperado, template_name, dashboard_name):
         else:
             ip = get_client_ip(request)
             if is_rate_limited(username, ip):
-                messages.error(request, "Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo.")
+                messages.error(request, _("Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo."))
             else:
-                messages.error(request, "Credenciales incorrectas")
+                messages.error(request, _("Credenciales incorrectas"))
             logger.debug(f"Credenciales incorrectas para {username}")
 
     return render(request, template_name, {'next': next_url})
@@ -159,7 +160,7 @@ def logout_view(request):
             request=request,
         )
     logout(request)
-    messages.info(request, "Has cerrado sesión correctamente")
+    messages.info(request, _("Has cerrado sesión correctamente"))
     return redirect('home')
 
 def registro_paciente(request):
@@ -254,15 +255,15 @@ def registro_paciente(request):
                 if es_paciente_especial:
                     if es_menor:
                         messages.success(request,
-                            "Cuenta creada con éxito. Has sido registrado como paciente especial (menor de edad). "
-                            "Los datos de tu tutor han sido guardados. Revisa tu correo electrónico.")
+                            _("Cuenta creada con éxito. Has sido registrado como paciente especial (menor de edad). "
+                            "Los datos de tu tutor han sido guardados. Revisa tu correo electrónico."))
                     else:
                         messages.success(request,
-                            "Cuenta creada con éxito. Has sido registrado como paciente especial. "
-                            "Revisa tu correo electrónico.")
+                            _("Cuenta creada con éxito. Has sido registrado como paciente especial. "
+                            "Revisa tu correo electrónico."))
                 else:
                     messages.success(request,
-                        "Cuenta creada con éxito. Bienvenido al sistema. Revisa tu correo electrónico.")
+                        _("Cuenta creada con éxito. Bienvenido al sistema. Revisa tu correo electrónico."))
 
                 return redirect('dashboard_paciente')
 
@@ -453,7 +454,7 @@ def login_view(request):
             elif rol == 'gerente':
                 return redirect('dashboard_gerente')
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos')
+            messages.error(request, _('Usuario o contraseña incorrectos'))
     
     return render(request, 'usuarios/login.html')
 
@@ -462,7 +463,7 @@ def dashboard_paciente(request):
     # Verificar que el usuario sea paciente
     auth_backend = CustomAuthBackend()
     if auth_backend.get_rol(request.user) != 'paciente':
-        messages.error(request, 'No tienes permisos para acceder a esta página')
+        messages.error(request, _('No tienes permisos para acceder a esta página'))
         return redirect('home')
     
     # Obtener datos personales del paciente
@@ -496,7 +497,7 @@ def registrar_paciente_especial(request):
     paciente_tutor = auth_backend.get_datos_personales(request.user)
 
     if not paciente_tutor:
-        messages.error(request, 'No se encontró tu perfil de paciente.')
+        messages.error(request, _('No se encontró tu perfil de paciente.'))
         return redirect('dashboard_paciente')
 
     form = RegistrarPacienteEspecialForm(request.POST or None)
@@ -576,7 +577,7 @@ def editar_paciente_especial(request, id_paciente_especial):
     paciente_tutor = auth_backend.get_datos_personales(request.user)
 
     if not paciente_tutor:
-        messages.error(request, 'No se encontró tu perfil de paciente.')
+        messages.error(request, _('No se encontró tu perfil de paciente.'))
         return redirect('dashboard_paciente')
 
     # Obtener el menor; exige que pertenezca al tutor autenticado
@@ -652,7 +653,7 @@ def historial_medico(request):
     paciente = auth_backend.get_datos_personales(request.user)
 
     if not paciente:
-        messages.error(request, 'No se encontró tu perfil de paciente.')
+        messages.error(request, _('No se encontró tu perfil de paciente.'))
         return redirect('dashboard_paciente')
 
     # Buscar historial existente vinculado al paciente adulto
@@ -736,7 +737,7 @@ def historial_medico_menor(request, id_paciente_especial):
     paciente_tutor = auth_backend.get_datos_personales(request.user)
 
     if not paciente_tutor:
-        messages.error(request, 'No se encontró tu perfil de paciente.')
+        messages.error(request, _('No se encontró tu perfil de paciente.'))
         return redirect('dashboard_paciente')
 
     # Verificar propiedad: el menor debe pertenecer al tutor autenticado
@@ -826,7 +827,7 @@ def dashboard_medico(request):
     # Verificar que el usuario sea médico
     auth_backend = CustomAuthBackend()
     if auth_backend.get_rol(request.user) != 'medico':
-        messages.error(request, 'No tienes permisos para acceder a esta página')
+        messages.error(request, _('No tienes permisos para acceder a esta página'))
         return redirect('home')
     
     # Obtener datos personales del médico
@@ -849,7 +850,7 @@ def perfil_doctor(request):
     datos_medico = auth_backend.get_datos_personales(request.user)
 
     if not datos_medico:
-        messages.error(request, 'No se encontró tu perfil de médico.')
+        messages.error(request, _('No se encontró tu perfil de médico.'))
         return redirect('dashboard_medico')
 
     # Calcular edad
@@ -1519,14 +1520,14 @@ def recuperar_password(request):
     if request.method == 'POST':
         correo = request.POST.get('correo', '').strip().lower()
         if not correo:
-            messages.error(request, 'Ingresa tu correo electrónico.')
+            messages.error(request, _('Ingresa tu correo electrónico.'))
             return render(request, 'usuarios/recuperar_password.html')
 
         user = UserPaciente.objects.filter(email=correo, status=True).first()
         if not user:
             messages.success(
                 request,
-                'Si el correo está registrado en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.',
+                _('Si el correo está registrado en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.'),
             )
             return redirect('login_paciente')
 
@@ -1542,7 +1543,7 @@ def recuperar_password(request):
                 logger.error(f"Error enviando correo: {type(_e).__name__}: {_e}")
             messages.success(
                 request,
-                'Si el correo está registrado en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.',
+                _('Si el correo está registrado en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.'),
             )
             return redirect('login_paciente')
 
@@ -1613,9 +1614,9 @@ def cambiar_password(request):
         p1 = request.POST.get('password1', '')
         p2 = request.POST.get('password2', '')
         if len(p1) < 8:
-            messages.error(request, 'Mínimo 8 caracteres.')
+            messages.error(request, _('Mínimo 8 caracteres.'))
         elif p1 != p2:
-            messages.error(request, 'Las contraseñas no coinciden.')
+            messages.error(request, _('Las contraseñas no coinciden.'))
         else:
             user = UserPaciente.objects.filter(pk=user_id).first()
             if user:
@@ -1623,7 +1624,7 @@ def cambiar_password(request):
                 user.save()
                 for key in ('recuperacion_user_id', 'preguntas_verificadas'):
                     request.session.pop(key, None)
-                messages.success(request, 'Contraseña actualizada. Inicia sesión.')
+                messages.success(request, _('Contraseña actualizada. Inicia sesión.'))
                 return redirect('login_paciente')
 
     return render(request, 'usuarios/cambiar_password.html')
@@ -2187,12 +2188,12 @@ def activar_cuenta(request, user_id, token):
                 break
 
     if not user_found:
-        messages.error(request, "Enlace vencido")
+        messages.error(request, _("Enlace vencido"))
         return redirect('home')
 
     # Verificar token seguro en caché (expiración / un solo uso)
     if not verificar_token_seguro(user_id, 'activacion', token, invalidar=False):
-        messages.error(request, "Enlace vencido")
+        messages.error(request, _("Enlace vencido"))
         return redirect('home')
 
     if request.method == 'POST':
@@ -2201,7 +2202,7 @@ def activar_cuenta(request, user_id, token):
         token_valido = verificar_token_seguro(user_id, 'activacion', token, invalidar=True)
         logger.info(f"activar_cuenta token_valido_post={token_valido}")
         if not token_valido:
-            messages.error(request, "Enlace vencido")
+            messages.error(request, _("Enlace vencido"))
             return redirect('home')
 
         password1 = request.POST.get('password1', '')
@@ -2210,19 +2211,19 @@ def activar_cuenta(request, user_id, token):
 
         errores = []
         if len(password1) < 8:
-            errores.append("Mínimo 8 caracteres.")
+            errores.append(_("Mínimo 8 caracteres."))
         if len(password1) > 30:
-            errores.append("Máximo 30 caracteres.")
+            errores.append(_("Máximo 30 caracteres."))
         if not re.search(r'[A-Z]', password1):
-            errores.append("Debe contener al menos una mayúscula.")
+            errores.append(_("Debe contener al menos una mayúscula."))
         if not re.search(r'[a-z]', password1):
-            errores.append("Debe contener al menos una minúscula.")
+            errores.append(_("Debe contener al menos una minúscula."))
         if not re.search(r'[0-9]', password1):
-            errores.append("Debe contener al menos un número.")
+            errores.append(_("Debe contener al menos un número."))
         if not re.search(r'[\W_]', password1):
-            errores.append("Debe contener al menos un carácter especial (@, #, $, etc.).")
+            errores.append(_("Debe contener al menos un carácter especial (@, #, $, etc.)."))
         if password1 != password2:
-            errores.append("Las contraseñas no coinciden.")
+            errores.append(_("Las contraseñas no coinciden."))
 
         if errores:
             logger.info(f"activar_cuenta errores_validacion={errores}")
@@ -2254,19 +2255,19 @@ def activar_cuenta(request, user_id, token):
                     logger.info(f"activar_cuenta filas_afectadas={filas_afectadas}")
                     if filas_afectadas == 0:
                         logger.error(f"activar_cuenta UPDATE no afectó filas: tabla={user_found['tabla']} pk={user_found['pk_val']}")
-                        messages.error(request, "No se pudo actualizar la cuenta. Contacta al administrador.")
+                        messages.error(request, _("No se pudo actualizar la cuenta. Contacta al administrador."))
                         return render(request, 'usuarios/activar_cuenta.html', {
                             'user_id': user_id,
                             'token': token,
                         })
             except Exception as db_err:
                 logger.error(f"activar_cuenta error BD: {db_err}", exc_info=True)
-                messages.error(request, "Error al guardar la contraseña. Intenta de nuevo.")
+                messages.error(request, _("Error al guardar la contraseña. Intenta de nuevo."))
                 return render(request, 'usuarios/activar_cuenta.html', {
                     'user_id': user_id,
                     'token': token,
                 })
-            messages.success(request, "Contraseña establecida correctamente. Ya puedes iniciar sesión.")
+            messages.success(request, _("Contraseña establecida correctamente. Ya puedes iniciar sesión."))
             logger.info(f"activar_cuenta exitoso user_id={user_id} tabla={user_found['tabla']} login={login_url}")
             return redirect(login_url)
 

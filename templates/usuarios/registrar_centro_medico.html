@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Centro Médico - Healthy Life</title>
+    <title>{% trans "Registrar" %} Centro Médico - Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -86,7 +87,7 @@
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 Volver al Dashboard
             </a>
-            <h1 class="text-3xl font-bold text-gray-900">Registrar Centro Médico</h1>
+            <h1 class="text-3xl font-bold text-gray-900">{% trans "Registrar" %} Centro Médico</h1>
             <p class="text-gray-500 mt-1">Los centros médicos agrupan múltiples sedes bajo una sola entidad.</p>
         </div>
 
@@ -138,7 +139,7 @@
 
                     <div>
                         <label for="rif_cm" class="block text-sm font-semibold text-gray-700 mb-2">
-                            RIF
+                            {% trans "RIF" %}
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -160,11 +161,11 @@
                     <div class="flex flex-col sm:flex-row gap-3 pt-4">
                         <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all flex-1">
                             <i data-lucide="save" class="w-4 h-4"></i>
-                            Registrar Centro Médico
+                            {% trans "Registrar" %} Centro Médico
                         </button>
                         <a href="{% url 'dashboard_root' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex-1">
                             <i data-lucide="x" class="w-4 h-4"></i>
-                            Cancelar
+                            {% trans "Cancelar" %}
                         </a>
                     </div>
                 </form>

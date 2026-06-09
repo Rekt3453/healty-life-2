@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -166,11 +167,11 @@
                 <table class="w-full text-xs" id="staffTable">
                     <thead>
                         <tr style="border-bottom:1px solid var(--border);">
-                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Nombre</th>
-                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Rol</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">{% trans "Nombre" %}</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">{% trans "Rol" %}</th>
                             <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Contacto</th>
                             <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Especialidad</th>
-                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Estado</th>
+                            <th class="px-3 py-3 text-left font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">{% trans "Estado" %}</th>
                             <th class="px-3 py-3 text-right font-semibold uppercase tracking-wider" style="color:var(--text-secondary);">Acciones</th>
                         </tr>
                     </thead>

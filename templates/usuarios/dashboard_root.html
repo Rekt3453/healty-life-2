@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -52,7 +53,7 @@
         </div>
         <div>
             <h1 class="font-bold text-lg tracking-tight">Healthy Life</h1>
-            <p class="text-xs text-slate-400">Panel Root</p>
+            <p class="text-xs text-slate-400">{% trans "Panel Root" %}</p>
         </div>
     </div>
 
@@ -67,7 +68,7 @@
         </a>
         <a href="{% url 'lista_superadmins_root' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
             <i data-lucide="shield-check" class="w-5 h-5"></i>
-            Super Admins
+            {% trans "Super Admins" %}
         </a>
         <a href="{% url 'auditoria_root' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
             <i data-lucide="file-text" class="w-5 h-5"></i>
@@ -91,7 +92,8 @@
         </div>
         <span class="font-bold text-gray-900">Healthy Life</span>
     </div>
-    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">Salir</a>
+    {% include "partials/_language_selector.html" %}
+    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">{% trans "Salir" %}</a>
 </div>
 
 <!-- Main Content -->
@@ -102,18 +104,19 @@
         <div class="mb-8">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                    <p class="text-sm text-slate-500 mb-1">Bienvenido de vuelta, {{ root_user.username }}</p>
-                    <h1 class="text-3xl font-bold text-gray-900">Panel de Administración Root</h1>
-                    <p class="text-gray-500 mt-1">Gestión global de centros médicos y super administradores</p>
+                    <p class="text-sm text-slate-500 mb-1">{% trans "Bienvenido de vuelta," %} {{ root_user.username }}</p>
+                    <h1 class="text-3xl font-bold text-gray-900">{% trans "Panel de Administración Root" %}</h1>
+                    <p class="text-gray-500 mt-1">{% trans "Gestión global de centros médicos y super administradores" %}</p>
                 </div>
+                {% include "partials/_language_selector.html" %}
                 <div class="flex gap-3">
                     <a href="{% url 'registrar_centro_medico' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors shadow-sm">
                         <i data-lucide="plus" class="w-4 h-4"></i>
-                        Centro Médico
+                        {% trans "Centro Médico" %}
                     </a>
                     <a href="{% url 'registrar_superadmin' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all">
                         <i data-lucide="user-plus" class="w-4 h-4"></i>
-                        Super Admin
+                        {% trans "Super Admin" %}
                     </a>
                 </div>
             </div>
@@ -150,7 +153,7 @@
                     <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center mb-4">
                         <i data-lucide="shield-check" class="w-5 h-5 text-purple-600"></i>
                     </div>
-                    <p class="text-gray-500 text-sm font-medium">Super Admins</p>
+                    <p class="text-gray-500 text-sm font-medium">{% trans "Super Admins" %}</p>
                     <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_superadmins }}</p>
                 </div>
             </div>
@@ -200,10 +203,10 @@
                     <table class="w-full">
                         <thead>
                             <tr class="bg-gray-50/50">
-                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre</th>
-                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">RIF</th>
-                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                                <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{% trans "Nombre" %}</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{% trans "RIF" %}</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{% trans "Estado" %}</th>
+                                <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">{% trans "Acciones" %}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -271,14 +274,14 @@
                 {% endif %}
             </div>
 
-            <!-- Super Admins -->
+            <!-- {% trans "Super Admins" %} -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden">
                 <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                             <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
                         </div>
-                        <h2 class="text-lg font-semibold text-gray-900">Super Admins</h2>
+                        <h2 class="text-lg font-semibold text-gray-900">{% trans "Super Admins" %}</h2>
                         <span class="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">{{ total_superadmins }}</span>
                     </div>
                     <a href="{% url 'registrar_superadmin' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">
@@ -290,10 +293,10 @@
                     <table class="w-full">
                         <thead>
                             <tr class="bg-gray-50/50">
-                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{% trans "Nombre" %}</th>
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Correo</th>
                                 <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Centro</th>
-                                <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
+                                <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">{% trans "Acciones" %}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">

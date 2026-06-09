@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activar Cuenta - Healthy Life</title>
+    <title>{% trans "Activar Cuenta" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -61,7 +62,7 @@
             </div>
 
             <div class="text-center mb-8">
-                <h1 class="login-title">Activar Cuenta</h1>
+                <h1 class="login-title">{% trans "Activar Cuenta" %}</h1>
                 <p class="login-subtitle">Establece tu contraseña para comenzar</p>
             </div>
 
@@ -82,7 +83,7 @@
             <div class="rounded-xl p-4 mb-5" style="background:rgba(0,112,243,0.04); border:1px solid rgba(0,112,243,0.12);">
                 <p class="text-sm font-semibold mb-2" style="color:var(--text-primary);">Requisitos de contraseña</p>
                 <ul class="req-list">
-                    <li>Entre 8 y 30 caracteres</li>
+                    <li>{% trans "Entre 8 y 30 caracteres" %}</li>
                     <li>Al menos una mayúscula</li>
                     <li>Al menos una minúscula</li>
                     <li>Al menos un número</li>

@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todos los Super Admins - Root - Healthy Life</title>
+    <title>Todos los {% trans "Super Admins" %} - Root - Healthy Life</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -40,7 +41,7 @@
         </a>
         <a href="{% url 'lista_superadmins_root' %}" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium">
             <i data-lucide="shield-check" class="w-5 h-5"></i>
-            Super Admins
+            {% trans "Super Admins" %}
         </a>
         <a href="{% url 'auditoria_root' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
             <i data-lucide="file-text" class="w-5 h-5"></i>
@@ -75,7 +76,7 @@
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
                     <p class="text-sm text-slate-500 mb-1">Bienvenido de vuelta, {{ root_user.username }}</p>
-                    <h1 class="text-3xl font-bold text-gray-900">Super Admins</h1>
+                    <h1 class="text-3xl font-bold text-gray-900">{% trans "Super Admins" %}</h1>
                     <p class="text-gray-500 mt-1">Total registrados: <span class="font-semibold">{{ total_superadmins }}</span></p>
                 </div>
                 <div class="flex gap-3">

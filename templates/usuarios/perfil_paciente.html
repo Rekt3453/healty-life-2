@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Perfil - Healthy Life</title>
+    <title>{% trans "Mi Perfil" %} - Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -50,56 +51,17 @@
 <body>
     <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <aside id="sidebar" class="dashboard-sidebar">
-        <div class="p-6">
-            <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:#1E293B;">
-                <svg class="w-8 h-8" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                <span>Healthy Life</span>
-            </a>
-        </div>
-        <nav class="flex-1 px-2 space-y-1" aria-label="Navegación del paciente">
-            <a href="{% url 'dashboard_paciente' %}" class="sidebar-nav-link">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                <span>Mi Dashboard</span>
-            </a>
-            <a href="{% url 'mis_citas' %}" class="sidebar-nav-link">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                <span>Mis Citas</span>
-            </a>
-            <a href="{% url 'perfil_paciente' %}" class="sidebar-nav-link active">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                <span>Mi Perfil</span>
-            </a>
-            <a href="{% url 'historial_medico' %}" class="sidebar-nav-link">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>Historial Médico</span>
-            </a>
-            <a href="{% url 'mis_facturas' %}" class="sidebar-nav-link">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
-                <span>Mis Facturas</span>
-            </a>
-            <a href="{% url 'lista_pacientes_especiales' %}" class="sidebar-nav-link">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span>Menores a Cargo</span>
-            </a>
-        </nav>
-        <div class="p-4 border-t" style="border-color:rgba(0,0,0,0.06);">
-            <a href="{% url 'logout' %}" class="sidebar-nav-link" style="color:#EF4444;">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                <span>Cerrar Sesión</span>
-            </a>
-        </div>
-    </aside>
+    {% include "partials/_sidebar_paciente.html" %}
 
     <div class="dashboard-main">
         <header style="position:sticky; top:0; z-index:30; background:#fff; border-bottom:1px solid rgba(0,0,0,0.06);">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center gap-3">
-                        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="Abrir menú">
+                        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-black/5" aria-label="{% trans 'Abrir menú' %}">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                         </button>
-                        <span class="font-semibold text-lg" style="color:#1E293B;">Mi Perfil</span>
+                        <span class="font-semibold text-lg" style="color:#1E293B;">{% trans "Mi Perfil" %}</span>
                     </div>
                     <div class="relative" id="userMenuContainer">
                         <button onclick="toggleUserMenu()" class="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors" aria-haspopup="true" aria-expanded="false" id="userMenuBtn">
@@ -108,19 +70,19 @@
                             </div>
                             <div class="hidden sm:block text-left">
                                 <p class="text-sm font-semibold leading-tight" style="color:#1E293B;">{{ user.first_name|default:user.username }}</p>
-                                <p class="text-xs" style="color:#64748B;">Paciente</p>
+                                <p class="text-xs" style="color:#64748B;">{% trans "Paciente" %}</p>
                             </div>
                             <svg class="w-4 h-4" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border" style="border-color:rgba(0,0,0,0.06);">
                             <a href="{% url 'perfil_paciente' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors rounded-t-xl" style="color:#1E293B;">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                Mi Perfil
+                                {% trans "Mi Perfil" %}
                             </a>
                             <div class="border-t" style="border-color:rgba(0,0,0,0.06);"></div>
                             <a href="{% url 'logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 transition-colors rounded-b-xl" style="color:#EF4444;">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                                Cerrar Sesión
+                                {% trans "Cerrar Sesión" %}
                             </a>
                         </div>
                     </div>
@@ -130,8 +92,8 @@
 
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="mb-6">
-                <h1 class="text-2xl font-extrabold tracking-tight" style="color:#1E293B;">Mi Perfil</h1>
-                <p class="text-sm font-medium mt-1" style="color:#64748B;">Gestiona tu información personal y de contacto</p>
+                <h1 class="text-2xl font-extrabold tracking-tight" style="color:#1E293B;">{% trans "Mi Perfil" %}</h1>
+                <p class="text-sm font-medium mt-1" style="color:#64748B;">{% trans "Gestiona tu información personal y de contacto" %}</p>
             </div>
 
             <!-- MENSAJES -->
@@ -162,22 +124,22 @@
                         {% if paciente and paciente.telefono %}<p class="text-sm" style="color:#94A3B8;">{{ paciente.telefono }}</p>{% endif %}
                         <div class="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
                             <span class="badge-gray">{{ user.id_sede.nombre_sede|default:"Sin sede" }}</span>
-                            {% if user.status %}<span class="badge-green">Cuenta Activa</span>{% else %}<span class="badge-red">Cuenta Inactiva</span>{% endif %}
-                            {% if paciente and paciente.fecha_registro %}<span class="badge-gray">Miembro desde {{ paciente.fecha_registro|date:"d/m/Y" }}</span>{% endif %}
+                            {% if user.status %}<span class="badge-green">{% trans "Cuenta Activa" %}</span>{% else %}<span class="badge-red">{% trans "Cuenta Inactiva" %}</span>{% endif %}
+                            {% if paciente and paciente.fecha_registro %}<span class="badge-gray">{% trans "Miembro desde" %} {{ paciente.fecha_registro|date:"d/m/Y" }}</span>{% endif %}
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-3 text-center">
                         <div class="p-3 rounded-xl" style="background:#F8FAFC;">
                             <p class="text-xl font-bold" style="color:#0070F3;">{{ total_citas }}</p>
-                            <p class="text-xs" style="color:#94A3B8;">Citas</p>
+                            <p class="text-xs" style="color:#94A3B8;">{% trans "Citas" %}</p>
                         </div>
                         <div class="p-3 rounded-xl" style="background:#F8FAFC;">
                             <p class="text-xl font-bold" style="color:#059669;">{{ citas_activas }}</p>
-                            <p class="text-xs" style="color:#94A3B8;">Activas</p>
+                            <p class="text-xs" style="color:#94A3B8;">{% trans "Activas" %}</p>
                         </div>
                         <div class="p-3 rounded-xl" style="background:#F8FAFC;">
                             <p class="text-xl font-bold" style="color:#DC2626;">{{ citas_inactivas }}</p>
-                            <p class="text-xs" style="color:#94A3B8;">Inactivas</p>
+                            <p class="text-xs" style="color:#94A3B8;">{% trans "Inactivas" %}</p>
                         </div>
                     </div>
                 </div>
@@ -188,8 +150,8 @@
             <div class="dashboard-card p-4 mb-6 flex items-start gap-3" style="background:rgba(245,158,11,0.04); border-color:rgba(245,158,11,0.15);">
                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color:#D97706;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <div>
-                    <p class="text-sm font-semibold" style="color:#B45309;">Perfil incompleto</p>
-                    <p class="text-sm" style="color:#64748B;">Aún no tienes datos personales registrados. Completa el formulario de información personal para acceder a todas las funciones.</p>
+                    <p class="text-sm font-semibold" style="color:#B45309;">{% trans "Perfil incompleto" %}</p>
+                    <p class="text-sm" style="color:#64748B;">{% trans "Aún no tienes datos personales registrados. Completa el formulario de información personal para acceder a todas las funciones." %}</p>
                 </div>
             </div>
             {% endif %}
@@ -199,13 +161,13 @@
                 <!-- COLUMNA IZQUIERDA -->
                 <div class="space-y-6">
                     <div class="dashboard-card p-6">
-                        <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">Datos médicos</h2>
+                        <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">{% trans "Datos médicos" %}</h2>
                         <div class="grid grid-cols-1 gap-4">
                             <div class="p-4 rounded-xl" style="background:rgba(239,68,68,0.03); border:1px solid rgba(239,68,68,0.08);">
                                 <div class="flex items-center gap-3 mb-2">
                                     <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(239,68,68,0.08);"><svg class="w-4 h-4" style="color:#DC2626;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
                                     <div>
-                                        <p class="text-xs font-semibold uppercase" style="color:#94A3B8;">Tipo de sangre</p>
+                                        <p class="text-xs font-semibold uppercase" style="color:#94A3B8;">{% trans "Tipo de sangre" %}</p>
                                         <p class="text-base font-bold" style="color:#1E293B;">{{ tipo_sangre.tipo_sangre|default:"No registrado" }}</p>
                                     </div>
                                 </div>
@@ -214,7 +176,7 @@
                                 <div class="flex items-center gap-3 mb-2">
                                     <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(245,158,11,0.08);"><svg class="w-4 h-4" style="color:#D97706;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
                                     <div>
-                                        <p class="text-xs font-semibold uppercase" style="color:#94A3B8;">Alergias</p>
+                                        <p class="text-xs font-semibold uppercase" style="color:#94A3B8;">{% trans "Alergias" %}</p>
                                         <p class="text-sm font-semibold" style="color:#1E293B;">{{ alergia|default:"Sin alergias registradas" }}</p>
                                     </div>
                                 </div>
@@ -223,7 +185,7 @@
                                 <div class="flex items-center gap-3 mb-2">
                                     <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(59,130,246,0.08);"><svg class="w-4 h-4" style="color:#3B82F6;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg></div>
                                     <div>
-                                        <p class="text-xs font-semibold uppercase" style="color:#94A3B8;">Vacunas</p>
+                                        <p class="text-xs font-semibold uppercase" style="color:#94A3B8;">{% trans "Vacunas" %}</p>
                                         <p class="text-sm font-semibold" style="color:#1E293B;">{{ vacuna|default:"Sin vacunas registradas" }}</p>
                                     </div>
                                 </div>
@@ -231,41 +193,41 @@
                         </div>
                         {% if historial %}
                         <div class="mt-4 p-3 rounded-lg" style="background:#F8FAFC; border:1px solid #E2E8F0;">
-                            <p class="text-xs font-semibold" style="color:#94A3B8;">Historial Médico #{{ historial.id_historial_medico }} {% if historial.status %}<span class="badge-green">Activo</span>{% else %}<span class="badge-red">Inactivo</span>{% endif %}</p>
+                            <p class="text-xs font-semibold" style="color:#94A3B8;">Historial Médico #{{ historial.id_historial_medico }} {% if historial.status %}<span class="badge-green">{% trans "Activo" %}</span>{% else %}<span class="badge-red">{% trans "Inactivo" %}</span>{% endif %}</p>
                         </div>
                         {% endif %}
                     </div>
 
                     {% if tutor %}
                     <div class="dashboard-card p-6">
-                        <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">Tutor / Paciente especial</h2>
+                        <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">{% trans "Tutor / Paciente especial" %}</h2>
                         <div class="space-y-3">
-                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">Nombre</span><span class="text-sm font-semibold" style="color:#1E293B;">{% if tutor.nombre_1 %}{{ tutor.nombre_1 }} {{ tutor.nombre_2|default:"" }}{% else %}—{% endif %}</span></div>
-                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">Apellido</span><span class="text-sm font-semibold" style="color:#1E293B;">{% if tutor.apellido_1 %}{{ tutor.apellido_1 }} {{ tutor.apellido_2|default:"" }}{% else %}—{% endif %}</span></div>
-                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">Teléfono</span><span class="text-sm font-semibold" style="color:#1E293B;">{{ tutor.telefono|default:"—" }}</span></div>
-                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">Sexo</span><span class="text-sm font-semibold" style="color:#1E293B;">{{ tutor.sexo|default:"—" }}</span></div>
-                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">Nacimiento</span><span class="text-sm font-semibold" style="color:#1E293B;">{{ tutor.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</span></div>
-                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">Estado</span><span>{% if tutor.status %}<span class="badge-green">Activo</span>{% else %}<span class="badge-red">Inactivo</span>{% endif %}</span></div>
+                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">{% trans "Nombre" %}</span><span class="text-sm font-semibold" style="color:#1E293B;">{% if tutor.nombre_1 %}{{ tutor.nombre_1 }} {{ tutor.nombre_2|default:"" }}{% else %}—{% endif %}</span></div>
+                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">{% trans "Apellido" %}</span><span class="text-sm font-semibold" style="color:#1E293B;">{% if tutor.apellido_1 %}{{ tutor.apellido_1 }} {{ tutor.apellido_2|default:"" }}{% else %}—{% endif %}</span></div>
+                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">{% trans "Teléfono" %}</span><span class="text-sm font-semibold" style="color:#1E293B;">{{ tutor.telefono|default:"—" }}</span></div>
+                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">{% trans "Sexo" %}</span><span class="text-sm font-semibold" style="color:#1E293B;">{{ tutor.sexo|default:"—" }}</span></div>
+                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">{% trans "Nacimiento" %}</span><span class="text-sm font-semibold" style="color:#1E293B;">{{ tutor.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</span></div>
+                            <div class="flex justify-between"><span class="text-sm" style="color:#64748B;">{% trans "Estado" %}</span><span>{% if tutor.status %}<span class="badge-green">{% trans "Activo" %}</span>{% else %}<span class="badge-red">{% trans "Inactivo" %}</span>{% endif %}</span></div>
                         </div>
                     </div>
                     {% endif %}
 
                     <div class="dashboard-card p-6">
-                        <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">Accesos rápidos</h2>
+                        <h2 class="text-sm font-bold uppercase tracking-wide mb-4" style="color:#64748B;">{% trans "Accesos rápidos" %}</h2>
                         <div class="space-y-2">
                             <a href="{% url 'mis_citas' %}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-black/[0.02] transition-colors">
                                 <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span class="text-sm font-medium" style="color:#1E293B;">Mis Citas</span>
+                                <span class="text-sm font-medium" style="color:#1E293B;">{% trans "Mis Citas" %}</span>
                                 <svg class="w-4 h-4 ml-auto" style="color:#94A3B8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                             </a>
                             <a href="{% url 'solicitar_cita' %}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-black/[0.02] transition-colors">
                                 <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span class="text-sm font-medium" style="color:#1E293B;">Nueva Cita</span>
+                                <span class="text-sm font-medium" style="color:#1E293B;">{% trans "Nueva Cita" %}</span>
                                 <svg class="w-4 h-4 ml-auto" style="color:#94A3B8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                             </a>
                             <a href="{% url 'historial_medico' %}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-black/[0.02] transition-colors">
                                 <svg class="w-5 h-5" style="color:#0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                <span class="text-sm font-medium" style="color:#1E293B;">Historial Médico</span>
+                                <span class="text-sm font-medium" style="color:#1E293B;">{% trans "Historial Médico" %}</span>
                                 <svg class="w-4 h-4 ml-auto" style="color:#94A3B8;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                             </a>
                         </div>
@@ -277,39 +239,39 @@
                     <!-- INFORMACIÓN PERSONAL -->
                     <div class="dashboard-card p-6">
                         <div class="flex items-center justify-between mb-5">
-                            <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">Información personal</h2>
-                            <button onclick="toggleEdit('form-datos','view-datos',this)" class="btn-ghost">Editar</button>
+                            <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">{% trans "Información personal" %}</h2>
+                            <button onclick="toggleEdit('form-datos','view-datos',this)" class="btn-ghost">{% trans "Editar" %}</button>
                         </div>
 
                         <!-- VISTA -->
                         <div id="view-datos" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             {% with p=paciente %}
                             <div>
-                                <p class="field-label">Primer Nombre</p>
+                                <p class="field-label">{% trans "Primer Nombre" %}</p>
                                 <p class="field-value">{{ p.nombre_1|default:"—" }}</p>
                             </div>
                             <div>
-                                <p class="field-label">Segundo Nombre</p>
+                                <p class="field-label">{% trans "Segundo Nombre" %}</p>
                                 <p class="field-value">{{ p.nombre_2|default:"—" }}</p>
                             </div>
                             <div>
-                                <p class="field-label">Primer Apellido</p>
+                                <p class="field-label">{% trans "Primer Apellido" %}</p>
                                 <p class="field-value">{{ p.apellido_1|default:"—" }}</p>
                             </div>
                             <div>
-                                <p class="field-label">Segundo Apellido</p>
+                                <p class="field-label">{% trans "Segundo Apellido" %}</p>
                                 <p class="field-value">{{ p.apellido_2|default:"—" }}</p>
                             </div>
                             <div>
-                                <p class="field-label">Documento</p>
+                                <p class="field-label">{% trans "Documento" %}</p>
                                 <p class="field-value">{{ p.tipo_cedula|default:"" }} {{ p.cedula|default:"—" }}</p>
                             </div>
                             <div>
-                                <p class="field-label">Sexo</p>
+                                <p class="field-label">{% trans "Sexo" %}</p>
                                 <p class="field-value">{{ p.sexo|default:"—" }}</p>
                             </div>
                             <div>
-                                <p class="field-label">Fecha de Nacimiento</p>
+                                <p class="field-label">{% trans "Fecha de Nacimiento" %}</p>
                                 <p class="field-value">{{ p.fecha_nacimiento|date:"d/m/Y"|default:"—" }}{% if edad %} <span style="color:#94A3B8;">({{ edad }} años)</span>{% endif %}</p>
                             </div>
                             {% endwith %}
@@ -322,42 +284,42 @@
                             {% now "Y-m-d" as hoy %}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="field-label">Primer Nombre *</label>
+                                    <label class="field-label">{% trans "Primer Nombre *" %}</label>
                                     <input type="text" name="nombre_1" value="{{ paciente.nombre_1|default:'' }}" required minlength="2" maxlength="30" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" title="Solo letras. Mínimo 2, máximo 30." class="input-modern">
                                 </div>
                                 <div>
-                                    <label class="field-label">Segundo Nombre</label>
+                                    <label class="field-label">{% trans "Segundo Nombre" %}</label>
                                     <input type="text" name="nombre_2" value="{{ paciente.nombre_2|default:'' }}" minlength="2" maxlength="30" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" class="input-modern">
                                 </div>
                                 <div>
-                                    <label class="field-label">Primer Apellido *</label>
+                                    <label class="field-label">{% trans "Primer Apellido *" %}</label>
                                     <input type="text" name="apellido_1" value="{{ paciente.apellido_1|default:'' }}" required minlength="2" maxlength="30" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" class="input-modern">
                                 </div>
                                 <div>
-                                    <label class="field-label">Segundo Apellido</label>
+                                    <label class="field-label">{% trans "Segundo Apellido" %}</label>
                                     <input type="text" name="apellido_2" value="{{ paciente.apellido_2|default:'' }}" minlength="2" maxlength="30" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" class="input-modern">
                                 </div>
                                 <div>
-                                    <label class="field-label">Documento</label>
+                                    <label class="field-label">{% trans "Documento" %}</label>
                                     <input type="text" value="{{ paciente.tipo_cedula|default:'' }} {{ paciente.cedula|default:'' }}" readonly class="input-modern" disabled>
                                 </div>
                                 <div>
-                                    <label class="field-label">Sexo *</label>
+                                    <label class="field-label">{% trans "Sexo *" %}</label>
                                     <select name="sexo" required class="input-modern">
-                                        <option value="">Seleccionar</option>
-                                        <option value="Masculino" {% if paciente.sexo == "Masculino" %}selected{% endif %}>Masculino</option>
-                                        <option value="Femenino" {% if paciente.sexo == "Femenino" %}selected{% endif %}>Femenino</option>
-                                        <option value="Otro" {% if paciente.sexo == "Otro" %}selected{% endif %}>Otro</option>
+                                        <option value="">{% trans "Seleccionar" %}</option>
+                                        <option value="Masculino" {% if paciente.sexo == "Masculino" %}selected{% endif %}>{% trans "Masculino" %}</option>
+                                        <option value="Femenino" {% if paciente.sexo == "Femenino" %}selected{% endif %}>{% trans "Femenino" %}</option>
+                                        <option value="Otro" {% if paciente.sexo == "Otro" %}selected{% endif %}>{% trans "Otro" %}</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="field-label">Fecha de Nacimiento *</label>
+                                    <label class="field-label">{% trans "Fecha de Nacimiento *" %}</label>
                                     <input type="date" name="fecha_nacimiento" value="{{ paciente.fecha_nacimiento|date:'Y-m-d'|default:'' }}" required max="{{ hoy }}" class="input-modern">
                                 </div>
                             </div>
                             <div class="flex gap-3 mt-5">
-                                <button type="submit" class="btn-primary">Guardar cambios</button>
-                                <button type="button" onclick="toggleEdit('form-datos','view-datos',null)" class="btn-secondary">Cancelar</button>
+                                <button type="submit" class="btn-primary">{% trans "Guardar cambios" %}</button>
+                                <button type="button" onclick="toggleEdit('form-datos','view-datos',null)" class="btn-secondary">{% trans "Cancelar" %}</button>
                             </div>
                         </form>
                     </div>
@@ -365,16 +327,16 @@
                     <!-- INFORMACIÓN DE CONTACTO -->
                     <div class="dashboard-card p-6">
                         <div class="flex items-center justify-between mb-5">
-                            <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">Información de contacto</h2>
-                            {% if paciente %}<button onclick="toggleEdit('form-contacto','view-contacto',this)" class="btn-ghost">Editar</button>{% endif %}
+                            <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">{% trans "Información de contacto" %}</h2>
+                            {% if paciente %}<button onclick="toggleEdit('form-contacto','view-contacto',this)" class="btn-ghost">{% trans "Editar" %}</button>{% endif %}
                         </div>
                         <div id="view-contacto" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
-                                <p class="field-label">Correo electrónico</p>
+                                <p class="field-label">{% trans "Correo electrónico" %}</p>
                                 <p class="field-value">{{ user.email }}</p>
                             </div>
                             <div>
-                                <p class="field-label">Teléfono móvil</p>
+                                <p class="field-label">{% trans "Teléfono móvil" %}</p>
                                 <p class="field-value">{{ paciente.telefono|default:"—" }}</p>
                             </div>
                         </div>
@@ -384,17 +346,17 @@
                             <input type="hidden" name="action" value="update_contacto">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="field-label">Correo electrónico</label>
+                                    <label class="field-label">{% trans "Correo electrónico" %}</label>
                                     <input type="email" name="email" value="{{ user.email|default:'' }}" maxlength="150" class="input-modern">
                                 </div>
                                 <div>
-                                    <label class="field-label">Teléfono móvil</label>
+                                    <label class="field-label">{% trans "Teléfono móvil" %}</label>
                                     <input type="tel" name="telefono" value="{{ paciente.telefono|default:'' }}" maxlength="20" class="input-modern" placeholder="+58 412-1234567">
                                 </div>
                             </div>
                             <div class="flex gap-3 mt-5">
-                                <button type="submit" class="btn-primary">Guardar contacto</button>
-                                <button type="button" onclick="toggleEdit('form-contacto','view-contacto',null)" class="btn-secondary">Cancelar</button>
+                                <button type="submit" class="btn-primary">{% trans "Guardar contacto" %}</button>
+                                <button type="button" onclick="toggleEdit('form-contacto','view-contacto',null)" class="btn-secondary">{% trans "Cancelar" %}</button>
                             </div>
                         </form>
                         {% endif %}
@@ -403,22 +365,22 @@
                     <!-- DIRECCIÓN -->
                     <div class="dashboard-card p-6">
                         <div class="flex items-center justify-between mb-5">
-                            <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">Dirección</h2>
-                            {% if paciente %}<button onclick="toggleEdit('form-dir','view-dir',this)" class="btn-ghost">Editar</button>{% endif %}
+                            <h2 class="text-sm font-bold uppercase tracking-wide" style="color:#64748B;">{% trans "Dirección" %}</h2>
+                            {% if paciente %}<button onclick="toggleEdit('form-dir','view-dir',this)" class="btn-ghost">{% trans "Editar" %}</button>{% endif %}
                         </div>
                         <div id="view-dir">
                             {% if direccion %}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                <div><p class="field-label">Estado</p><p class="field-value">{{ direccion.id_estado|default:"—" }}</p></div>
-                                <div><p class="field-label">Municipio</p><p class="field-value">{{ direccion.id_municipio|default:"—" }}</p></div>
-                                <div><p class="field-label">Ciudad</p><p class="field-value">{{ direccion.id_ciudad|default:"—" }}</p></div>
-                                <div><p class="field-label">Parroquia</p><p class="field-value">{{ direccion.id_parroquia|default:"—" }}</p></div>
-                                <div class="sm:col-span-2"><p class="field-label">Dirección</p><p class="field-value">{{ direccion.direccion|default:"—" }}</p></div>
-                                {% if direccion.referencia %}<div class="sm:col-span-2"><p class="field-label">Referencia</p><p class="field-value">{{ direccion.referencia }}</p></div>{% endif %}
+                                <div><p class="field-label">{% trans "Estado" %}</p><p class="field-value">{{ direccion.id_estado|default:"—" }}</p></div>
+                                <div><p class="field-label">{% trans "Municipio" %}</p><p class="field-value">{{ direccion.id_municipio|default:"—" }}</p></div>
+                                <div><p class="field-label">{% trans "Ciudad" %}</p><p class="field-value">{{ direccion.id_ciudad|default:"—" }}</p></div>
+                                <div><p class="field-label">{% trans "Parroquia" %}</p><p class="field-value">{{ direccion.id_parroquia|default:"—" }}</p></div>
+                                <div class="sm:col-span-2"><p class="field-label">{% trans "Dirección" %}</p><p class="field-value">{{ direccion.direccion|default:"—" }}</p></div>
+                                {% if direccion.referencia %}<div class="sm:col-span-2"><p class="field-label">{% trans "Referencia" %}</p><p class="field-value">{{ direccion.referencia }}</p></div>{% endif %}
                             </div>
                             {% else %}
                             <div class="text-center py-6">
-                                <p class="text-sm" style="color:#94A3B8;">No hay dirección registrada. Haz clic en Editar para agregar una.</p>
+                                <p class="text-sm" style="color:#94A3B8;">{% trans "No hay dirección registrada. Haz clic en Editar para agregar una." %}</p>
                             </div>
                             {% endif %}
                         </div>
@@ -428,45 +390,45 @@
                             <input type="hidden" name="action" value="update_direccion">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="field-label">Estado</label>
+                                    <label class="field-label">{% trans "Estado" %}</label>
                                     <select name="id_estado" id="sel-estado-dir" onchange="loadMunicipiosDir(this.value)" class="input-modern">
-                                        <option value="">Seleccionar estado</option>
+                                        <option value="">{% trans "Seleccionar estado" %}</option>
                                         {% for e in estados %}<option value="{{ e.id_estado }}" {% if direccion and direccion.id_estado_id == e.id_estado %}selected{% endif %}>{{ e.estado }}</option>{% endfor %}
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="field-label">Municipio</label>
+                                    <label class="field-label">{% trans "Municipio" %}</label>
                                     <select name="id_municipio" id="sel-mun-dir" class="input-modern">
-                                        <option value="">Seleccionar municipio</option>
+                                        <option value="">{% trans "Seleccionar municipio" %}</option>
                                         {% for m in municipios_dir %}<option value="{{ m.id_municipio }}" {% if direccion and direccion.id_municipio_id == m.id_municipio %}selected{% endif %}>{{ m.municipio }}</option>{% endfor %}
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="field-label">Ciudad</label>
+                                    <label class="field-label">{% trans "Ciudad" %}</label>
                                     <select name="id_ciudad" id="sel-ciu-dir" class="input-modern">
-                                        <option value="">Seleccionar ciudad</option>
+                                        <option value="">{% trans "Seleccionar ciudad" %}</option>
                                         {% for c in ciudades_dir %}<option value="{{ c.id_ciudad }}" {% if direccion and direccion.id_ciudad_id == c.id_ciudad %}selected{% endif %}>{{ c.ciudad }}</option>{% endfor %}
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="field-label">Parroquia</label>
+                                    <label class="field-label">{% trans "Parroquia" %}</label>
                                     <select name="id_parroquia" id="sel-par-dir" class="input-modern">
-                                        <option value="">Seleccionar parroquia</option>
+                                        <option value="">{% trans "Seleccionar parroquia" %}</option>
                                         {% for p in parroquias_dir %}<option value="{{ p.id_parroquia }}" {% if direccion and direccion.id_parroquia_id == p.id_parroquia %}selected{% endif %}>{{ p.parroquia }}</option>{% endfor %}
                                     </select>
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <label class="field-label">Dirección *</label>
+                                    <label class="field-label">{% trans "Dirección *" %}</label>
                                     <textarea name="direccion" rows="2" required minlength="5" maxlength="255" class="input-modern">{{ direccion.direccion|default:"" }}</textarea>
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <label class="field-label">Referencia</label>
+                                    <label class="field-label">{% trans "Referencia" %}</label>
                                     <input type="text" name="referencia" value="{{ direccion.referencia|default:'' }}" maxlength="255" class="input-modern">
                                 </div>
                             </div>
                             <div class="flex gap-3 mt-5">
-                                <button type="submit" class="btn-primary">Guardar dirección</button>
-                                <button type="button" onclick="toggleEdit('form-dir','view-dir',null)" class="btn-secondary">Cancelar</button>
+                                <button type="submit" class="btn-primary">{% trans "Guardar dirección" %}</button>
+                                <button type="button" onclick="toggleEdit('form-dir','view-dir',null)" class="btn-secondary">{% trans "Cancelar" %}</button>
                             </div>
                         </form>
                         {% endif %}
@@ -474,61 +436,29 @@
 
                     <!-- SEGURIDAD -->
                     <div class="dashboard-card p-6">
-                        <h2 class="text-sm font-bold uppercase tracking-wide mb-5" style="color:#64748B;">Seguridad</h2>
+                        <h2 class="text-sm font-bold uppercase tracking-wide mb-5" style="color:#64748B;">{% trans "Seguridad" %}</h2>
                         <div class="flex items-center justify-between p-4 rounded-xl mb-4" style="background:#F8FAFC; border:1px solid #E2E8F0;">
                             <div class="flex items-center gap-3">
                                 <svg class="w-5 h-5" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                 <div>
-                                    <p class="text-sm font-semibold" style="color:#1E293B;">Contraseña</p>
-                                    <p class="text-xs" style="color:#94A3B8;">Última actualización: hace 3 meses</p>
+                                    <p class="text-sm font-semibold" style="color:#1E293B;">{% trans "Contraseña" %}</p>
+                                    <p class="text-xs" style="color:#94A3B8;">{% trans "Última actualización: hace 3 meses" %}</p>
                                 </div>
                             </div>
-                            <button type="button" onclick="openPasswordModal()" class="btn-ghost">Cambiar</button>
+                            <button type="button" onclick="openPasswordModal()" class="btn-ghost">{% trans "Cambiar" %}</button>
                         </div>
                         <div class="flex items-center justify-between p-4 rounded-xl" style="background:#F8FAFC; border:1px solid #E2E8F0;">
                             <div class="flex items-center gap-3">
                                 <svg class="w-5 h-5" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <div>
-                                    <p class="text-sm font-semibold" style="color:#1E293B;">Preguntas de seguridad</p>
-                                    <p class="text-xs" style="color:#94A3B8;">No configuradas</p>
+                                    <p class="text-sm font-semibold" style="color:#1E293B;">{% trans "Preguntas de seguridad" %}</p>
+                                    <p class="text-xs" style="color:#94A3B8;">{% trans "No configuradas" %}</p>
                                 </div>
                             </div>
-                            <a href="{% url 'configurar_preguntas_perfil' %}" class="btn-ghost">Configurar</a>
+                            <a href="{% url 'configurar_preguntas_perfil' %}" class="btn-ghost">{% trans "Configurar" %}</a>
                         </div>
                     </div>
 
-                    <!-- PREFERENCIAS -->
-                    <div class="dashboard-card p-6">
-                        <h2 class="text-sm font-bold uppercase tracking-wide mb-5" style="color:#64748B;">Preferencias</h2>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-5 h-5" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                    <div>
-                                        <p class="text-sm font-medium" style="color:#1E293B;">Notificaciones por correo</p>
-                                        <p class="text-xs" style="color:#94A3B8;">Recibir actualizaciones y promociones</p>
-                                    </div>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-5 h-5" style="color:#64748B;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <div>
-                                        <p class="text-sm font-medium" style="color:#1E293B;">Recordatorios de citas</p>
-                                        <p class="text-xs" style="color:#94A3B8;">Alerta 24h antes de cada cita</p>
-                                    </div>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
@@ -536,28 +466,28 @@
     <!-- MODAL CAMBIAR CONTRASEÑA -->
     <div id="passwordModal" class="modal-overlay">
         <div class="modal-card">
-            <h3 class="text-lg font-bold mb-1" style="color:#1E293B;">Cambiar contraseña</h3>
-            <p class="text-sm mb-4" style="color:#64748B;">Ingresa tu contraseña actual y la nueva para actualizarla.</p>
+            <h3 class="text-lg font-bold mb-1" style="color:#1E293B;">{% trans "Cambiar contraseña" %}</h3>
+            <p class="text-sm mb-4" style="color:#64748B;">{% trans "Ingresa tu contraseña actual y la nueva para actualizarla." %}</p>
             <form method="POST" onsubmit="return handlePasswordSubmit(event)">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_password">
                 <div class="space-y-3 mb-5">
                     <div>
-                        <label class="field-label">Contraseña actual</label>
+                        <label class="field-label">{% trans "Contraseña actual" %}</label>
                         <input type="password" name="password_actual" required placeholder="••••••••" class="input-modern">
                     </div>
                     <div>
-                        <label class="field-label">Nueva contraseña</label>
+                        <label class="field-label">{% trans "Nueva contraseña" %}</label>
                         <input type="password" name="password_nuevo" required minlength="6" placeholder="Mínimo 6 caracteres" class="input-modern">
                     </div>
                     <div>
-                        <label class="field-label">Confirmar nueva contraseña</label>
+                        <label class="field-label">{% trans "Confirmar nueva contraseña" %}</label>
                         <input type="password" name="password_confirmar" required placeholder="Repite la contraseña" class="input-modern">
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <button type="submit" class="btn-primary flex-1">Actualizar contraseña</button>
-                    <button type="button" onclick="closePasswordModal()" class="btn-secondary flex-1">Cancelar</button>
+                    <button type="submit" class="btn-primary flex-1">{% trans "Actualizar contraseña" %}</button>
+                    <button type="button" onclick="closePasswordModal()" class="btn-secondary flex-1">{% trans "Cancelar" %}</button>
                 </div>
             </form>
         </div>
@@ -656,13 +586,13 @@
             if (!estadoId) return;
             fetch(`{% url 'cargar_municipios' %}?estado_id=${estadoId}`)
                 .then(r => r.json()).then(data => {
-                    if (selMun) selMun.innerHTML = '<option value="">Seleccionar</option>' + data.map(m => `<option value="${m.id_municipio}">${m.municipio}</option>`).join('');
+                    if (selMun) selMun.innerHTML = '<option value="">{% trans "Seleccionar" %}</option>' + data.map(m => `<option value="${m.id_municipio}">${m.municipio}</option>`).join('');
                 });
             fetch(`{% url 'cargar_ciudades' %}?estado_id=${estadoId}`)
                 .then(r => r.json()).then(data => {
-                    if (selCiu) selCiu.innerHTML = '<option value="">Seleccionar</option>' + data.map(c => `<option value="${c.id_ciudad}">${c.ciudad}</option>`).join('');
+                    if (selCiu) selCiu.innerHTML = '<option value="">{% trans "Seleccionar" %}</option>' + data.map(c => `<option value="${c.id_ciudad}">${c.ciudad}</option>`).join('');
                 });
-            if (selPar) selPar.innerHTML = '<option value="">Selecciona municipio primero</option>';
+            if (selPar) selPar.innerHTML = '<option value="">{% trans "Selecciona municipio primero" %}</option>';
         }
         const selMunDir = document.getElementById('sel-mun-dir');
         if (selMunDir) {
@@ -672,7 +602,7 @@
                 if (!munId || !selPar) return;
                 fetch(`{% url 'cargar_parroquias' %}?municipio_id=${munId}`)
                     .then(r => r.json()).then(data => {
-                        selPar.innerHTML = '<option value="">Seleccionar</option>' + data.map(p => `<option value="${p.id_parroquia}">${p.parroquia}</option>`).join('');
+                        selPar.innerHTML = '<option value="">{% trans "Seleccionar" %}</option>' + data.map(p => `<option value="${p.id_parroquia}">${p.parroquia}</option>`).join('');
                     });
             });
         }

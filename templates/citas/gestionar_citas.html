@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -202,12 +203,12 @@
             <div class="overflow-x-auto table-desktop">
                 <table class="w-full text-left text-sm" data-tab="solicitud">
                     <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
-                        <th class="px-6 py-3 font-medium">ID</th>
-                        <th class="px-6 py-3 font-medium">Paciente</th>
+                        <th class="px-6 py-3 font-medium">{% trans "ID" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Paciente" %}</th>
                         <th class="px-6 py-3 font-medium">Sede</th>
-                        <th class="px-6 py-3 font-medium">Fecha / Hora</th>
+                        <th class="px-6 py-3 font-medium">Fecha / {% trans "Hora" %}</th>
                         <th class="px-6 py-3 font-medium">Medico</th>
-                        <th class="px-6 py-3 font-medium">Estado</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Estado" %}</th>
                         <th class="px-6 py-3 font-medium text-right">Acciones</th>
                     </tr></thead>
                     <tbody>
@@ -313,8 +314,8 @@
             <div class="overflow-x-auto table-desktop">
                 <table class="w-full text-left text-sm" data-tab="pago">
                     <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
-                        <th class="px-6 py-3 font-medium">ID</th>
-                        <th class="px-6 py-3 font-medium">Paciente</th>
+                        <th class="px-6 py-3 font-medium">{% trans "ID" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Paciente" %}</th>
                         <th class="px-6 py-3 font-medium">Metodo Pago</th>
                         <th class="px-6 py-3 font-medium">Referencia</th>
                         <th class="px-6 py-3 font-medium">Monto</th>
@@ -399,12 +400,12 @@
             <div class="overflow-x-auto table-desktop">
                 <table class="w-full text-left text-sm" data-tab="aceptadas">
                     <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
-                        <th class="px-6 py-3 font-medium">ID</th>
-                        <th class="px-6 py-3 font-medium">Paciente</th>
+                        <th class="px-6 py-3 font-medium">{% trans "ID" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Paciente" %}</th>
                         <th class="px-6 py-3 font-medium">Sede</th>
-                        <th class="px-6 py-3 font-medium">Fecha / Hora</th>
+                        <th class="px-6 py-3 font-medium">Fecha / {% trans "Hora" %}</th>
                         <th class="px-6 py-3 font-medium">Medico</th>
-                        <th class="px-6 py-3 font-medium">Estado</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Estado" %}</th>
                         <th class="px-6 py-3 font-medium text-right">Acciones</th>
                     </tr></thead>
                     <tbody>

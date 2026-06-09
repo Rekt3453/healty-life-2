@@ -1,7 +1,15 @@
 from django import template
 from django.contrib.auth.models import User
+from django.utils.translation import gettext as _
 
 register = template.Library()
+
+@register.filter
+def trans_str(value):
+    """Traduce una cadena de texto usando gettext. Útil para traducir valores de base de datos."""
+    if not value:
+        return value
+    return _(str(value))
 
 @register.filter
 def get_item(dictionary, key):

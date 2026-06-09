@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eliminar Centro Médico - Healthy Life</title>
+    <title>{% trans "Eliminar" %} Centro Médico - Healthy Life</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -25,7 +26,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900">¿Eliminar centro médico?</h1>
+                <h1 class="text-2xl font-bold text-gray-900">¿{% trans "Eliminar" %} centro médico?</h1>
                 <p class="text-gray-500 text-sm mt-2">Esta acción no se puede deshacer.</p>
             </div>
 
@@ -40,7 +41,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     Sí, eliminar
                 </button>
-                <a href="{% url 'dashboard_root' %}" class="hl-btn-secondary flex-1 justify-center">Cancelar</a>
+                <a href="{% url 'dashboard_root' %}" class="hl-btn-secondary flex-1 justify-center">{% trans "Cancelar" %}</a>
             </form>
         </div>
     </div>

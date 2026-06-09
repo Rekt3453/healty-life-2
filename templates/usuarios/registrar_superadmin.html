@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Super Admin - Healthy Life</title>
+    <title>{% trans "Registrar Super Admin" %} - Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -69,7 +70,7 @@
             <a href="{% url 'dashboard_root' %}" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors mb-4">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Dashboard
             </a>
-            <h1 class="text-3xl font-bold text-gray-900">Registrar Super Admin</h1>
+            <h1 class="text-3xl font-bold text-gray-900">{% trans "Registrar Super Admin" %}</h1>
             <p class="text-gray-500 mt-1">El Super Admin gestiona un centro médico y sus sedes.</p>
         </div>
 
@@ -211,7 +212,7 @@
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
                 <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all flex-1">
-                    <i data-lucide="save" class="w-4 h-4"></i> Registrar Super Admin
+                    <i data-lucide="save" class="w-4 h-4"></i> {% trans "{% trans "Registrar Super Admin" %}" %}
                 </button>
                 <a href="{% url 'dashboard_root' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex-1">
                     <i data-lucide="x" class="w-4 h-4"></i> Cancelar

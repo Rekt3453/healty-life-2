@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -297,7 +298,7 @@ Registro médico
 {{ form.enfermedad_actual }}
 </div>
 <div>
-<label class="block text-sm font-medium text-gray-700 mb-1">Antecedentes</label>
+<label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Antecedentes" %}</label>
 {{ form.antecedentes }}
 </div>
 <div>
@@ -318,7 +319,7 @@ Registro médico
 {{ form.plan_tratamiento }}
 </div>
 <div>
-<label class="block text-sm font-medium text-gray-700 mb-1">Reposo</label>
+<label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Reposo" %}</label>
 {{ form.reposo }}
 </div>
 <div>
@@ -382,8 +383,8 @@ Cancelar consulta
 <p class="text-sm text-gray-600 mb-4">Revisa el resumen antes de cerrar la consulta. Esta acción marcará la cita como atendida y no se puede deshacer.</p>
 <div class="bg-gray-50 rounded-lg p-4 text-sm space-y-2 mb-5" id="modalResumen">
 <p><strong>Paciente:</strong> {{ cita.id_paciente.nombre_completo|default:"—" }}</p>
-<p><strong>Diagnóstico:</strong> <span id="resumenDiagnostico" class="text-gray-700">—</span></p>
-<p><strong>Medicamentos:</strong> <span id="resumenMedicamentos" class="text-gray-700">—</span></p>
+<p><strong>Diagnóstico:</strong> <span id="resumen{% trans "Diagnostico" %}" class="text-gray-700">—</span></p>
+<p><strong>Medicamentos:</strong> <span id="resumen{% trans "Medicamentos" %}" class="text-gray-700">—</span></p>
 <p><strong>Signos vitales:</strong> <span id="resumenSignos" class="text-gray-700">—</span></p>
 </div>
 <div class="flex flex-col sm:flex-row gap-3">
@@ -464,7 +465,7 @@ if (medList.querySelectorAll('.med-row').length === 0 && emptyMeds) {
 }
 };
 
-window.syncMedicamentosToTextarea = function() {
+window.sync{% trans "Medicamentos" %}ToTextarea = function() {
 const rows = medList.querySelectorAll('.med-row');
 if (!rows.length) { showToast('No hay medicamentos para sincronizar.', 'error'); return; }
 const lines = [];
@@ -503,11 +504,11 @@ window.closeModal = function() { modal.classList.remove('open'); };
 window.openModal = function() { modal.classList.add('open'); };
 
 // ----- validaciones -----
-function getDiagnostico() {
+function get{% trans "Diagnostico" %}() {
 const ta = document.querySelector('textarea[name="diagnostico"]');
 return ta ? ta.value.trim() : '';
 }
-function getMedicamentosResumen() {
+function get{% trans "Medicamentos" %}Resumen() {
 return medicamentosTextarea ? medicamentosTextarea.value.trim() : '';
 }
 function getSignosVitales() {
@@ -532,8 +533,8 @@ if (!diag) {
   if (diagField) { diagField.scrollIntoView({behavior:'smooth', block:'center'}); diagField.focus(); }
   return;
 }
-$('resumenDiagnostico').textContent = diag;
-$('resumenMedicamentos').textContent = getMedicamentosResumen() || '—';
+$('resumen{% trans "Diagnostico" %}').textContent = diag;
+$('resumen{% trans "Medicamentos" %}').textContent = getMedicamentosResumen() || '—';
 $('resumenSignos').textContent = getSignosVitales();
 openModal();
 };
@@ -636,7 +637,7 @@ modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 <p class="text-gray-900 mt-1">{{ consulta.diagnostico|default:"—"|linebreaks }}</p>
 </div>
 <div>
-<p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Medicamentos</p>
+<p class="text-xs font-medium text-gray-400 uppercase tracking-wide">{% trans "Medicamentos" %}</p>
 <p class="text-gray-900 mt-1">{{ consulta.medicamentos|default:"—"|linebreaks }}</p>
 </div>
 <div>
@@ -650,7 +651,7 @@ modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 <p class="text-gray-900 mt-1">{{ consulta.plan_tratamiento|default:"—"|linebreaks }}</p>
 </div>
 <div>
-<p class="text-xs font-medium text-gray-400 uppercase tracking-wide">Reposo</p>
+<p class="text-xs font-medium text-gray-400 uppercase tracking-wide">{% trans "Reposo" %}</p>
 <p class="text-gray-900 mt-1">{{ consulta.reposo|default:"—"|linebreaks }}</p>
 </div>
 <div>

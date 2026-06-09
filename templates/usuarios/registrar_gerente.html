@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Gerente - Healthy Life</title>
+    <title>{% trans "Registrar Gerente" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -100,7 +101,7 @@
         <main class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
             <div class="max-w-3xl">
                 <div class="mb-6">
-                    <h1 class="text-2xl font-bold" style="color:var(--text-primary);">Registrar Gerente</h1>
+                    <h1 class="text-2xl font-bold" style="color:var(--text-primary);">{% trans "Registrar Gerente" %}</h1>
                     <p class="mt-1 text-sm" style="color:var(--text-secondary);">El gerente administrara una sede especifica de tu centro medico.</p>
                 </div>
 
@@ -229,7 +230,7 @@
 
                         <div class="flex gap-3 pt-2">
                             <button type="submit" class="flex-1 py-2.5 rounded-lg text-white text-sm font-semibold shadow-md hover:opacity-90 transition" style="background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);">
-                                Registrar Gerente
+                                {% trans "Registrar Gerente" %}
                             </button>
                             <a href="{% url 'dashboard_superadmin' %}" class="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold text-center hover:bg-gray-50 transition">
                                 Cancelar

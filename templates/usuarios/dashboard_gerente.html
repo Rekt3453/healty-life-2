@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Gerencia - Healthy Life</title>
+    <title>{% trans "Panel de Gerencia" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -84,7 +85,7 @@
         </a>
         <a href="{% url 'reporte_gerente_pdf' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Reportes
+            {% trans "Reportes" %}
         </a>
     </nav>
     <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
@@ -98,20 +99,21 @@
 <div class="dashboard-main">
     <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
         <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="{% trans "Menu" %}">
                 <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <div>
                 <nav class="text-sm" style="color:var(--text-secondary);">
-                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <a href="{% url 'home' %}" class="hover:underline">{% trans "Inicio" %}</a>
                     <span class="mx-2">/</span>
-                    <span style="color:var(--text-primary);">Panel de Gerencia</span>
+                    <span style="color:var(--text-primary);">{% trans "Panel de Gerencia" %}</span>
                 </nav>
-                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Panel de Gerencia</h1>
-                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Vision general del negocio y gestion de la clinica</p>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">{% trans "Panel de Gerencia" %}</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">{% trans "Vision general del negocio y gestion de la clinica" %}</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
+            {% include "partials/_language_selector.html" %}
             <span class="text-xs font-medium hidden sm:block" style="color:var(--text-secondary);">{% now "l, j \\d\\e F \\d\\e Y" %}</span>
             <a href="{% url 'reporte_gerente_pdf' %}" class="btn-secondary">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -287,11 +289,11 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead><tr class="border-b" style="border-color:var(--border);background:#F8FAFC;">
-                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Doctor</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">{% trans "Doctor" %}</th>
                         <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Fecha consulta</th>
                         <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Base</th>
                         <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Comisión (40%)</th>
-                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Estado</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">{% trans "Estado" %}</th>
                         <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Acción</th>
                     </tr></thead>
                     <tbody>

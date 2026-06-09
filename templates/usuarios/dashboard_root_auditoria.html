@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -36,7 +37,7 @@
         </div>
         <div>
             <h1 class="font-bold text-lg tracking-tight">Healthy Life</h1>
-            <p class="text-xs text-slate-400">Panel Root</p>
+            <p class="text-xs text-slate-400">{% trans "Panel Root" %}</p>
         </div>
     </div>
     <nav class="p-4 space-y-1">
@@ -73,7 +74,8 @@
         </div>
         <span class="font-bold text-gray-900">Healthy Life — Root</span>
     </div>
-    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">Salir</a>
+    {% include "partials/_language_selector.html" %}
+    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">{% trans "Salir" %}</a>
 </div>
 
 <!-- Main Content -->
@@ -84,14 +86,15 @@
         <div class="mb-8">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                    <p class="text-sm text-slate-500 mb-1">Bienvenido de vuelta, {{ root_user.username }}</p>
-                    <h1 class="text-3xl font-bold text-gray-900">Auditoría Completa del Sistema</h1>
-                    <p class="text-gray-500 mt-1">Registro de eventos de todos los roles y centros médicos.</p>
+                    <p class="text-sm text-slate-500 mb-1">{% trans "Bienvenido de vuelta," %} {{ root_user.username }}</p>
+                    <h1 class="text-3xl font-bold text-gray-900">{% trans "Auditoría Completa del Sistema" %}</h1>
+                    <p class="text-gray-500 mt-1">{% trans "Registro de eventos de todos los roles y centros médicos." %}</p>
                 </div>
+                {% include "partials/_language_selector.html" %}
                 <div class="flex gap-3">
                     <a href="{% url 'dashboard_root' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors shadow-sm">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                        Volver al Dashboard
+                        {% trans "Volver al Dashboard" %}
                     </a>
                 </div>
             </div>

@@ -7,6 +7,7 @@ from django.views.decorators.http import require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from usuarios.decorators import rol_requerido
@@ -919,11 +920,11 @@ def mis_citas(request):
     page_obj = paginator.get_page(request.GET.get('page', 1))
 
     estados_choices = [
-        ('todos', 'Todos'),
-        ('pendiente', 'Pendientes'),
-        ('confirmada', 'Confirmadas'),
-        ('completada', 'Completadas'),
-        ('cancelada', 'Canceladas / Rechazadas'),
+        ('todos', _('Todos')),
+        ('pendiente', _('Pendientes')),
+        ('confirmada', _('Confirmadas')),
+        ('completada', _('Completadas')),
+        ('cancelada', _('Canceladas / Rechazadas')),
     ]
 
     return render(request, 'citas/mis_citas.html', {
@@ -987,9 +988,9 @@ def mis_facturas(request):
         facturas_pagadas = facturas_qs.filter(estado=Factura.ESTADO_PAGADA).count()
 
     estados_choices = [
-        ('pagado', 'Pagadas'),
-        ('pendiente', 'Por pagar'),
-        ('solicitada', 'En proceso'),
+        ('pagado', _('Pagadas')),
+        ('pendiente', _('Por pagar')),
+        ('solicitada', _('En proceso')),
     ]
     return render(request, 'citas/mis_facturas.html', {
         'page_obj':            page_obj,
@@ -1125,9 +1126,9 @@ def pagar_cita(request, cita_id):
     total_bs = costo_consulta_bs
 
     METODOS_PAGO = [
-        ('transferencia', 'Transferencia bancaria'),
-        ('efectivo',      'Efectivo'),
-        ('otro',          'Otro'),
+        ('transferencia', _('Transferencia bancaria')),
+        ('efectivo',      _('Efectivo')),
+        ('otro',          _('Otro')),
     ]
 
     if request.method == 'POST':
@@ -1175,7 +1176,7 @@ def pagar_cita(request, cita_id):
 
                     # Guardar datos de transferencia
                     from citas.models import ReservaTransferencia
-                    rt, _ = ReservaTransferencia.objects.get_or_create(cita=cita)
+                    rt, created = ReservaTransferencia.objects.get_or_create(cita=cita)
                     rt.cedula   = cedula
                     rt.telefono = telefono
                     rt.referencia = referencia

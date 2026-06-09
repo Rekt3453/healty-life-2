@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Hero Section — Estilo Moderno DeepSeek -->
 <section class="hl-hero pt-16 pb-24 lg:pt-24 lg:pb-32">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -6,27 +7,27 @@
             <div class="relative z-10">
                 <div class="hl-badge hl-badge-blue mb-6">
                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                    Sistema Médico Líder en Venezuela
+                    {% trans "Sistema Médico Líder en Venezuela" %}
                 </div>
 
                 <h1 class="text-4xl md:text-5xl lg:text-[3.5rem] font-extrabold leading-[1.1] tracking-tight mb-6" style="color: #1E293B;">
-                    Cuidamos tu salud con<br>
-                    <span style="color: #0070F3;">tecnología y humanidad</span>
+                    {% trans "Cuidamos tu salud con" %}<br>
+                    <span style="color: #0070F3;">{% trans "tecnología y humanidad" %}</span>
                 </h1>
 
                 <p class="text-lg leading-relaxed mb-8 max-w-xl" style="color: #64748B;">
-                    Accede a atención médica de calidad en nuestros centros médicos de Venezuela.
-                    Especialistas en todas las áreas de la medicina para ti y tu familia.
+                    {% trans "Accede a atención médica de calidad en nuestros centros médicos de Venezuela." %}
+                    {% trans "Especialistas en todas las áreas de la medicina para ti y tu familia." %}
                 </p>
 
                 <div class="flex flex-col sm:flex-row gap-3 mb-10">
                     <a href="{% url 'registro' %}" class="hl-btn-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        Agendar Consulta
+                        {% trans "Agendar Consulta" %}
                     </a>
                     <a href="#centros" class="hl-btn-secondary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Conocer Centros
+                        {% trans "Conocer Centros" %}
                     </a>
                 </div>
 
@@ -34,17 +35,17 @@
                 <div class="flex gap-8">
                     <div>
                         <div class="text-2xl font-bold" style="color: #1E293B;">10+</div>
-                        <div class="text-sm" style="color: #64748B;">Especialidades</div>
+                        <div class="text-sm" style="color: #64748B;">{% trans "Especialidades" %}</div>
                     </div>
                     <div class="w-px bg-gray-200"></div>
                     <div>
                         <div class="text-2xl font-bold" style="color: #1E293B;">2+</div>
-                        <div class="text-sm" style="color: #64748B;">Centros</div>
+                        <div class="text-sm" style="color: #64748B;">{% trans "Centros" %}</div>
                     </div>
                     <div class="w-px bg-gray-200"></div>
                     <div>
                         <div class="text-2xl font-bold" style="color: #1E293B;">24/7</div>
-                        <div class="text-sm" style="color: #64748B;">Atención</div>
+                        <div class="text-sm" style="color: #64748B;">{% trans "Atención" %}</div>
                     </div>
                 </div>
             </div>
@@ -64,11 +65,11 @@
                             <svg class="w-5 h-5" style="color: #0070F3;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold" style="color: #64748B;">Próxima Cita</div>
-                            <div class="text-sm font-bold" style="color: #1E293B;">Hoy, 2:00 PM</div>
+                            <div class="text-xs font-semibold" style="color: #64748B;">{% trans "Próxima Cita" %}</div>
+                            <div class="text-sm font-bold" style="color: #1E293B;">{% trans "Hoy, 2:00 PM" %}</div>
                         </div>
                     </div>
-                    <div class="hl-badge hl-badge-green text-xs">Confirmada</div>
+                    <div class="hl-badge hl-badge-green text-xs">{% trans "Confirmada" %}</div>
                 </div>
 
                 <!-- Tarjeta flotante: médicos -->
@@ -79,7 +80,7 @@
                             <div class="w-8 h-8 rounded-full bg-teal-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold">MC</div>
                             <div class="w-8 h-8 rounded-full bg-indigo-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold">+5</div>
                         </div>
-                        <div class="text-xs font-medium ml-1" style="color: #64748B;">Expertos<br>disponibles</div>
+                        <div class="text-xs font-medium ml-1" style="color: #64748B;">{% trans "Expertos" %}<br>{% trans "disponibles" %}</div>
                     </div>
                 </div>
             </div>

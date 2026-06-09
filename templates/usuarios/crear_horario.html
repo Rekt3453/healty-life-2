@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Horario - Healthy Life</title>
+    <title>{% trans "Crear" %} {% trans "Horario" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -97,9 +98,9 @@
                     <span class="mx-2">/</span>
                     <a href="{% url 'lista_horarios' %}" class="hover:underline">Horarios</a>
                     <span class="mx-2">/</span>
-                    <span style="color:var(--text-primary);">Crear horario</span>
+                    <span style="color:var(--text-primary);">{% trans "Crear" %} horario</span>
                 </nav>
-                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Crear nuevo horario</h1>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">{% trans "Crear" %} nuevo horario</h1>
                 <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Define un rango horario para atencion medica</p>
             </div>
         </div>
@@ -150,7 +151,7 @@
                 <div class="flex flex-col sm:flex-row gap-3 pt-4" style="border-top:1px solid var(--border);">
                     <button type="submit" class="btn-primary flex-1 justify-center" onclick="return validarFormulario()">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        Crear horario
+                        {% trans "Crear" %} horario
                     </button>
                     <a href="{% url 'lista_horarios' %}" class="btn-secondary flex-1 justify-center">
                         Cancelar
