@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Citas - Healthy Life</title>
+    <title>{% trans "Gestión de Citas" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -25,6 +25,7 @@
         .badge-cancelada{background:#FEE2E2;color:#DC2626;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
         .badge-completada{background:#DBEAFE;color:#2563EB;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
         .badge-pago{background:#FED7AA;color:#EA580C;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
+        .badge-en-consulta{background:#E0E7FF;color:#4338CA;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600;}
         .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
         .btn-primary:hover{background:#005CC2;}
         .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;}
@@ -67,25 +68,25 @@
     <nav class="px-4 space-y-1">
         <a href="{% url 'dashboard_recepcionista' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            Dashboard
+            {% trans "Dashboard" %}
         </a>
         <a href="{% url 'gestionar_citas' %}" class="sidebar-link active">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            Citas
+            {% trans "Citas" %}
         </a>
         <a href="{% url 'facturas_recepcionista' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Facturación
+            {% trans "Facturación" %}
         </a>
         <a href="{% url 'lista_pacientes' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Pacientes
+            {% trans "Pacientes" %}
         </a>
     </nav>
     <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
         <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            Cerrar sesión
+            {% trans "Cerrar sesión" %}
         </a>
     </div>
 </aside>
@@ -93,19 +94,19 @@
 <div class="dashboard-main">
     <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
         <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menú">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="{% trans "Menú" %}">
                 <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <div>
                 <nav class="text-sm" style="color:var(--text-secondary);">
-                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <a href="{% url 'home' %}" class="hover:underline">{% trans "Inicio" %}</a>
                     <span class="mx-2">/</span>
-                    <a href="{% url 'dashboard_recepcionista' %}" class="hover:underline">Dashboard</a>
+                    <a href="{% url 'dashboard_recepcionista' %}" class="hover:underline">{% trans "Dashboard" %}</a>
                     <span class="mx-2">/</span>
-                    <span style="color:var(--text-primary);">Gestionar</span>
+                    <span style="color:var(--text-primary);">{% trans "Gestionar" %}</span>
                 </nav>
-                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Gestión de Citas</h1>
-                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Administra todas las citas del sistema</p>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">{% trans "Gestión de Citas" %}</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">{% trans "Administra todas las citas del sistema" %}</p>
             </div>
         </div>
     </header>
@@ -169,35 +170,178 @@
             <div class="flex flex-col md:flex-row md:items-end gap-3">
                 <div class="relative flex-1">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input id="filterSearch" type="text" placeholder="Buscar paciente, medico o especialidad..." class="input-modern pl-10" oninput="applyFilters()">
+                    <input id="filterSearch" type="text" placeholder="{% trans "Buscar paciente, médico o especialidad..." %}" class="input-modern pl-10" oninput="applyFilters()">
                 </div>
-                <div class="w-full md:w-44">
+                <div class="w-full md:w-48">
                     <select id="filterEstado" class="select-modern" onchange="applyFilters()">
-                        <option value="">Todos los estados</option>
-                        <option value="solicitada">Pendiente</option>
-                        <option value="confirmada">Confirmada</option>
-                        <option value="completada">Completada</option>
-                        <option value="cancelada">Cancelada</option>
-                        <option value="rechazada">Rechazada</option>
+                        <option value="">{% trans "Todos los estados" %}</option>
+                        <option value="solicitada">{% trans "Solicitada" %}</option>
+                        <option value="aprobada">{% trans "Aprobada" %}</option>
+                        <option value="pago_pendiente">{% trans "Pago Pendiente" %}</option>
+                        <option value="pagada_adelanto">{% trans "Pagada (Adelanto)" %}</option>
+                        <option value="confirmada">{% trans "Confirmada" %}</option>
+                        <option value="en_consulta">{% trans "En Consulta" %}</option>
+                        <option value="atendida">{% trans "Atendida" %}</option>
+                        <option value="cancelada">{% trans "Cancelada" %}</option>
+                        <option value="rechazada">{% trans "Rechazada" %}</option>
+                        <option value="no_asistio">{% trans "No Asistió" %}</option>
                     </select>
                 </div>
-                <button onclick="clearFilters()" class="btn-secondary">Limpiar filtros</button>
+                <button onclick="clearFilters()" class="btn-secondary">{% trans "Limpiar filtros" %}</button>
             </div>
         </div>
 
         <!-- Tabs -->
-        <div class="flex gap-2 fade-in">
-            <button onclick="switchTab('solicitud')" id="tab-solicitud" class="tab-btn active">Solicitudes nuevas</button>
-            <button onclick="switchTab('pago')" id="tab-pago" class="tab-btn">Pagos por confirmar</button>
-            <button onclick="switchTab('aceptadas')" id="tab-aceptadas" class="tab-btn">Citas aceptadas</button>
+        <div class="flex gap-2 fade-in flex-wrap">
+            <button onclick="switchTab('todas')" id="tab-todas" class="tab-btn active">{% trans "Todas las citas" %}</button>
+            <button onclick="switchTab('solicitud')" id="tab-solicitud" class="tab-btn">{% trans "Solicitudes nuevas" %}</button>
+            <button onclick="switchTab('pago')" id="tab-pago" class="tab-btn">{% trans "Pagos por confirmar" %}</button>
+            <button onclick="switchTab('aceptadas')" id="tab-aceptadas" class="tab-btn">{% trans "Citas aceptadas" %}</button>
+        </div>
+
+        <!-- Todas -->
+        <div id="panel-todas" class="dashboard-card overflow-hidden fade-in tab-panel active">
+            <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+                <div>
+                    <h2 class="text-base font-bold" style="color:var(--text-primary);">{% trans "Todas las citas" %}</h2>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_todas.count|default:"0" }} {% trans "citas en total" %}</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto table-desktop">
+                <table class="w-full text-left text-sm" data-tab="todas">
+                    <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
+                        <th class="px-6 py-3 font-medium">{% trans "ID" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Paciente" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Sede" %}</th>
+                        <th class="px-6 py-3 font-medium">Fecha / {% trans "Hora" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Médico" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Estado" %}</th>
+                        <th class="px-6 py-3 font-medium text-right">{% trans "Acciones" %}</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for cita in citas_todas %}
+                        <tr class="border-b hover:bg-gray-50 transition-colors cita-row" style="border-color:var(--border);" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                            <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">#{{ cita.id_citas }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-primary);">{{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
+                            <td class="px-6 py-4">
+                                {% if cita.estado == 'solicitada' %}
+                                    <span class="badge-pendiente">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% elif cita.estado == 'aprobada' %}
+                                    <span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% elif cita.estado == 'pago_pendiente' %}
+                                    <span class="badge-pago">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% elif cita.estado == 'pagada_adelanto' %}
+                                    <span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% elif cita.estado == 'confirmada' %}
+                                    <span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% elif cita.estado == 'en_consulta' %}
+                                    <span class="badge-en-consulta">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% elif cita.estado == 'atendida' %}
+                                    <span class="badge-completada">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' or cita.estado == 'no_asistio' %}
+                                    <span class="badge-cancelada">{{ cita.get_estado_display|default:"—" }}</span>
+                                {% else %}
+                                    <span class="badge-pendiente">{{ cita.get_estado_display|default:cita.estado|default:"—" }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                {% if cita.estado == 'solicitada' or cita.estado == 'pago_pendiente' %}
+                                    {% if cita.id_doctor %}
+                                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                                        data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                                        data-titulo="{% trans "Confirmar pago" %}"
+                                        data-mensaje="{% trans "¿Está seguro que desea confirmar el pago y aceptar esta cita?" %}"
+                                        data-btn-class="btn-success"
+                                        data-btn-text="{% trans "Confirmar" %}"
+                                        onclick="openModalAccion(this)">{% trans "Confirmar" %}</button>
+                                    {% endif %}
+                                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors ml-1"
+                                        data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                                        data-titulo="{% trans "Rechazar cita" %}"
+                                        data-mensaje="{% trans "¿Está seguro que desea rechazar esta cita?" %}"
+                                        data-btn-class="btn-danger"
+                                        data-btn-text="{% trans "Rechazar" %}"
+                                        onclick="openModalAccion(this)">{% trans "Rechazar" %}</button>
+                                {% elif cita.estado == 'confirmada' or cita.estado == 'pagada_adelanto' %}
+                                    <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" class="inline" data-confirm="{% trans "¿Cancelar esta cita?" %}" onsubmit="return confirm(this.dataset.confirm)"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="{% trans "Cancelada por recepcionista/gerente" %}"><button type="submit" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors">{% trans "Cancelar" %}</button></form>
+                                {% else %}
+                                    <span class="text-xs" style="color:var(--text-secondary);">{% trans "Sin acciones" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">{% trans "No hay citas registradas." %}</p></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-mobile p-4 space-y-4">
+                {% for cita in citas_todas %}
+                <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
+                        {% if cita.estado == 'solicitada' %}
+                            <span class="badge-pendiente">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% elif cita.estado == 'aprobada' %}
+                            <span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% elif cita.estado == 'pago_pendiente' %}
+                            <span class="badge-pago">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% elif cita.estado == 'pagada_adelanto' %}
+                            <span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% elif cita.estado == 'confirmada' %}
+                            <span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% elif cita.estado == 'en_consulta' %}
+                            <span class="badge-en-consulta">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% elif cita.estado == 'atendida' %}
+                            <span class="badge-completada">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' or cita.estado == 'no_asistio' %}
+                            <span class="badge-cancelada">{{ cita.get_estado_display|default:"—" }}</span>
+                        {% else %}
+                            <span class="badge-pendiente">{{ cita.get_estado_display|default:cita.estado|default:"—" }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }} · {{ cita.id_sede.nombre_sede|default:"—" }}</p>
+                    <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"—" }}</p>
+                    <div class="flex gap-2">
+                        {% if cita.estado == 'solicitada' or cita.estado == 'pago_pendiente' %}
+                            {% if cita.id_doctor %}
+                            <button type="button" class="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                                data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                                data-titulo="{% trans "Confirmar pago" %}"
+                                data-mensaje="{% trans "¿Está seguro que desea confirmar el pago y aceptar esta cita?" %}"
+                                data-btn-class="btn-success"
+                                data-btn-text="{% trans "Confirmar" %}"
+                                onclick="openModalAccion(this)">{% trans "Confirmar" %}</button>
+                            {% endif %}
+                            <button type="button" class="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors"
+                                data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                                data-titulo="{% trans "Rechazar cita" %}"
+                                data-mensaje="{% trans "¿Está seguro que desea rechazar esta cita?" %}"
+                                data-btn-class="btn-danger"
+                                data-btn-text="{% trans "Rechazar" %}"
+                                onclick="openModalAccion(this)">{% trans "Rechazar" %}</button>
+                        {% elif cita.estado == 'confirmada' or cita.estado == 'pagada_adelanto' %}
+                            <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" class="w-full" data-confirm="{% trans "¿Cancelar esta cita?" %}" onsubmit="return confirm(this.dataset.confirm)"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="{% trans "Cancelada por recepcionista/gerente" %}"><button type="submit" class="btn-danger w-full text-xs py-1.5">{% trans "Cancelar" %}</button></form>
+                        {% else %}
+                            <span class="text-xs" style="color:var(--text-secondary);">{% trans "Sin acciones" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">{% trans "No hay citas registradas." %}</p>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Solicitudes -->
-        <div id="panel-solicitud" class="dashboard-card overflow-hidden fade-in tab-panel active">
+        <div id="panel-solicitud" class="dashboard-card overflow-hidden fade-in tab-panel">
             <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
                 <div>
-                    <h2 class="text-base font-bold" style="color:var(--text-primary);">Solicitudes nuevas</h2>
-                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_solicitud.count|default:"0" }} solicitudes pendientes</p>
+                    <h2 class="text-base font-bold" style="color:var(--text-primary);">{% trans "Solicitudes nuevas" %}</h2>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_solicitud.count|default:"0" }} {% trans "solicitudes pendientes" %}</p>
                 </div>
             </div>
             <div class="overflow-x-auto table-desktop">
@@ -205,11 +349,11 @@
                     <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
                         <th class="px-6 py-3 font-medium">{% trans "ID" %}</th>
                         <th class="px-6 py-3 font-medium">{% trans "Paciente" %}</th>
-                        <th class="px-6 py-3 font-medium">Sede</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Sede" %}</th>
                         <th class="px-6 py-3 font-medium">Fecha / {% trans "Hora" %}</th>
-                        <th class="px-6 py-3 font-medium">Medico</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Médico" %}</th>
                         <th class="px-6 py-3 font-medium">{% trans "Estado" %}</th>
-                        <th class="px-6 py-3 font-medium text-right">Acciones</th>
+                        <th class="px-6 py-3 font-medium text-right">{% trans "Acciones" %}</th>
                     </tr></thead>
                     <tbody>
                         {% for cita in citas_solicitud %}
@@ -220,39 +364,41 @@
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
                             <td class="px-6 py-4">
-                                <span class="badge-pendiente">Pendiente</span>
-                                {% if cita.reserva_pago %}
-                                <button type="button" class="btn-ghost text-xs px-2 py-1 ml-1"
-                                    data-cita-id="{{ cita.id_citas }}"
-                                    data-referencia="{{ cita.reserva_pago.referencia|default:'' }}"
-                                    data-banco="{{ cita.reserva_pago.banco_emisor|default:'' }}"
-                                    data-cedula="{{ cita.reserva_pago.cedula|default:'' }}"
-                                    data-telefono="{{ cita.reserva_pago.telefono|default:'' }}"
-                                    data-monto="{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}No registrado{% endif %}"
-                                    onclick="openVerPago(this)">Ver pago</button>
-                                {% endif %}
+                                <span class="badge-pendiente">{% trans "Pendiente" %}</span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                {% if cita.id_doctor %}
-                                <button type="button" class="btn-success text-xs px-3 py-1.5 mr-1"
-                                    data-action="{% url 'confirmar_pago' cita.id_citas %}"
-                                    data-titulo="Confirmar pago"
-                                    data-mensaje="Esta seguro que desea confirmar el pago y aceptar esta cita?"
-                                    data-btn-class="btn-success"
-                                    data-btn-text="Confirmar"
-                                    onclick="openModalAccion(this)">Confirmar</button>
-                                {% endif %}
-                                <button type="button" class="btn-danger text-xs px-3 py-1.5"
-                                    data-action="{% url 'rechazar_cita' cita.id_citas %}"
-                                    data-titulo="Rechazar cita"
-                                    data-mensaje="Esta seguro que desea rechazar esta cita?"
-                                    data-btn-class="btn-danger"
-                                    data-btn-text="Rechazar"
-                                    onclick="openModalAccion(this)">Rechazar</button>
+                                <div class="inline-flex items-center gap-2">
+                                    {% if cita.reserva_pago %}
+                                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-blue-500 transition-colors"
+                                        data-cita-id="{{ cita.id_citas }}"
+                                        data-referencia="{{ cita.reserva_pago.referencia|default:'' }}"
+                                        data-banco="{{ cita.reserva_pago.banco_emisor|default:'' }}"
+                                        data-cedula="{{ cita.reserva_pago.cedula|default:'' }}"
+                                        data-telefono="{{ cita.reserva_pago.telefono|default:'' }}"
+                                        data-monto="{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}{% trans "No registrado" %}{% endif %}"
+                                        onclick="openVerPago(this)">{% trans "Ver pago" %}</button>
+                                    {% endif %}
+                                    {% if cita.id_doctor %}
+                                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                                        data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                                        data-titulo="{% trans "Confirmar pago" %}"
+                                        data-mensaje="{% trans "¿Está seguro que desea confirmar el pago y aceptar esta cita?" %}"
+                                        data-btn-class="btn-success"
+                                        data-btn-text="{% trans "Confirmar" %}"
+                                        onclick="openModalAccion(this)">{% trans "Confirmar" %}</button>
+                                    {% endif %}
+                                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors"
+                                        data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                                        data-titulo="{% trans "Rechazar cita" %}"
+                                        data-mensaje="{% trans "¿Está seguro que desea rechazar esta cita?" %}"
+                                        data-btn-class="btn-danger"
+                                        data-btn-text="{% trans "Rechazar" %}"
+                                        onclick="openModalAccion(this)">{% trans "Rechazar" %}</button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">No hay solicitudes nuevas.</p></td></tr>
+                        <tr><td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">{% trans "No hay solicitudes nuevas." %}</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -262,43 +408,41 @@
                 <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
                     <div class="flex justify-between items-start mb-2">
                         <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
-                        <div class="flex items-center gap-1">
-                            <span class="badge-pendiente">Pendiente</span>
-                            {% if cita.reserva_pago %}
-                            <button type="button" class="btn-ghost text-xs px-2 py-1"
-                                data-cita-id="{{ cita.id_citas }}"
-                                data-referencia="{{ cita.reserva_pago.referencia|default:'' }}"
-                                data-banco="{{ cita.reserva_pago.banco_emisor|default:'' }}"
-                                data-cedula="{{ cita.reserva_pago.cedula|default:'' }}"
-                                data-telefono="{{ cita.reserva_pago.telefono|default:'' }}"
-                                data-monto="{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}No registrado{% endif %}"
-                                onclick="openVerPago(this)">Ver pago</button>
-                            {% endif %}
-                        </div>
+                        <span class="badge-pendiente">{% trans "Pendiente" %}</span>
                     </div>
                     <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }} · {{ cita.id_sede.nombre_sede|default:"—" }}</p>
-                    <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"No asignado" }}</p>
+                    <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"—" }}</p>
                     <div class="flex gap-2">
-                        {% if cita.id_doctor %}
-                        <button type="button" class="btn-success flex-1 w-full text-xs py-1.5"
-                            data-action="{% url 'confirmar_pago' cita.id_citas %}"
-                            data-titulo="Confirmar pago"
-                            data-mensaje="Esta seguro que desea confirmar el pago y aceptar esta cita?"
-                            data-btn-class="btn-success"
-                            data-btn-text="Confirmar"
-                            onclick="openModalAccion(this)">Confirmar</button>
+                        {% if cita.reserva_pago %}
+                        <button type="button" class="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500 transition-colors"
+                            data-cita-id="{{ cita.id_citas }}"
+                            data-referencia="{{ cita.reserva_pago.referencia|default:'' }}"
+                            data-banco="{{ cita.reserva_pago.banco_emisor|default:'' }}"
+                            data-cedula="{{ cita.reserva_pago.cedula|default:'' }}"
+                            data-telefono="{{ cita.reserva_pago.telefono|default:'' }}"
+                            data-monto="{% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}{% trans "No registrado" %}{% endif %}"
+                            onclick="openVerPago(this)">{% trans "Ver pago" %}</button>
                         {% endif %}
-                        <button type="button" class="btn-danger flex-1 w-full text-xs py-1.5"
+                        {% if cita.id_doctor %}
+                        <button type="button" class="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                            data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                            data-titulo="{% trans "Confirmar pago" %}"
+                            data-mensaje="{% trans "¿Está seguro que desea confirmar el pago y aceptar esta cita?" %}"
+                            data-btn-class="btn-success"
+                            data-btn-text="{% trans "Confirmar" %}"
+                            onclick="openModalAccion(this)">{% trans "Confirmar" %}</button>
+                        {% endif %}
+                        <button type="button" class="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors"
                             data-action="{% url 'rechazar_cita' cita.id_citas %}"
-                            data-titulo="Rechazar cita"
-                            data-mensaje="Esta seguro que desea rechazar esta cita?"
+                            data-titulo="{% trans "Rechazar cita" %}"
+                            data-mensaje="{% trans "¿Está seguro que desea rechazar esta cita?" %}"
                             data-btn-class="btn-danger"
-                            data-btn-text="Rechazar"
-                            onclick="openModalAccion(this)">Rechazar</button>
+                            data-btn-text="{% trans "Rechazar" %}"
+                            onclick="openModalAccion(this)">{% trans "Rechazar" %}</button>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">No hay solicitudes nuevas.</p>
+                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">{% trans "No hay solicitudes nuevas." %}</p>
                 {% endfor %}
             </div>
         </div>
@@ -307,8 +451,8 @@
         <div id="panel-pago" class="dashboard-card overflow-hidden fade-in tab-panel">
             <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
                 <div>
-                    <h2 class="text-base font-bold" style="color:var(--text-primary);">Pagos por confirmar</h2>
-                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_pago.count|default:"0" }} en revision</p>
+                    <h2 class="text-base font-bold" style="color:var(--text-primary);">{% trans "Pagos por confirmar" %}</h2>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_pago.count|default:"0" }} {% trans "en revisión" %}</p>
                 </div>
             </div>
             <div class="overflow-x-auto table-desktop">
@@ -316,12 +460,12 @@
                     <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
                         <th class="px-6 py-3 font-medium">{% trans "ID" %}</th>
                         <th class="px-6 py-3 font-medium">{% trans "Paciente" %}</th>
-                        <th class="px-6 py-3 font-medium">Metodo Pago</th>
-                        <th class="px-6 py-3 font-medium">Referencia</th>
-                        <th class="px-6 py-3 font-medium">Monto</th>
-                        <th class="px-6 py-3 font-medium">Fecha Cita</th>
-                        <th class="px-6 py-3 font-medium">Medico</th>
-                        <th class="px-6 py-3 font-medium text-right">Acciones</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Método Pago" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Referencia" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Monto" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Fecha Cita" %}</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Médico" %}</th>
+                        <th class="px-6 py-3 font-medium text-right">{% trans "Acciones" %}</th>
                     </tr></thead>
                     <tbody>
                         {% for cita in citas_pago %}
@@ -334,24 +478,26 @@
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
                             <td class="px-6 py-4 text-right">
-                                <button type="button" class="btn-success text-xs px-3 py-1.5 mr-1"
-                                    data-action="{% url 'confirmar_pago' cita.id_citas %}"
-                                    data-titulo="Confirmar pago"
-                                    data-mensaje="Esta seguro que desea confirmar el pago y activar esta cita?"
-                                    data-btn-class="btn-success"
-                                    data-btn-text="Confirmar"
-                                    onclick="openModalAccion(this)">Confirmar Pago</button>
-                                <button type="button" class="btn-danger text-xs px-3 py-1.5"
-                                    data-action="{% url 'rechazar_cita' cita.id_citas %}"
-                                    data-titulo="Rechazar cita"
-                                    data-mensaje="Esta seguro que desea rechazar esta cita?"
-                                    data-btn-class="btn-danger"
-                                    data-btn-text="Rechazar"
-                                    onclick="openModalAccion(this)">Rechazar</button>
+                                <div class="inline-flex items-center gap-2">
+                                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                                        data-action="{% url 'confirmar_pago' cita.id_citas %}"
+                                        data-titulo="{% trans "Confirmar pago" %}"
+                                        data-mensaje="{% trans "¿Está seguro que desea confirmar el pago y activar esta cita?" %}"
+                                        data-btn-class="btn-success"
+                                        data-btn-text="{% trans "Confirmar" %}"
+                                        onclick="openModalAccion(this)">{% trans "Confirmar Pago" %}</button>
+                                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors"
+                                        data-action="{% url 'rechazar_cita' cita.id_citas %}"
+                                        data-titulo="{% trans "Rechazar cita" %}"
+                                        data-mensaje="{% trans "¿Está seguro que desea rechazar esta cita?" %}"
+                                        data-btn-class="btn-danger"
+                                        data-btn-text="{% trans "Rechazar" %}"
+                                        onclick="openModalAccion(this)">{% trans "Rechazar" %}</button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="8" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">No hay pagos pendientes de confirmacion.</p></td></tr>
+                        <tr><td colspan="8" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">{% trans "No hay pagos pendientes de confirmación." %}</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -361,30 +507,30 @@
                 <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
                     <div class="flex justify-between items-start mb-2">
                         <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
-                        <span class="badge-pago">Pago pendiente</span>
+                        <span class="badge-pago">{% trans "Pago pendiente" %}</span>
                     </div>
                     <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</p>
                     <p class="text-xs mb-1" style="color:var(--text-secondary);">Metodo: {{ cita.id_pago_cita.metodo_pago|default:"—" }} · Ref: {{ cita.id_pago_cita.referencia_pago|default:"—" }}</p>
                     <p class="text-xs mb-3 font-semibold" style="color:var(--text-primary);">Monto: {% if cita.id_pago_cita.monto_pagar %}$ {{ cita.id_pago_cita.monto_pagar }}{% else %}—{% endif %}</p>
                     <div class="flex gap-2">
-                        <button type="button" class="btn-success flex-1 w-full text-xs py-1.5"
+                        <button type="button" class="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-emerald-500 transition-colors"
                             data-action="{% url 'confirmar_pago' cita.id_citas %}"
-                            data-titulo="Confirmar pago"
-                            data-mensaje="Esta seguro que desea confirmar el pago y activar esta cita?"
+                            data-titulo="{% trans "Confirmar pago" %}"
+                            data-mensaje="{% trans "¿Está seguro que desea confirmar el pago y activar esta cita?" %}"
                             data-btn-class="btn-success"
-                            data-btn-text="Confirmar"
-                            onclick="openModalAccion(this)">Confirmar Pago</button>
-                        <button type="button" class="btn-danger flex-1 w-full text-xs py-1.5"
+                            data-btn-text="{% trans "Confirmar" %}"
+                            onclick="openModalAccion(this)">{% trans "Confirmar Pago" %}</button>
+                        <button type="button" class="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors"
                             data-action="{% url 'rechazar_cita' cita.id_citas %}"
-                            data-titulo="Rechazar cita"
-                            data-mensaje="Esta seguro que desea rechazar esta cita?"
+                            data-titulo="{% trans "Rechazar cita" %}"
+                            data-mensaje="{% trans "¿Está seguro que desea rechazar esta cita?" %}"
                             data-btn-class="btn-danger"
-                            data-btn-text="Rechazar"
-                            onclick="openModalAccion(this)">Rechazar</button>
+                            data-btn-text="{% trans "Rechazar" %}"
+                            onclick="openModalAccion(this)">{% trans "Rechazar" %}</button>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">No hay pagos pendientes de confirmacion.</p>
+                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">{% trans "No hay pagos pendientes de confirmación." %}</p>
                 {% endfor %}
             </div>
         </div>
@@ -393,8 +539,8 @@
         <div id="panel-aceptadas" class="dashboard-card overflow-hidden fade-in tab-panel">
             <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
                 <div>
-                    <h2 class="text-base font-bold" style="color:var(--text-primary);">Citas aceptadas</h2>
-                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_aceptadas.count|default:"0" }} aceptadas</p>
+                    <h2 class="text-base font-bold" style="color:var(--text-primary);">{% trans "Citas aceptadas" %}</h2>
+                    <p class="text-xs" style="color:var(--text-secondary);">{{ citas_aceptadas.count|default:"0" }} {% trans "aceptadas" %}</p>
                 </div>
             </div>
             <div class="overflow-x-auto table-desktop">
@@ -402,11 +548,11 @@
                     <thead><tr style="background:var(--bg-primary);color:var(--text-secondary);">
                         <th class="px-6 py-3 font-medium">{% trans "ID" %}</th>
                         <th class="px-6 py-3 font-medium">{% trans "Paciente" %}</th>
-                        <th class="px-6 py-3 font-medium">Sede</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Sede" %}</th>
                         <th class="px-6 py-3 font-medium">Fecha / {% trans "Hora" %}</th>
-                        <th class="px-6 py-3 font-medium">Medico</th>
+                        <th class="px-6 py-3 font-medium">{% trans "Médico" %}</th>
                         <th class="px-6 py-3 font-medium">{% trans "Estado" %}</th>
-                        <th class="px-6 py-3 font-medium text-right">Acciones</th>
+                        <th class="px-6 py-3 font-medium text-right">{% trans "Acciones" %}</th>
                     </tr></thead>
                     <tbody>
                         {% for cita in citas_aceptadas %}
@@ -416,13 +562,13 @@
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_sede.nombre_sede|default:"—" }}</td>
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }}</td>
                             <td class="px-6 py-4" style="color:var(--text-secondary);">{{ cita.id_doctor|default:"—" }}</td>
-                            <td class="px-6 py-4"><span class="badge-confirmada">{{ cita.get_estado_display|default:"Confirmada" }}</span></td>
+                            <td class="px-6 py-4"><span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span></td>
                             <td class="px-6 py-4 text-right">
-                                <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" class="inline" onsubmit="return confirm('Cancelar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="Cancelada por recepcionista/gerente"><button type="submit" class="btn-danger text-xs px-3 py-1.5">Cancelar</button></form>
+                                <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" class="inline" data-confirm="{% trans "¿Cancelar esta cita?" %}" onsubmit="return confirm(this.dataset.confirm)"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="{% trans "Cancelada por recepcionista/gerente" %}"><button type="submit" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-red-500 transition-colors">{% trans "Cancelar" %}</button></form>
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">No hay citas aceptadas.</p></td></tr>
+                        <tr><td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);"><p class="text-sm">{% trans "No hay citas aceptadas." %}</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -432,14 +578,14 @@
                 <div class="dashboard-card p-4 cita-row" data-search="{{ cita.id_paciente|default:''|lower }} {{ cita.id_doctor|default:''|lower }} {{ cita.id_especialidades|default:''|lower }}" data-estado="{{ cita.estado|default:'' }}">
                     <div class="flex justify-between items-start mb-2">
                         <p class="font-semibold text-sm" style="color:var(--text-primary);">#{{ cita.id_citas }} — {{ cita.id_paciente.nombre_completo|default:cita.id_paciente|default:"—" }}</p>
-                        <span class="badge-confirmada">{{ cita.get_estado_display|default:"Confirmada" }}</span>
+                        <span class="badge-confirmada">{{ cita.get_estado_display|default:"—" }}</span>
                     </div>
                     <p class="text-xs mb-1" style="color:var(--text-secondary);">{{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }} · {{ cita.id_sede.nombre_sede|default:"—" }}</p>
-                    <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"No asignado" }}</p>
-                    <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" onsubmit="return confirm('Cancelar esta cita?')"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="Cancelada por recepcionista/gerente"><button type="submit" class="btn-danger w-full text-xs py-1.5">Cancelar</button></form>
+                    <p class="text-xs mb-3" style="color:var(--text-secondary);">Dr. {{ cita.id_doctor|default:"—" }}</p>
+                    <form method="POST" action="{% url 'cancelar_cita_secretaria' cita.id_citas %}" data-confirm="{% trans "¿Cancelar esta cita?" %}" onsubmit="return confirm(this.dataset.confirm)"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="motivo_cancelacion" value="{% trans "Cancelada por recepcionista/gerente" %}"><button type="submit" class="btn-danger w-full text-xs py-1.5">{% trans "Cancelar" %}</button></form>
                 </div>
                 {% empty %}
-                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">No hay citas aceptadas.</p>
+                <p class="text-sm text-center py-8" style="color:var(--text-secondary);">{% trans "No hay citas aceptadas." %}</p>
                 {% endfor %}
             </div>
         </div>
@@ -511,8 +657,8 @@ function clearFilters(){
         <p class="text-sm text-gray-600 mb-6">Esta seguro que desea confirmar? La cita pasara a estado <strong>Aprobada</strong>.</p>
         <form id="formConfirmarAprobar" method="POST" action="" class="flex gap-3">
             {% csrf_token %}
-            <button type="submit" class="btn-success flex-1 text-sm py-2.5">Confirmar</button>
-            <button type="button" onclick="closeConfirmar()" class="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
+            <button type="submit" class="btn-success flex-1 text-sm py-2.5">{% trans "Confirmar" %}</button>
+            <button type="button" onclick="closeConfirmar()" class="btn-secondary flex-1 text-sm py-2.5">{% trans "Cancelar" %}</button>
         </form>
     </div>
 </div>
@@ -527,8 +673,8 @@ function clearFilters(){
         <p class="text-sm text-gray-600 mb-6" id="modalAccionMensaje">Esta seguro que desea confirmar?</p>
         <form id="formAccion" method="POST" action="" class="flex gap-3">
             {% csrf_token %}
-            <button type="submit" id="modalAccionBtn" class="btn-success flex-1 text-sm py-2.5">Confirmar</button>
-            <button type="button" onclick="closeModalAccion()" class="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
+            <button type="submit" id="modalAccionBtn" class="btn-success flex-1 text-sm py-2.5">{% trans "Confirmar" %}</button>
+            <button type="button" onclick="closeModalAccion()" class="btn-secondary flex-1 text-sm py-2.5">{% trans "Cancelar" %}</button>
         </form>
     </div>
 </div>

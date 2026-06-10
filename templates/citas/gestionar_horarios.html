@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -31,7 +32,7 @@
                     </div>
                     <a href="{% url 'logout' %}" class="text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                        Salir
+                        {% trans "Salir" %}
                     </a>
                 </div>
             </div>
@@ -48,36 +49,36 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-gray-900">Dr. {{ user.first_name|default:user.username }}</p>
-                        <p class="text-xs text-gray-500">Medico</p>
+                        <p class="text-xs text-gray-500">{% trans "Medico" %}</p>
                     </div>
                 </div>
             </div>
             <nav class="flex-1 p-4 space-y-1">
                 <a href="{% url 'dashboard_medico' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    Dashboard
+                    {% trans "Dashboard" %}
                 </a>
                 <a href="{% url 'calendario_citas' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    Calendario
+                    {% trans "Calendario" %}
                 </a>
                 <a href="{% url 'citas_pendientes_medico' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    Mis citas
+                    {% trans "Mis citas" %}
                 </a>
                 <a href="{% url 'gestionar_horarios' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Gestionar Horarios
+                    {% trans "Gestionar Horarios" %}
                 </a>
                 <a href="{% url 'perfil_doctor' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    Perfil de Doctor
+                    {% trans "Perfil de Doctor" %}
                 </a>
             </nav>
             <div class="p-4 border-t border-gray-200">
                 <a href="{% url 'logout' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                    Cerrar sesion
+                    {% trans "Cerrar sesión" %}
                 </a>
             </div>
         </aside>
@@ -85,8 +86,8 @@
         <!-- Main content -->
         <main class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
             <div class="mb-8">
-                <h1 class="text-3xl font-bold" style="color:var(--text-primary);">Gestionar Horarios</h1>
-                <p class="mt-2" style="color:var(--text-secondary);">Configura tu disponibilidad para atender citas.</p>
+                <h1 class="text-3xl font-bold" style="color:var(--text-primary);">{% trans "Gestionar Horarios" %}</h1>
+                <p class="mt-2" style="color:var(--text-secondary);">{% trans "Configura tu disponibilidad para atender citas." %}</p>
             </div>
 
             <div class="bg-white rounded-lg shadow p-6">
@@ -119,12 +120,12 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                                 </svg>
-                                <span>Anterior</span>
+                                <span>{% trans "Anterior" %}</span>
                             </a>
                             <h2 class="text-2xl font-bold text-gray-900">{{ mes_nombre }} {{ año }}</h2>
                             <a href="?año={{ año_siguiente }}&mes={{ mes_siguiente }}"
                                class="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <span>Siguiente</span>
+                                <span>{% trans "Siguiente" %}</span>
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
@@ -135,15 +136,15 @@
                         <div class="flex flex-wrap gap-4 mb-4 text-sm">
                             <div class="flex items-center space-x-2">
                                 <span class="w-4 h-4 rounded bg-green-200 border border-green-400"></span>
-                                <span class="text-gray-600">Trabaja</span>
+                                <span class="text-gray-600">{% trans "Trabaja" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="w-4 h-4 rounded bg-amber-100 border border-amber-300"></span>
-                                <span class="text-gray-600">No asignado</span>
+                                <span class="text-gray-600">{% trans "No asignado" %}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="w-4 h-4 rounded bg-blue-200 border-2 border-blue-500"></span>
-                                <span class="text-gray-600">Hoy</span>
+                                <span class="text-gray-600">{% trans "Hoy" %}</span>
                             </div>
                         </div>
 
@@ -167,13 +168,13 @@
                                             </div>
                                             <div class="mt-2 space-y-1">
                                                 {% if celda.mañana %}
-                                                    <span class="inline-block text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">Mañana</span>
+                                                    <span class="inline-block text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">{% trans "Mañana" %}</span>
                                                 {% endif %}
                                                 {% if celda.tarde %}
-                                                    <span class="inline-block text-xs px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full">Tarde</span>
+                                                    <span class="inline-block text-xs px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full">{% trans "Tarde" %}</span>
                                                 {% endif %}
                                                 {% if not celda.trabaja and not celda.es_pasado_o_hoy %}
-                                                    <span class="text-xs text-gray-400">No asignado</span>
+                                                    <span class="text-xs text-gray-400">{% trans "No asignado" %}</span>
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -185,7 +186,7 @@
                         </div>
 
                 <p class="text-center text-sm text-gray-500 mt-2">
-                    Haz clic en cualquier dia del calendario para editar su disponibilidad.
+                    {% trans "Haz clic en cualquier día del calendario para editar su disponibilidad." %}
                 </p>
             </div>
 
@@ -193,7 +194,7 @@
             <div id="modal-disponibilidad" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 id="modal-titulo" class="text-xl font-bold text-gray-900">Editar disponibilidad</h3>
+                        <h3 id="modal-titulo" class="text-xl font-bold text-gray-900">{% trans "Editar disponibilidad" %}</h3>
                         <button type="button" onclick="cerrarModal()" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -207,7 +208,7 @@
                         <input type="hidden" name="action" id="modal-action" value="save">
 
                         <div class="text-center py-2">
-                            <p class="text-gray-600">Selecciona los turnos para este dia:</p>
+                            <p class="text-gray-600">{% trans "Selecciona los turnos para este día:" %}</p>
                         </div>
 
                         <div class="space-y-3">
@@ -215,7 +216,7 @@
                                 <input type="checkbox" name="turno_mañana" id="modal-mañana"
                                        class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
                                 <div class="ml-4">
-                                    <p class="font-semibold text-gray-900">Mañana</p>
+                                    <p class="font-semibold text-gray-900">{% trans "Mañana" %}</p>
                                     <p class="text-sm text-gray-500">8:00 AM - 1:00 PM</p>
                                 </div>
                             </label>
@@ -224,7 +225,7 @@
                                 <input type="checkbox" name="turno_tarde" id="modal-tarde"
                                        class="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
                                 <div class="ml-4">
-                                    <p class="font-semibold text-gray-900">Tarde</p>
+                                    <p class="font-semibold text-gray-900">{% trans "Tarde" %}</p>
                                     <p class="text-sm text-gray-500">1:00 PM - 6:00 PM</p>
                                 </div>
                             </label>
@@ -241,7 +242,7 @@
                         </div>
                         <button type="submit" onclick="document.getElementById('modal-action').value='delete'"
                                 class="w-full py-2 rounded-lg text-red-600 font-medium border border-red-200 hover:bg-red-50 transition-colors text-sm">
-                            Eliminar disponibilidad de este dia
+                            {% trans "Eliminar disponibilidad de este día" %}
                         </button>
                     </form>
                 </div>

@@ -202,7 +202,7 @@ msgstr "Doctor"
 
 #: templates/usuarios/login_paciente.html
 msgid "Recepcionista"
-msgstr "Receptionist"
+msgstr "Recepcionista"
 
 #: templates/usuarios/login_paciente.html
 msgid "Gerente"
@@ -262,11 +262,11 @@ msgstr "Dashboard"
 
 #: templates/usuarios/dashboard_paciente.html
 msgid "Paciente"
-msgstr "Patient"
+msgstr "Paciente"
 
 #: templates/partials/_header_public.html
 msgid "Inicio"
-msgstr "Home"
+msgstr "Inicio"
 
 #: templates/partials/_header_public.html
 msgid "Servicios"
@@ -311,7 +311,7 @@ msgid "Accion"
 msgstr "Action"
 
 msgid "Acciones"
-msgstr "Actions"
+msgstr "Acciones"
 
 msgid "Activar Cuenta"
 msgstr "Activate Account"
@@ -329,7 +329,7 @@ msgid "Buscar cuenta"
 msgstr "Search account"
 
 msgid "Cancelar"
-msgstr "Cancel"
+msgstr "Cancelar"
 
 msgid "Ciudad"
 msgstr "City"
@@ -380,7 +380,7 @@ msgid "Entre 8 y 30 caracteres"
 msgstr "Between 8 and 30 characters"
 
 msgid "Estado"
-msgstr "State"
+msgstr "Estado"
 
 msgid "Estudios"
 msgstr "Studies"
@@ -395,7 +395,7 @@ msgid "IP"
 msgstr "IP"
 
 msgid "Lista de Pacientes"
-msgstr "Patient List"
+msgstr "Lista de Pacientes"
 
 msgid "Medicamentos"
 msgstr "Medications"
@@ -404,7 +404,7 @@ msgid "Municipio"
 msgstr "Municipality"
 
 msgid "Nombre"
-msgstr "Name"
+msgstr "Nombre"
 
 msgid "Nombre de la Sede"
 msgstr "Branch Name"
@@ -434,7 +434,7 @@ msgid "Recuperar Contrasena"
 msgstr "Recover Password"
 
 msgid "Referencia"
-msgstr "Reference"
+msgstr "Referencia"
 
 msgid "Registrar"
 msgstr "Register"
@@ -520,7 +520,7 @@ msgid "Agendar cita"
 msgstr "Schedule appointment"
 
 msgid "Aprobada"
-msgstr "Approved"
+msgstr "Aprobada"
 
 msgid "Atención"
 msgstr "Attention"
@@ -532,7 +532,7 @@ msgid "Atención profesional y personalizada."
 msgstr "Professional and personalized attention."
 
 msgid "Atendida"
-msgstr "Attended"
+msgstr "Atendida"
 
 msgid "Atrás"
 msgstr "Back"
@@ -592,7 +592,7 @@ msgid "Citas Recientes"
 msgstr "Recent Quotes"
 
 msgid "Citas hoy"
-msgstr "Quotes today"
+msgstr "Citas hoy"
 
 msgid "Ciudad *"
 msgstr "City *"
@@ -613,10 +613,10 @@ msgid "Confirma tu cita"
 msgstr "Confirm your appointment"
 
 msgid "Confirmada"
-msgstr "Confirmed"
+msgstr "Confirmada"
 
 msgid "Confirmar"
-msgstr "Confirm"
+msgstr "Confirmar"
 
 msgid "Conoce más sobre nosotros"
 msgstr "Learn more about us"
@@ -748,7 +748,7 @@ msgid "Gerentes"
 msgstr "Managers"
 
 msgid "Gestiona citas, pacientes y horarios del día"
-msgstr "Manage appointments, patients and schedules of the day"
+msgstr "Manage appointments, patients and daily schedules"
 
 msgid "Gestiona tus consultas y pacientes de manera eficiente."
 msgstr "Manage your queries and patients efficiently."
@@ -815,7 +815,7 @@ msgid "Menu"
 msgstr "Menu"
 
 msgid "Menú"
-msgstr "Menu"
+msgstr "Menú"
 
 msgid "Mes anterior"
 msgstr "Previous month"
@@ -836,7 +836,7 @@ msgid "Municipio *"
 msgstr "Municipality *"
 
 msgid "Médico"
-msgstr "Doctor"
+msgstr "Médico"
 
 msgid "Médicos disponibles para"
 msgstr "Doctors available for"
@@ -899,7 +899,7 @@ msgid "Panel de Administración Root"
 msgstr "Root Administration Panel"
 
 msgid "Panel de Recepción"
-msgstr "Reception Panel"
+msgstr "Panel de Recepción"
 
 msgid "Para mi menor:"
 msgstr "For my youngest:"
@@ -929,7 +929,7 @@ msgid "Privacidad"
 msgstr "Privacy"
 
 msgid "Programadas"
-msgstr "Scheduled"
+msgstr "Programadas"
 
 msgid "Proximas Citas"
 msgstr "Upcoming Appointments"
@@ -957,7 +957,7 @@ msgid "Salir"
 msgstr "Go out"
 
 msgid "Sede"
-msgstr "Headquarters"
+msgstr "Sede"
 
 msgid "Sede de Atencion"
 msgstr "Attention Headquarters"
@@ -1026,7 +1026,7 @@ msgid "Sobre Nosotros"
 msgstr "About us"
 
 msgid "Solicitada"
-msgstr "Requested"
+msgstr "Solicitada"
 
 msgid "Solicitar Nueva Cita"
 msgstr "Request New Appointment"
@@ -1176,10 +1176,10 @@ msgid "Alerta 24h antes de cada cita"
 msgstr "Alert 24h before each appointment"
 
 msgid "Anterior"
-msgstr "Previous"
+msgstr "Anterior"
 
 msgid "Apellido"
-msgstr "Last name"
+msgstr "Apellido"
 
 msgid ""
 "Aún no tienes datos personales registrados. Completa el formulario de "
@@ -1192,7 +1192,7 @@ msgid "Aún no tienes facturas"
 msgstr "You have no invoices yet"
 
 msgid "Buscar"
-msgstr "Search"
+msgstr "Buscar"
 
 msgid "Cambiar"
 msgstr "Change"
@@ -1207,7 +1207,7 @@ msgid "Cerrar"
 msgstr "Close"
 
 msgid "Citas"
-msgstr "Appointments"
+msgstr "Citas"
 
 msgid "Comienza agendando tu primera consulta médica."
 msgstr "Start by scheduling your first medical appointment."
@@ -1255,13 +1255,13 @@ msgid "Datos médicos"
 msgstr "Medical data"
 
 msgid "Descargar PDF"
-msgstr "Download PDF"
+msgstr "Descargar PDF"
 
 msgid "Detalle de consulta"
 msgstr "Consultation detail"
 
 msgid "Detalle de factura"
-msgstr "Invoice detail"
+msgstr "Detalle de factura"
 
 msgid "Diagnóstico"
 msgstr "Diagnosis"
@@ -1354,7 +1354,7 @@ msgid "Ingresa tu contraseña actual y la nueva para actualizarla."
 msgstr "Enter your current password and the new one to update it."
 
 msgid "Limpiar"
-msgstr "Clear"
+msgstr "Limpiar"
 
 msgid "Masculino"
 msgstr "Male"
@@ -1369,7 +1369,7 @@ msgid "Miembro desde"
 msgstr "Member since"
 
 msgid "Monto total"
-msgstr "Total amount"
+msgstr "Monto total"
 
 msgid "Motivo:"
 msgstr "Reason:"
@@ -1426,7 +1426,7 @@ msgid "Pagar saldo"
 msgstr "Pay balance"
 
 msgid "Pago pendiente"
-msgstr "Payment pending"
+msgstr "Pago pendiente"
 
 msgid "Perfil incompleto"
 msgstr "Incomplete profile"
@@ -1489,7 +1489,7 @@ msgid "Sexo"
 msgstr "Sex"
 
 msgid "Siguiente"
-msgstr "Next"
+msgstr "Siguiente"
 
 msgid "Sin alergias registradas"
 msgstr "No allergies registered"
@@ -1513,7 +1513,7 @@ msgid "Sí, cancelar"
 msgstr "Yes, cancel"
 
 msgid "Teléfono"
-msgstr "Phone"
+msgstr "Teléfono"
 
 msgid "Teléfono móvil"
 msgstr "Mobile phone"
@@ -1551,7 +1551,7 @@ msgid "Ver cita"
 msgstr "View appointment"
 
 msgid "Ver detalle"
-msgstr "View detail"
+msgstr "Ver detalle"
 
 msgid "Ver detalles"
 msgstr "View details"
@@ -1575,10 +1575,10 @@ msgid "Activa"
 msgstr "Active"
 
 msgid "Borrador"
-msgstr "Draft"
+msgstr "Borrador"
 
 msgid "Cancelada"
-msgstr "Cancelled"
+msgstr "Cancelada"
 
 msgid "Consulta general pediátrica"
 msgstr "General pediatric consultation"
@@ -1593,7 +1593,7 @@ msgid "Editar historial"
 msgstr "Edit history"
 
 msgid "Emitida"
-msgstr "Issued"
+msgstr "Emitida"
 
 msgid "En proceso"
 msgstr "In progress"
@@ -1632,13 +1632,13 @@ msgid "No hay dirección registrada. Haz clic en Editar para agregar una."
 msgstr "No address registered. Click Edit to add one."
 
 msgid "Pagada"
-msgstr "Paid"
+msgstr "Pagada"
 
 msgid "Pediatría"
 msgstr "Pediatrics"
 
 msgid "Pendiente"
-msgstr "Pending"
+msgstr "Pendiente"
 
 msgid "Receta completa"
 msgstr "Full prescription"
@@ -1873,7 +1873,7 @@ msgid "La referencia debe tener exactamente 6 dígitos numéricos."
 msgstr "The reference must have exactly 6 numeric digits."
 
 msgid "Monto a pagar"
-msgstr "Amount to pay"
+msgstr "Monto a pagar"
 
 msgid "Monto del pago"
 msgstr "Payment amount"
@@ -1882,7 +1882,7 @@ msgid "Motivo"
 msgstr "Reason"
 
 msgid "Método de pago"
-msgstr "Payment method"
+msgstr "Método de pago"
 
 msgid "Número de cuenta"
 msgstr "Account number"
@@ -1977,7 +1977,7 @@ msgid "Cuenta:"
 msgstr "Account:"
 
 msgid "Cédula"
-msgstr "ID Number"
+msgstr "Cédula"
 
 msgid "Describe el método de pago"
 msgstr "Describe the payment method"
@@ -2005,7 +2005,7 @@ msgid "Has seleccionado"
 msgstr "You have selected"
 
 msgid "Monto"
-msgstr "Amount"
+msgstr "Monto"
 
 msgid "Número de teléfono"
 msgstr "Phone number"
@@ -2070,7 +2070,7 @@ msgid "¡Pago registrado!"
 msgstr "Payment registered!"
 
 msgid "Efectivo"
-msgstr "Cash"
+msgstr "Efectivo"
 
 msgid "Transferencia bancaria"
 msgstr "Bank transfer"
@@ -2155,3 +2155,731 @@ msgstr "Back to Staff"
 
 msgid "opcional"
 msgstr "optional"
+
+msgid "Editar menor a cargo"
+msgstr "Edit Minor in My Care"
+
+msgid "Modifica la información de"
+msgstr "Modify the information of"
+
+msgid "Datos del menor"
+msgstr "Minor's Data"
+
+msgid "Primer nombre"
+msgstr "First name"
+
+msgid "El primer nombre es obligatorio."
+msgstr "First name is required."
+
+msgid "Segundo nombre"
+msgstr "Middle name"
+
+msgid "Primer apellido"
+msgstr "Last name"
+
+msgid "El primer apellido es obligatorio."
+msgstr "Last name is required."
+
+msgid "Segundo apellido"
+msgstr "Second last name"
+
+msgid "Selecciona el sexo."
+msgstr "Please select gender."
+
+msgid "La fecha no puede ser futura."
+msgstr "Date cannot be in the future."
+
+msgid "Solo se aceptan menores de 18 años."
+msgstr "Only minors under 18 years are accepted."
+
+msgid "Solo números, espacios, guiones y paréntesis."
+msgstr "Only numbers, spaces, hyphens and parentheses."
+
+msgid "Tipo de cédula"
+msgstr "ID type"
+
+msgid "Número de cédula"
+msgstr "ID number"
+
+msgid "Corrige los errores del formulario."
+msgstr "Please correct the form errors."
+
+msgid "Datos de \"%(nombre)s\" actualizados correctamente."
+msgstr "Data for \"%(nombre)s\" updated successfully."
+
+msgid "Pago Pendiente"
+msgstr "Pago Pendiente"
+
+msgid "Pagada Adelanto"
+msgstr "Advance Paid"
+
+msgid "Rechazada"
+msgstr "Rechazada"
+
+msgid "No Asistió"
+msgstr "No Asistió"
+
+msgid "Aprobado"
+msgstr "Approved"
+
+msgid "Rechazado"
+msgstr "Rejected"
+
+msgid "Abierta"
+msgstr "Open"
+
+msgid "Cerrada"
+msgstr "Closed"
+
+msgid "Anulada"
+msgstr "Anulada"
+
+msgid "Pagado"
+msgstr "Paid"
+
+msgid "Anulado"
+msgstr "Annulled"
+
+msgid "Ingreso"
+msgstr "Income"
+
+msgid "Egreso"
+msgstr "Expense"
+
+msgid "Comisión"
+msgstr "Commission"
+
+msgid "Fijo"
+msgstr "Fixed"
+
+msgid "Por Hora"
+msgstr "Per Hour"
+
+msgid "Hola,"
+msgstr "Hello,"
+
+msgid "No tienes citas programadas próximamente."
+msgstr "You have no upcoming appointments."
+
+msgid "Agenda tu próxima consulta con nosotros."
+msgstr "Schedule your next appointment with us."
+
+msgid "Inactiva"
+msgstr "Inactive"
+
+msgid "Cita #%(num)s —"
+msgstr "Appointment #%(num)s —"
+
+msgid "Duración estimada"
+msgstr "Estimated duration"
+
+msgid "30 minutos"
+msgstr "30 minutes"
+
+msgid "Fecha de solicitud"
+msgstr "Request date"
+
+msgid "Instrucciones pre-cita"
+msgstr "Pre-appointment instructions"
+
+msgid ""
+"Llegar 15 minutos antes. Traer identificación, carnet de seguro (si aplica) "
+"y estudios previos relacionados."
+msgstr ""
+"Arrive 15 minutes early. Bring ID, insurance card (if applicable) and "
+"related previous studies."
+
+msgid "Estado de pago y factura"
+msgstr "Payment and invoice status"
+
+msgid "Estado de pago"
+msgstr "Payment status"
+
+msgid "Monto:"
+msgstr "Amount:"
+
+msgid "Factura"
+msgstr "Factura"
+
+msgid "Sin factura generada"
+msgstr "No invoice generated"
+
+msgid "Total:"
+msgstr "Total:"
+
+msgid "Ver factura"
+msgstr "View invoice"
+
+msgid "Pagar saldo ahora"
+msgstr "Pay balance now"
+
+msgid "Resultados de la consulta"
+msgstr "Consultation results"
+
+msgid "Sin diagnóstico registrado"
+msgstr "No diagnosis recorded"
+
+msgid "Sin medicamentos registrados"
+msgstr "No medications recorded"
+
+msgid "Estudios / Exámenes"
+msgstr "Studies / Exams"
+
+msgid "Sin estudios registrados"
+msgstr "No studies recorded"
+
+msgid "Sin tratamiento registrado"
+msgstr "No treatment recorded"
+
+msgid "Sin reposo registrado"
+msgstr "No rest recorded"
+
+msgid "Sin observaciones"
+msgstr "No observations"
+
+msgid "Descargar receta PDF"
+msgstr "Download prescription PDF"
+
+msgid "Médico asignado"
+msgstr "Assigned doctor"
+
+msgid "Médico por asignar"
+msgstr "Doctor to be assigned"
+
+msgid "Colegiatura:"
+msgstr "License:"
+
+msgid "Ver historial médico"
+msgstr "View medical history"
+
+msgid "Agendar nueva cita"
+msgstr "Schedule new appointment"
+
+msgid "Motivo de cancelación"
+msgstr "Cancellation reason"
+
+msgid "Historial de cambios"
+msgstr "Change history"
+
+msgid "Cita creada"
+msgstr "Appointment created"
+
+msgid "Cita programada"
+msgstr "Appointment scheduled"
+
+msgid "Cita atendida"
+msgstr "Appointment attended"
+
+msgid "Cita cancelada"
+msgstr "Appointment cancelled"
+
+msgid "Sin asignar"
+msgstr "Not assigned"
+
+msgid "Calendario"
+msgstr "Calendar"
+
+msgid "Mis citas"
+msgstr "My Appointments"
+
+msgid "Gestionar Horarios"
+msgstr "Manage Schedules"
+
+msgid "Perfil de Doctor"
+msgstr "Doctor Profile"
+
+msgid "Cerrar sesión"
+msgstr "Cerrar sesión"
+
+msgid "Ver calendario de citas"
+msgstr "View appointment calendar"
+
+msgid "No tienes citas próximas"
+msgstr "You have no upcoming appointments"
+
+msgid "Todas tus citas están gestionadas."
+msgstr "All your appointments are managed."
+
+msgid "Calendario de Citas"
+msgstr "Appointment Calendar"
+
+msgid "Hoy"
+msgstr "Today"
+
+msgid "Asignada"
+msgstr "Assigned"
+
+msgid "Sin citas"
+msgstr "No appointments"
+
+msgid "Citas esta semana"
+msgstr "Appointments this week"
+
+msgid "Días con citas"
+msgstr "Days with appointments"
+
+msgid "Promedio por día"
+msgstr "Average per day"
+
+msgid "Todas tus citas en un solo lugar."
+msgstr "All your appointments in one place."
+
+msgid "Buscar por ID de cita..."
+msgstr "Search by appointment ID..."
+
+msgid "Todas"
+msgstr "All"
+
+msgid "Por atender"
+msgstr "To attend"
+
+msgid "Sin atender"
+msgstr "Unattended"
+
+msgid "Consulta"
+msgstr "Consultation"
+
+msgid "Cerrar la consulta y marcar como atendida?"
+msgstr "Close the consultation and mark as attended?"
+
+msgid "Atender"
+msgstr "Attend"
+
+msgid "Mostrando {start} - {end} de {total} citas"
+msgstr "Showing {start} - {end} of {total} appointments"
+
+msgid "Configura tu disponibilidad para atender citas."
+msgstr "Configure your availability for appointments."
+
+msgid "Trabaja"
+msgstr "Works"
+
+msgid "No asignado"
+msgstr "No asignado"
+
+msgid "Mañana"
+msgstr "Morning"
+
+msgid "Tarde"
+msgstr "Afternoon"
+
+msgid ""
+"Haz clic en cualquier día del calendario para editar su disponibilidad."
+msgstr "Click any day on the calendar to edit its availability."
+
+msgid "Editar disponibilidad"
+msgstr "Edit availability"
+
+msgid "Selecciona los turnos para este día:"
+msgstr "Select shifts for this day:"
+
+msgid "Eliminar disponibilidad de este día"
+msgstr "Delete availability for this day"
+
+msgid "Tu información personal y servicios que ofreces."
+msgstr "Your personal information and services you offer."
+
+msgid "Datos Personales"
+msgstr "Personal Data"
+
+msgid "Editar perfil"
+msgstr "Edit profile"
+
+msgid "años"
+msgstr "years"
+
+msgid "Correo"
+msgstr "Email"
+
+msgid "Modificar Servicios"
+msgstr "Modify Services"
+
+msgid "Gestionar catálogo de servicios"
+msgstr "Manage service catalog"
+
+msgid "Configurar tu disponibilidad"
+msgstr "Configure your availability"
+
+msgid "Servicios que Ofrece"
+msgstr "Services Offered"
+
+msgid "Modificar"
+msgstr "Modify"
+
+msgid "Sin descripción"
+msgstr "No description"
+
+msgid "No tienes servicios registrados"
+msgstr "You have no registered services"
+
+msgid ""
+"Agrega servicios a tu catálogo para que los pacientes puedan solicitar "
+"citas."
+msgstr "Add services to your catalog so patients can request appointments."
+
+msgid "Mis Servicios Médicos"
+msgstr "My Medical Services"
+
+msgid "Gestiona los servicios que ofreces a tus pacientes."
+msgstr "Manage the services you offer to your patients."
+
+msgid "Nuevo Servicio"
+msgstr "New Service"
+
+msgid "Total servicios"
+msgstr "Total services"
+
+msgid "Buscar servicio..."
+msgstr "Search service..."
+
+msgid "Descripción"
+msgstr "Description"
+
+msgid "Precio"
+msgstr "Precio"
+
+msgid "Desactivar"
+msgstr "Deactivate"
+
+msgid "¿Estás seguro de desactivar este servicio?"
+msgstr "Are you sure you want to deactivate this service?"
+
+msgid "No se encontraron servicios"
+msgstr "No services found"
+
+msgid "Intenta con otro término de búsqueda."
+msgstr "Try another search term."
+
+msgid "Sin servicios registrados"
+msgstr "No services registered"
+
+msgid ""
+"Aún no tienes servicios en tu catálogo. Agrega el primero para que los "
+"pacientes puedan solicitarlo al agendar una cita."
+msgstr ""
+"You don't have services in your catalog yet. Add the first one so patients "
+"can request it when booking an appointment."
+
+msgid "Agregar primer servicio"
+msgstr "Add first service"
+
+msgid "Completa los datos del servicio médico"
+msgstr "Complete the medical service data"
+
+msgid "Nombre del Servicio"
+msgstr "Service Name"
+
+msgid "Ej. Consulta General"
+msgstr "E.g. General Consultation"
+
+msgid "Describe brevemente el servicio"
+msgstr "Briefly describe the service"
+
+msgid "Facturación"
+msgstr "Facturación"
+
+msgid "Pacientes"
+msgstr "Pacientes"
+
+msgid "Citas pendientes"
+msgstr "Citas pendientes"
+
+msgid "Por confirmar"
+msgstr "Por confirmar"
+
+msgid "Pacientes nuevos hoy"
+msgstr "Pacientes nuevos hoy"
+
+msgid "Registrados"
+msgstr "Registrados"
+
+msgid "Médicos activos"
+msgstr "Médicos activos"
+
+msgid "En turno"
+msgstr "En turno"
+
+msgid "Buscar paciente, médico o especialidad..."
+msgstr "Buscar paciente, médico o especialidad..."
+
+msgid "Registrar paciente"
+msgstr "Registrar paciente"
+
+msgid "Gestión de Citas"
+msgstr "Gestión de Citas"
+
+msgid "Gestionar"
+msgstr "Gestionar"
+
+msgid "Administra todas las citas del sistema"
+msgstr "Administra todas las citas del sistema"
+
+msgid "Total citas"
+msgstr "Total citas"
+
+msgid "Solicitudes"
+msgstr "Solicitudes"
+
+msgid "Pagos por confirmar"
+msgstr "Pagos por confirmar"
+
+msgid "Aceptadas"
+msgstr "Aceptadas"
+
+msgid "Limpiar filtros"
+msgstr "Limpiar filtros"
+
+msgid "Todos los estados"
+msgstr "Todos los estados"
+
+msgid "Pagada (Adelanto)"
+msgstr "Pagada (Adelanto)"
+
+msgid "Todas las citas"
+msgstr "Todas las citas"
+
+msgid "Solicitudes nuevas"
+msgstr "Solicitudes nuevas"
+
+msgid "citas en total"
+msgstr "citas en total"
+
+msgid "solicitudes pendientes"
+msgstr "solicitudes pendientes"
+
+msgid "en revisión"
+msgstr "en revisión"
+
+msgid "aceptadas"
+msgstr "aceptadas"
+
+msgid "Método Pago"
+msgstr "Método Pago"
+
+msgid "Fecha Cita"
+msgstr "Fecha Cita"
+
+msgid "Ver pago"
+msgstr "Ver pago"
+
+msgid "Rechazar"
+msgstr "Rechazar"
+
+msgid "Confirmar Pago"
+msgstr "Confirmar Pago"
+
+msgid "Sin acciones"
+msgstr "Sin acciones"
+
+msgid "No hay citas registradas."
+msgstr "No hay citas registradas."
+
+msgid "No hay solicitudes nuevas."
+msgstr "No hay solicitudes nuevas."
+
+msgid "No hay pagos pendientes de confirmación."
+msgstr "No hay pagos pendientes de confirmación."
+
+msgid "No registrado"
+msgstr "No registrado"
+
+msgid "Confirmar pago"
+msgstr "Confirmar pago"
+
+msgid "Rechazar cita"
+msgstr "Rechazar cita"
+
+msgid "¿Está seguro que desea confirmar el pago y aceptar esta cita?"
+msgstr "¿Está seguro que desea confirmar el pago y aceptar esta cita?"
+
+msgid "¿Está seguro que desea rechazar esta cita?"
+msgstr "¿Está seguro que desea rechazar esta cita?"
+
+msgid "¿Está seguro que desea confirmar el pago y activar esta cita?"
+msgstr "¿Está seguro que desea confirmar el pago y activar esta cita?"
+
+msgid "Gestión de Facturas"
+msgstr "Gestión de Facturas"
+
+msgid "Facturas"
+msgstr "Facturas"
+
+msgid "Gestionar citas"
+msgstr "Gestionar citas"
+
+msgid "Total facturas"
+msgstr "Total facturas"
+
+msgid "Facturas pagadas"
+msgstr "Facturas pagadas"
+
+msgid "Adelantos"
+msgstr "Adelantos"
+
+msgid "Buscar paciente, médico o número..."
+msgstr "Buscar paciente, médico o número..."
+
+msgid "Vencida"
+msgstr "Vencida"
+
+msgid "Reembolsada"
+msgstr "Reembolsada"
+
+msgid "Desde"
+msgstr "Desde"
+
+msgid "Hasta"
+msgstr "Hasta"
+
+msgid "Aplicar filtros"
+msgstr "Aplicar filtros"
+
+msgid "N° Factura"
+msgstr "N° Factura"
+
+msgid "Fecha consulta"
+msgstr "Fecha consulta"
+
+msgid "Sin paciente"
+msgstr "Sin paciente"
+
+msgid "Sin médico"
+msgstr "Sin médico"
+
+msgid "Adel."
+msgstr "Adel."
+
+msgid "Pagada adelanto"
+msgstr "Pagada adelanto"
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "No se encontraron facturas en el período seleccionado."
+msgstr "No se encontraron facturas en el período seleccionado."
+
+msgid "Página"
+msgstr "Página"
+
+msgid "de"
+msgstr "de"
+
+msgid "Paciente:"
+msgstr "Paciente:"
+
+msgid "Médico:"
+msgstr "Médico:"
+
+msgid "Fecha:"
+msgstr "Fecha:"
+
+msgid "Monto no disponible"
+msgstr "Monto no disponible"
+
+msgid "Clínica"
+msgstr "Clínica"
+
+msgid "RIF:"
+msgstr "RIF:"
+
+msgid "Dirección de la sede principal"
+msgstr "Dirección de la sede principal"
+
+msgid "Concepto"
+msgstr "Concepto"
+
+msgid "Cant."
+msgstr "Cant."
+
+msgid "Cargando conceptos..."
+msgstr "Cargando conceptos..."
+
+msgid "Registrar pago"
+msgstr "Registrar pago"
+
+msgid "Referencia / N° operación"
+msgstr "Referencia / N° operación"
+
+msgid "Fecha de pago"
+msgstr "Fecha de pago"
+
+msgid "Tarjeta"
+msgstr "Tarjeta"
+
+msgid "Transferencia"
+msgstr "Transferencia"
+
+msgid "0.00"
+msgstr "0.00"
+
+msgid "Opcional"
+msgstr "Opcional"
+
+msgid "Consulta médica"
+msgstr "Consulta médica"
+
+msgid "Pacientes registrados en el sistema"
+msgstr "Pacientes registrados en el sistema"
+
+msgid "Buscar por nombre, apellido, cédula o teléfono..."
+msgstr "Buscar por nombre, apellido, cédula o teléfono..."
+
+msgid "Menores a cargo"
+msgstr "Menores a cargo"
+
+msgid "No se encontraron pacientes con"
+msgstr "No se encontraron pacientes con"
+
+msgid "No hay pacientes registrados en el sistema."
+msgstr "No hay pacientes registrados en el sistema."
+
+msgid "menores a cargo"
+msgstr "menores a cargo"
+
+msgid "¿Cancelar esta cita?"
+msgstr "¿Cancelar esta cita?"
+
+msgid "Cancelada por recepcionista/gerente"
+msgstr "Cancelada por recepcionista/gerente"
+
+msgid "No hay citas aceptadas."
+msgstr "No hay citas aceptadas."
+
+msgid "Próximas citas"
+msgstr "Upcoming appointments"
+
+msgid "Próximos 3 días"
+msgstr "Next 3 days"
+
+msgid "Sin especialidad"
+msgstr "Sin especialidad"
+
+msgid "No hay citas programadas próximamente"
+msgstr "No upcoming appointments scheduled"
+
+msgid "Solicitudes pendientes"
+msgstr "Pending requests"
+
+msgid "Citas por confirmar o rechazar"
+msgstr "Appointments to confirm or reject"
+
+msgid "No hay solicitudes pendientes"
+msgstr "No pending requests"
+
+msgid "Citas del día"
+msgstr "Today's appointments"
+
+msgid "citas programadas"
+msgstr "appointments scheduled"
+
+msgid "en consulta"
+msgstr "in consultation"
+
+msgid "Llegó"
+msgstr "Arrived"
+
+msgid "No hay citas programadas para hoy"
+msgstr "No appointments scheduled for today"
+
+msgid "registros"
+msgstr "records"

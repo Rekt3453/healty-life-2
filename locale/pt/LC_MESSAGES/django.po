@@ -523,7 +523,7 @@ msgid "Agendar cita"
 msgstr "Agendar consulta"
 
 msgid "Aprobada"
-msgstr "Aprovado"
+msgstr "Aprovada"
 
 msgid "Atención"
 msgstr "Atenção"
@@ -535,7 +535,7 @@ msgid "Atención profesional y personalizada."
 msgstr "Atendimento profissional e personalizado."
 
 msgid "Atendida"
-msgstr "Participou"
+msgstr "Atendida"
 
 msgid "Atrás"
 msgstr "Voltar"
@@ -595,7 +595,7 @@ msgid "Citas Recientes"
 msgstr "Citações recentes"
 
 msgid "Citas hoy"
-msgstr "Cotações hoje"
+msgstr "Consultas hoje"
 
 msgid "Ciudad *"
 msgstr "Cidade *"
@@ -616,7 +616,7 @@ msgid "Confirma tu cita"
 msgstr "Confirme seu agendamento"
 
 msgid "Confirmada"
-msgstr "Confirmado"
+msgstr "Confirmada"
 
 msgid "Confirmar"
 msgstr "Confirmar"
@@ -677,7 +677,7 @@ msgid "Emergencias: 24/7"
 msgstr "Emergências: 24 horas por dia, 7 dias por semana"
 
 msgid "En Consulta"
-msgstr "Em consulta"
+msgstr "Em Consulta"
 
 msgid ""
 "En Healthy Life combinamos tecnología médica avanzada con un equipo de "
@@ -751,7 +751,7 @@ msgid "Gerentes"
 msgstr "Gerentes"
 
 msgid "Gestiona citas, pacientes y horarios del día"
-msgstr "Gerenciar consultas, pacientes e horários do dia"
+msgstr "Gerencie consultas, pacientes e horários do dia"
 
 msgid "Gestiona tus consultas y pacientes de manera eficiente."
 msgstr "Gerencie suas dúvidas e pacientes com eficiência."
@@ -840,7 +840,7 @@ msgid "Municipio *"
 msgstr "Município *"
 
 msgid "Médico"
-msgstr "Doutor"
+msgstr "Médico"
 
 msgid "Médicos disponibles para"
 msgstr "Médicos disponíveis para"
@@ -904,7 +904,7 @@ msgid "Panel de Administración Root"
 msgstr "Painel de administração raiz"
 
 msgid "Panel de Recepción"
-msgstr "Painel de recepção"
+msgstr "Painel de Recepção"
 
 msgid "Para mi menor:"
 msgstr "Para o meu mais novo:"
@@ -934,7 +934,7 @@ msgid "Privacidad"
 msgstr "Privacidade"
 
 msgid "Programadas"
-msgstr "Agendado"
+msgstr "Agendadas"
 
 msgid "Proximas Citas"
 msgstr "Próximos compromissos"
@@ -1032,7 +1032,7 @@ msgid "Sobre Nosotros"
 msgstr "Sobre nós"
 
 msgid "Solicitada"
-msgstr "Solicitado"
+msgstr "Solicitada"
 
 msgid "Solicitar Nueva Cita"
 msgstr "Solicitar novo compromisso"
@@ -1267,7 +1267,7 @@ msgid "Detalle de consulta"
 msgstr "Detalhe da consulta"
 
 msgid "Detalle de factura"
-msgstr "Detalhe da fatura"
+msgstr "Detalhes da fatura"
 
 msgid "Diagnóstico"
 msgstr "Diagnóstico"
@@ -1494,7 +1494,7 @@ msgid "Sexo"
 msgstr "Sexo"
 
 msgid "Siguiente"
-msgstr "Próximo"
+msgstr "Próxima"
 
 msgid "Sin alergias registradas"
 msgstr "Sem alergias registradas"
@@ -1554,7 +1554,7 @@ msgid "Ver cita"
 msgstr "Ver consulta"
 
 msgid "Ver detalle"
-msgstr "Ver detalhe"
+msgstr "Ver detalhes"
 
 msgid "Ver detalles"
 msgstr "Ver detalhes"
@@ -1979,7 +1979,7 @@ msgid "Cuenta:"
 msgstr "Conta:"
 
 msgid "Cédula"
-msgstr "Documento"
+msgstr "CPF"
 
 msgid "Describe el método de pago"
 msgstr "Descreva o método de pagamento"
@@ -2158,3 +2158,733 @@ msgstr "Voltar à Equipe"
 
 msgid "opcional"
 msgstr "opcional"
+
+msgid "Editar menor a cargo"
+msgstr "Editar menor sob minha guarda"
+
+msgid "Modifica la información de"
+msgstr "Modifique as informações de"
+
+msgid "Datos del menor"
+msgstr "Dados do menor"
+
+msgid "Primer nombre"
+msgstr "Primeiro nome"
+
+msgid "El primer nombre es obligatorio."
+msgstr "O primeiro nome é obrigatório."
+
+msgid "Segundo nombre"
+msgstr "Segundo nome"
+
+msgid "Primer apellido"
+msgstr "Primeiro sobrenome"
+
+msgid "El primer apellido es obligatorio."
+msgstr "O primeiro sobrenome é obrigatório."
+
+msgid "Segundo apellido"
+msgstr "Segundo sobrenome"
+
+msgid "Selecciona el sexo."
+msgstr "Selecione o sexo."
+
+msgid "La fecha no puede ser futura."
+msgstr "A data não pode ser futura."
+
+msgid "Solo se aceptan menores de 18 años."
+msgstr "Apenas menores de 18 anos são aceitos."
+
+msgid "Solo números, espacios, guiones y paréntesis."
+msgstr "Apenas números, espaços, hífens e parênteses."
+
+msgid "Tipo de cédula"
+msgstr "Tipo de documento"
+
+msgid "Número de cédula"
+msgstr "Número do documento"
+
+msgid "Corrige los errores del formulario."
+msgstr "Corrija os erros do formulário."
+
+msgid "Datos de \"%(nombre)s\" actualizados correctamente."
+msgstr "Dados de \"%(nombre)s\" atualizados corretamente."
+
+msgid "Pago Pendiente"
+msgstr "Pagamento Pendente"
+
+msgid "Pagada Adelanto"
+msgstr "Adiantamento Pago"
+
+msgid "Rechazada"
+msgstr "Recusada"
+
+msgid "No Asistió"
+msgstr "Não Compareceu"
+
+msgid "Aprobado"
+msgstr "Aprovado"
+
+msgid "Rechazado"
+msgstr "Rejeitado"
+
+msgid "Abierta"
+msgstr "Aberta"
+
+msgid "Cerrada"
+msgstr "Fechada"
+
+msgid "Anulada"
+msgstr "Anulada"
+
+msgid "Pagado"
+msgstr "Pago"
+
+msgid "Anulado"
+msgstr "Anulado"
+
+msgid "Ingreso"
+msgstr "Receita"
+
+msgid "Egreso"
+msgstr "Despesa"
+
+msgid "Comisión"
+msgstr "Comissão"
+
+msgid "Fijo"
+msgstr "Fixo"
+
+msgid "Por Hora"
+msgstr "Por Hora"
+
+msgid "Hola,"
+msgstr "Olá,"
+
+msgid "No tienes citas programadas próximamente."
+msgstr "Não tem consultas programadas próximas."
+
+msgid "Agenda tu próxima consulta con nosotros."
+msgstr "Agende sua próxima consulta conosco."
+
+msgid "Inactiva"
+msgstr "Inativa"
+
+msgid "Cita #%(num)s —"
+msgstr "Consulta #%(num)s —"
+
+msgid "Duración estimada"
+msgstr "Duração estimada"
+
+msgid "30 minutos"
+msgstr "30 minutos"
+
+msgid "Fecha de solicitud"
+msgstr "Data de solicitação"
+
+msgid "Instrucciones pre-cita"
+msgstr "Instruções pré-consulta"
+
+msgid ""
+"Llegar 15 minutos antes. Traer identificación, carnet de seguro (si aplica) "
+"y estudios previos relacionados."
+msgstr ""
+"Chegue 15 minutos antes. Traga identificação, cartão de seguro (se "
+"aplicável) e estudos anteriores relacionados."
+
+msgid "Estado de pago y factura"
+msgstr "Status de pagamento e fatura"
+
+msgid "Estado de pago"
+msgstr "Status de pagamento"
+
+msgid "Monto:"
+msgstr "Valor:"
+
+msgid "Factura"
+msgstr "Fatura"
+
+msgid "Sin factura generada"
+msgstr "Nenhuma fatura gerada"
+
+msgid "Total:"
+msgstr "Total:"
+
+msgid "Ver factura"
+msgstr "Ver fatura"
+
+msgid "Pagar saldo ahora"
+msgstr "Pagar saldo agora"
+
+msgid "Resultados de la consulta"
+msgstr "Resultados da consulta"
+
+msgid "Sin diagnóstico registrado"
+msgstr "Nenhum diagnóstico registrado"
+
+msgid "Sin medicamentos registrados"
+msgstr "Nenhum medicamento registrado"
+
+msgid "Estudios / Exámenes"
+msgstr "Estudos / Exames"
+
+msgid "Sin estudios registrados"
+msgstr "Nenhum estudo registrado"
+
+msgid "Sin tratamiento registrado"
+msgstr "Nenhum tratamento registrado"
+
+msgid "Sin reposo registrado"
+msgstr "Nenhum repouso registrado"
+
+msgid "Sin observaciones"
+msgstr "Nenhuma observação"
+
+msgid "Descargar receta PDF"
+msgstr "Baixar receita PDF"
+
+msgid "Médico asignado"
+msgstr "Médico atribuído"
+
+msgid "Médico por asignar"
+msgstr "Médico a ser atribuído"
+
+msgid "Colegiatura:"
+msgstr "Licença:"
+
+msgid "Ver historial médico"
+msgstr "Ver histórico médico"
+
+msgid "Agendar nueva cita"
+msgstr "Agendar nova consulta"
+
+msgid "Motivo de cancelación"
+msgstr "Motivo de cancelamento"
+
+msgid "Historial de cambios"
+msgstr "Histórico de alterações"
+
+msgid "Cita creada"
+msgstr "Consulta criada"
+
+msgid "Cita programada"
+msgstr "Consulta programada"
+
+msgid "Cita atendida"
+msgstr "Consulta atendida"
+
+msgid "Cita cancelada"
+msgstr "Consulta cancelada"
+
+msgid "Sin asignar"
+msgstr "Não atribuído"
+
+msgid "Calendario"
+msgstr "Calendário"
+
+msgid "Mis citas"
+msgstr "Minhas consultas"
+
+msgid "Gestionar Horarios"
+msgstr "Gerenciar Horários"
+
+msgid "Perfil de Doctor"
+msgstr "Perfil do Médico"
+
+msgid "Cerrar sesión"
+msgstr "Sair"
+
+msgid "Ver calendario de citas"
+msgstr "Ver calendário de consultas"
+
+msgid "No tienes citas próximas"
+msgstr "Você não tem consultas próximas"
+
+msgid "Todas tus citas están gestionadas."
+msgstr "Todas as suas consultas estão gerenciadas."
+
+msgid "Calendario de Citas"
+msgstr "Calendário de Consultas"
+
+msgid "Hoy"
+msgstr "Hoje"
+
+msgid "Asignada"
+msgstr "Atribuída"
+
+msgid "Sin citas"
+msgstr "Sem consultas"
+
+msgid "Citas esta semana"
+msgstr "Consultas esta semana"
+
+msgid "Días con citas"
+msgstr "Dias com consultas"
+
+msgid "Promedio por día"
+msgstr "Média por dia"
+
+msgid "Todas tus citas en un solo lugar."
+msgstr "Todas as suas consultas em um só lugar."
+
+msgid "Buscar por ID de cita..."
+msgstr "Buscar por ID da consulta..."
+
+msgid "Todas"
+msgstr "Todas"
+
+msgid "Por atender"
+msgstr "Para atender"
+
+msgid "Sin atender"
+msgstr "Não atendidas"
+
+msgid "Consulta"
+msgstr "Consulta"
+
+msgid "Cerrar la consulta y marcar como atendida?"
+msgstr "Fechar a consulta e marcar como atendida?"
+
+msgid "Atender"
+msgstr "Atender"
+
+msgid "Mostrando {start} - {end} de {total} citas"
+msgstr "Mostrando {start} - {end} de {total} consultas"
+
+msgid "Configura tu disponibilidad para atender citas."
+msgstr "Configure sua disponibilidade para atender consultas."
+
+msgid "Trabaja"
+msgstr "Trabalha"
+
+msgid "No asignado"
+msgstr "Não atribuído"
+
+msgid "Mañana"
+msgstr "Manhã"
+
+msgid "Tarde"
+msgstr "Tarde"
+
+msgid ""
+"Haz clic en cualquier día del calendario para editar su disponibilidad."
+msgstr "Clique em qualquer dia do calendário para editar sua disponibilidade."
+
+msgid "Editar disponibilidad"
+msgstr "Editar disponibilidade"
+
+msgid "Selecciona los turnos para este día:"
+msgstr "Selecione os turnos para este dia:"
+
+msgid "Eliminar disponibilidad de este día"
+msgstr "Excluir disponibilidade deste dia"
+
+msgid "Tu información personal y servicios que ofreces."
+msgstr "Suas informações pessoais e serviços que você oferece."
+
+msgid "Datos Personales"
+msgstr "Dados Pessoais"
+
+msgid "Editar perfil"
+msgstr "Editar perfil"
+
+msgid "años"
+msgstr "anos"
+
+msgid "Correo"
+msgstr "E-mail"
+
+msgid "Modificar Servicios"
+msgstr "Modificar Serviços"
+
+msgid "Gestionar catálogo de servicios"
+msgstr "Gerenciar catálogo de serviços"
+
+msgid "Configurar tu disponibilidad"
+msgstr "Configurar sua disponibilidade"
+
+msgid "Servicios que Ofrece"
+msgstr "Serviços Oferecidos"
+
+msgid "Modificar"
+msgstr "Modificar"
+
+msgid "Sin descripción"
+msgstr "Sem descrição"
+
+msgid "No tienes servicios registrados"
+msgstr "Você não tem serviços registrados"
+
+msgid ""
+"Agrega servicios a tu catálogo para que los pacientes puedan solicitar "
+"citas."
+msgstr ""
+"Adicione serviços ao seu catálogo para que os pacientes possam solicitar "
+"consultas."
+
+msgid "Mis Servicios Médicos"
+msgstr "Meus Serviços Médicos"
+
+msgid "Gestiona los servicios que ofreces a tus pacientes."
+msgstr "Gerencie os serviços que você oferece aos seus pacientes."
+
+msgid "Nuevo Servicio"
+msgstr "Novo Serviço"
+
+msgid "Total servicios"
+msgstr "Total de serviços"
+
+msgid "Buscar servicio..."
+msgstr "Buscar serviço..."
+
+msgid "Descripción"
+msgstr "Descrição"
+
+msgid "Precio"
+msgstr "Preço"
+
+msgid "Desactivar"
+msgstr "Desativar"
+
+msgid "¿Estás seguro de desactivar este servicio?"
+msgstr "Tem certeza de que deseja desativar este serviço?"
+
+msgid "No se encontraron servicios"
+msgstr "Nenhum serviço encontrado"
+
+msgid "Intenta con otro término de búsqueda."
+msgstr "Tente outro termo de busca."
+
+msgid "Sin servicios registrados"
+msgstr "Sem serviços registrados"
+
+msgid ""
+"Aún no tienes servicios en tu catálogo. Agrega el primero para que los "
+"pacientes puedan solicitarlo al agendar una cita."
+msgstr ""
+"Você ainda não tem serviços no seu catálogo. Adicione o primeiro para que os"
+" pacientes possam solicitá-lo ao agendar uma consulta."
+
+msgid "Agregar primer servicio"
+msgstr "Adicionar primeiro serviço"
+
+msgid "Completa los datos del servicio médico"
+msgstr "Complete os dados do serviço médico"
+
+msgid "Nombre del Servicio"
+msgstr "Nome do Serviço"
+
+msgid "Ej. Consulta General"
+msgstr "Ex. Consulta Geral"
+
+msgid "Describe brevemente el servicio"
+msgstr "Descreva brevemente o serviço"
+
+msgid "Facturación"
+msgstr "Faturamento"
+
+msgid "Pacientes"
+msgstr "Pacientes"
+
+msgid "Citas pendientes"
+msgstr "Consultas pendentes"
+
+msgid "Por confirmar"
+msgstr "Para confirmar"
+
+msgid "Pacientes nuevos hoy"
+msgstr "Novos pacientes hoje"
+
+msgid "Registrados"
+msgstr "Registrados"
+
+msgid "Médicos activos"
+msgstr "Médicos ativos"
+
+msgid "En turno"
+msgstr "Em plantão"
+
+msgid "Buscar paciente, médico o especialidad..."
+msgstr "Buscar paciente, médico ou especialidade..."
+
+msgid "Registrar paciente"
+msgstr "Registrar paciente"
+
+msgid "Gestión de Citas"
+msgstr "Gestão de Consultas"
+
+msgid "Gestionar"
+msgstr "Gerenciar"
+
+msgid "Administra todas las citas del sistema"
+msgstr "Gerencie todas as consultas do sistema"
+
+msgid "Total citas"
+msgstr "Total de consultas"
+
+msgid "Solicitudes"
+msgstr "Solicitações"
+
+msgid "Pagos por confirmar"
+msgstr "Pagamentos para confirmar"
+
+msgid "Aceptadas"
+msgstr "Aceitas"
+
+msgid "Limpiar filtros"
+msgstr "Limpar filtros"
+
+msgid "Todos los estados"
+msgstr "Todos os estados"
+
+msgid "Pagada (Adelanto)"
+msgstr "Paga (Adiantamento)"
+
+msgid "Todas las citas"
+msgstr "Todas as consultas"
+
+msgid "Solicitudes nuevas"
+msgstr "Novas solicitações"
+
+msgid "citas en total"
+msgstr "consultas no total"
+
+msgid "solicitudes pendientes"
+msgstr "solicitações pendentes"
+
+msgid "en revisión"
+msgstr "em revisão"
+
+msgid "aceptadas"
+msgstr "aceitas"
+
+msgid "Método Pago"
+msgstr "Método Pagamento"
+
+msgid "Fecha Cita"
+msgstr "Data Consulta"
+
+msgid "Ver pago"
+msgstr "Ver pagamento"
+
+msgid "Rechazar"
+msgstr "Recusar"
+
+msgid "Confirmar Pago"
+msgstr "Confirmar Pagamento"
+
+msgid "Sin acciones"
+msgstr "Sem ações"
+
+msgid "No hay citas registradas."
+msgstr "Nenhuma consulta registrada."
+
+msgid "No hay solicitudes nuevas."
+msgstr "Nenhuma nova solicitação."
+
+msgid "No hay pagos pendientes de confirmación."
+msgstr "Nenhum pagamento pendente de confirmação."
+
+msgid "No registrado"
+msgstr "Não registrado"
+
+msgid "Confirmar pago"
+msgstr "Confirmar pagamento"
+
+msgid "Rechazar cita"
+msgstr "Recusar consulta"
+
+msgid "¿Está seguro que desea confirmar el pago y aceptar esta cita?"
+msgstr "Tem certeza que deseja confirmar o pagamento e aceitar esta consulta?"
+
+msgid "¿Está seguro que desea rechazar esta cita?"
+msgstr "Tem certeza que deseja recusar esta consulta?"
+
+msgid "¿Está seguro que desea confirmar el pago y activar esta cita?"
+msgstr "Tem certeza que deseja confirmar o pagamento e ativar esta consulta?"
+
+msgid "Gestión de Facturas"
+msgstr "Gestão de Faturas"
+
+msgid "Facturas"
+msgstr "Faturas"
+
+msgid "Gestionar citas"
+msgstr "Gerenciar consultas"
+
+msgid "Total facturas"
+msgstr "Total de faturas"
+
+msgid "Facturas pagadas"
+msgstr "Faturas pagas"
+
+msgid "Adelantos"
+msgstr "Adiantamentos"
+
+msgid "Buscar paciente, médico o número..."
+msgstr "Buscar paciente, médico ou número..."
+
+msgid "Vencida"
+msgstr "Vencida"
+
+msgid "Reembolsada"
+msgstr "Reembolsada"
+
+msgid "Desde"
+msgstr "De"
+
+msgid "Hasta"
+msgstr "Até"
+
+msgid "Aplicar filtros"
+msgstr "Aplicar filtros"
+
+msgid "N° Factura"
+msgstr "N° Fatura"
+
+msgid "Fecha consulta"
+msgstr "Data consulta"
+
+msgid "Sin paciente"
+msgstr "Sem paciente"
+
+msgid "Sin médico"
+msgstr "Sem médico"
+
+msgid "Adel."
+msgstr "Adiant."
+
+msgid "Pagada adelanto"
+msgstr "Paga adiantamento"
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "No se encontraron facturas en el período seleccionado."
+msgstr "Nenhuma fatura encontrada no período selecionado."
+
+msgid "Página"
+msgstr "Página"
+
+msgid "de"
+msgstr "de"
+
+msgid "Paciente:"
+msgstr "Paciente:"
+
+msgid "Médico:"
+msgstr "Médico:"
+
+msgid "Fecha:"
+msgstr "Data:"
+
+msgid "Monto no disponible"
+msgstr "Valor não disponível"
+
+msgid "Clínica"
+msgstr "Clínica"
+
+msgid "RIF:"
+msgstr "RIF:"
+
+msgid "Dirección de la sede principal"
+msgstr "Endereço da sede principal"
+
+msgid "Concepto"
+msgstr "Conceito"
+
+msgid "Cant."
+msgstr "Qtd."
+
+msgid "Cargando conceptos..."
+msgstr "Carregando conceitos..."
+
+msgid "Registrar pago"
+msgstr "Registrar pagamento"
+
+msgid "Referencia / N° operación"
+msgstr "Referência / N° operação"
+
+msgid "Fecha de pago"
+msgstr "Data de pagamento"
+
+msgid "Tarjeta"
+msgstr "Cartão"
+
+msgid "Transferencia"
+msgstr "Transferência"
+
+msgid "0.00"
+msgstr "0,00"
+
+msgid "Opcional"
+msgstr "Opcional"
+
+msgid "Consulta médica"
+msgstr "Consulta médica"
+
+msgid "Pacientes registrados en el sistema"
+msgstr "Pacientes registrados no sistema"
+
+msgid "Buscar por nombre, apellido, cédula o teléfono..."
+msgstr "Buscar por nome, sobrenome, CPF ou telefone..."
+
+msgid "Menores a cargo"
+msgstr "Menores a cargo"
+
+msgid "No se encontraron pacientes con"
+msgstr "Nenhum paciente encontrado com"
+
+msgid "No hay pacientes registrados en el sistema."
+msgstr "Não há pacientes registrados no sistema."
+
+msgid "menores a cargo"
+msgstr "menores a cargo"
+
+msgid "¿Cancelar esta cita?"
+msgstr "Cancelar esta consulta?"
+
+msgid "Cancelada por recepcionista/gerente"
+msgstr "Cancelada por recepcionista/gerente"
+
+msgid "No hay citas aceptadas."
+msgstr "Nenhuma consulta aceita."
+
+msgid "Próximas citas"
+msgstr "Próximas consultas"
+
+msgid "Próximos 3 días"
+msgstr "Próximos 3 dias"
+
+msgid "Sin especialidad"
+msgstr "Sem especialidade"
+
+msgid "No hay citas programadas próximamente"
+msgstr "Nenhuma consulta programada próximamente"
+
+msgid "Solicitudes pendientes"
+msgstr "Solicitações pendentes"
+
+msgid "Citas por confirmar o rechazar"
+msgstr "Consultas para confirmar ou recusar"
+
+msgid "No hay solicitudes pendientes"
+msgstr "Nenhuma solicitação pendente"
+
+msgid "Citas del día"
+msgstr "Consultas do dia"
+
+msgid "citas programadas"
+msgstr "consultas programadas"
+
+msgid "en consulta"
+msgstr "em consulta"
+
+msgid "Llegó"
+msgstr "Chegou"
+
+msgid "No hay citas programadas para hoy"
+msgstr "Nenhuma consulta programada para hoje"
+
+msgid "registros"
+msgstr "registros"

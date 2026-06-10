@@ -5,6 +5,7 @@
 # en Supabase (SQL Editor o migrations manuales).  Solo los modelos sin Meta
 # managed=False (o con managed=True) son gestionados por Django.
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from usuarios.models import Sede, Doctor, PacienteDatosPersonales, CentroMedico, PacienteEspecial
 
 
@@ -136,9 +137,9 @@ class PagoCita(models.Model):
     ESTADO_APROBADO  = 'aprobado'
     ESTADO_RECHAZADO = 'rechazado'
     ESTADOS_PAGO = [
-        (ESTADO_PENDIENTE, 'Pendiente'),
-        (ESTADO_APROBADO,  'Aprobado'),
-        (ESTADO_RECHAZADO, 'Rechazado'),
+        (ESTADO_PENDIENTE, _('Pendiente')),
+        (ESTADO_APROBADO,  _('Aprobado')),
+        (ESTADO_RECHAZADO, _('Rechazado')),
     ]
     estado_pago = models.CharField(
         max_length=20, choices=ESTADOS_PAGO,
@@ -195,16 +196,16 @@ class Cita(models.Model):
     ESTADO_NO_ASISTIO      = 'no_asistio'
 
     ESTADOS = [
-        (ESTADO_SOLICITADA,      'Solicitada'),
-        (ESTADO_APROBADA,        'Aprobada'),
-        (ESTADO_PAGO_PENDIENTE,  'Pago Pendiente'),
-        (ESTADO_PAGADA_ADELANTO, 'Pagada Adelanto'),
-        (ESTADO_CONFIRMADA,      'Confirmada'),
-        (ESTADO_EN_CONSULTA,     'En Consulta'),
-        (ESTADO_ATENDIDA,        'Atendida'),
-        (ESTADO_CANCELADA,       'Cancelada'),
-        (ESTADO_RECHAZADA,       'Rechazada'),
-        (ESTADO_NO_ASISTIO,      'No Asistió'),
+        (ESTADO_SOLICITADA,      _('Solicitada')),
+        (ESTADO_APROBADA,        _('Aprobada')),
+        (ESTADO_PAGO_PENDIENTE,  _('Pago Pendiente')),
+        (ESTADO_PAGADA_ADELANTO, _('Pagada Adelanto')),
+        (ESTADO_CONFIRMADA,      _('Confirmada')),
+        (ESTADO_EN_CONSULTA,     _('En Consulta')),
+        (ESTADO_ATENDIDA,        _('Atendida')),
+        (ESTADO_CANCELADA,       _('Cancelada')),
+        (ESTADO_RECHAZADA,       _('Rechazada')),
+        (ESTADO_NO_ASISTIO,      _('No Asistió')),
     ]
 
     TRANSICIONES_VALIDAS = {
@@ -555,9 +556,9 @@ class ConsultaMedica(models.Model):
     ESTADO_ANULADA = "anulada"
 
     ESTADOS = [
-        (ESTADO_ABIERTA, "Abierta"),
-        (ESTADO_CERRADA, "Cerrada"),
-        (ESTADO_ANULADA, "Anulada"),
+        (ESTADO_ABIERTA, _("Abierta")),
+        (ESTADO_CERRADA, _("Cerrada")),
+        (ESTADO_ANULADA, _("Anulada")),
     ]
 
     id_consulta = models.BigAutoField(primary_key=True)
@@ -596,10 +597,10 @@ class Factura(models.Model):
     ESTADO_ANULADA  = "anulada"
 
     ESTADOS = [
-        (ESTADO_BORRADOR, "Borrador"),
-        (ESTADO_EMITIDA,  "Emitida"),
-        (ESTADO_PAGADA,   "Pagada"),
-        (ESTADO_ANULADA,  "Anulada"),
+        (ESTADO_BORRADOR, _("Borrador")),
+        (ESTADO_EMITIDA,  _("Emitida")),
+        (ESTADO_PAGADA,   _("Pagada")),
+        (ESTADO_ANULADA,  _("Anulada")),
     ]
 
     id_factura  = models.BigAutoField(primary_key=True)
@@ -640,8 +641,8 @@ class MovimientoCaja(models.Model):
     TIPO_EGRESO = 'egreso'
     
     TIPOS_MOVIMIENTO = [
-        (TIPO_INGRESO, 'Ingreso'),
-        (TIPO_EGRESO, 'Egreso'),
+        (TIPO_INGRESO, _('Ingreso')),
+        (TIPO_EGRESO, _('Egreso')),
     ]
     
     id_movimiento = models.BigAutoField(primary_key=True)
@@ -675,9 +676,9 @@ class HonorarioMedico(models.Model):
     ESTADO_ANULADO = 'anulado'
     
     ESTADOS_PAGO = [
-        (ESTADO_PENDIENTE, 'Pendiente'),
-        (ESTADO_PAGADO, 'Pagado'),
-        (ESTADO_ANULADO, 'Anulado'),
+        (ESTADO_PENDIENTE, _('Pendiente')),
+        (ESTADO_PAGADO, _('Pagado')),
+        (ESTADO_ANULADO, _('Anulado')),
     ]
     
     TIPO_COMISION = 'comision'
@@ -685,9 +686,9 @@ class HonorarioMedico(models.Model):
     TIPO_HORA = 'hora'
     
     TIPOS_PAGO = [
-        (TIPO_COMISION, 'Comisión'),
-        (TIPO_FIJO, 'Fijo'),
-        (TIPO_HORA, 'Por Hora'),
+        (TIPO_COMISION, _('Comisión')),
+        (TIPO_FIJO, _('Fijo')),
+        (TIPO_HORA, _('Por Hora')),
     ]
     
     id_honorario = models.BigAutoField(primary_key=True)

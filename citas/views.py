@@ -481,11 +481,17 @@ def gestionar_citas(request):
     except Exception:
         citas_aceptadas = Cita.objects.none()
 
+    try:
+        citas_todas = _base
+    except Exception:
+        citas_todas = Cita.objects.none()
+
     return render(request, 'citas/gestionar_citas.html', {
         'citas_solicitud': citas_solicitud,
         'citas_pago':      citas_pago,
         'citas_aceptadas': citas_aceptadas,
-        'total': citas_solicitud.count() + citas_pago.count() + citas_aceptadas.count(),
+        'citas_todas':     citas_todas,
+        'total': citas_todas.count(),
         'filtro_hoy': request.GET.get('hoy') == '1',
     })
 

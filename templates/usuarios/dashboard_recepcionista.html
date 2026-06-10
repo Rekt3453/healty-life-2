@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Recepción - Healthy Life</title>
+    <title>{% trans "Panel de Recepción" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -69,25 +69,25 @@
     <nav class="px-4 space-y-1">
         <a href="{% url 'dashboard_recepcionista' %}" class="sidebar-link active">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            Dashboard
+            {% trans "Dashboard" %}
         </a>
         <a href="{% url 'gestionar_citas' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            Citas
+            {% trans "Citas" %}
         </a>
         <a href="{% url 'facturas_recepcionista' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Facturación
+            {% trans "Facturación" %}
         </a>
         <a href="{% url 'lista_pacientes' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Pacientes
+            {% trans "Pacientes" %}
         </a>
     </nav>
     <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
         <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            Cerrar sesión
+            {% trans "Cerrar sesión" %}
         </a>
     </div>
 </aside>
@@ -112,7 +112,7 @@
         <div class="flex items-center gap-4">
             {% include "partials/_language_selector.html" %}
             <div class="text-right hidden sm:block">
-                <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ nombre|default:"Recepcionista" }}</p>
+                <p class="text-sm font-semibold" style="color:var(--text-primary);">{% if nombre %}{{ nombre }}{% else %}{% trans "Recepcionista" %}{% endif %}</p>
                 <p class="text-xs" style="color:var(--text-secondary);">{% trans "Recepcionista" %}</p>
             </div>
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background:var(--accent);">
@@ -144,9 +144,9 @@
             <div class="dashboard-card p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium" style="color:var(--text-secondary);">Citas pendientes</p>
+                        <p class="text-xs font-medium" style="color:var(--text-secondary);">{% trans "Citas pendientes" %}</p>
                         <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ citas_pendientes|default:"0" }}</p>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">Por confirmar</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{% trans "Por confirmar" %}</p>
                     </div>
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(217,119,6,.1);color:#D97706;">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -156,9 +156,9 @@
             <div class="dashboard-card p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium" style="color:var(--text-secondary);">Pacientes nuevos hoy</p>
+                        <p class="text-xs font-medium" style="color:var(--text-secondary);">{% trans "Pacientes nuevos hoy" %}</p>
                         <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ pacientes_nuevos_hoy|default:"0" }}</p>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">Registrados</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{% trans "Registrados" %}</p>
                     </div>
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(5,150,105,.1);color:#059669;">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -168,9 +168,9 @@
             <div class="dashboard-card p-5">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium" style="color:var(--text-secondary);">Médicos activos</p>
+                        <p class="text-xs font-medium" style="color:var(--text-secondary);">{% trans "Médicos activos" %}</p>
                         <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ medicos_activos|default:"0" }}</p>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">En turno</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{% trans "En turno" %}</p>
                     </div>
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(37,99,235,.1);color:#2563EB;">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-8v8"/></svg>
@@ -184,7 +184,7 @@
             <div class="flex flex-col md:flex-row md:items-center gap-4">
                 <div class="relative flex-1">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input id="patientSearchInput" type="text" placeholder="Buscar paciente, médico o especialidad..." class="input-modern pl-10" oninput="searchDashboard(this.value)">
+                    <input id="patientSearchInput" type="text" placeholder="{% trans "Buscar paciente, médico o especialidad..." %}" class="input-modern pl-10" oninput="searchDashboard(this.value)">
                 </div>
                 <a href="{% url 'registro' %}" class="btn-primary whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>

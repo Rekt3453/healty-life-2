@@ -626,7 +626,7 @@ def editar_paciente_especial(request, id_paciente_especial):
             nombre_menor = f"{menor.nombre_1} {menor.apellido_1}"
             messages.success(
                 request,
-                f'✅ Datos de "{nombre_menor}" actualizados correctamente.'
+                _('Datos de "%(nombre)s" actualizados correctamente.') % {'nombre': nombre_menor}
             )
             return redirect('lista_pacientes_especiales')
     else:

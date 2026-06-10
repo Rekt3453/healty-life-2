@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="lg:col-span-2 dashboard-card overflow-hidden">
     <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
         <div class="flex items-center gap-3">
@@ -5,8 +6,8 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
-                <h2 class="text-base font-bold" style="color:var(--text-primary);">Solicitudes pendientes</h2>
-                <p class="text-xs" style="color:var(--text-secondary);">Citas por confirmar o rechazar</p>
+                <h2 class="text-base font-bold" style="color:var(--text-primary);">{% trans "Solicitudes pendientes" %}</h2>
+                <p class="text-xs" style="color:var(--text-secondary);">{% trans "Citas por confirmar o rechazar" %}</p>
             </div>
         </div>
     </div>
@@ -14,21 +15,32 @@
         {% for cita in citas_pendientes_list %}
         <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors" data-request-id="{{ cita.id_citas }}" data-confirm-url="{% url 'confirmar_pago' cita.id_citas %}" data-reject-url="{% url 'rechazar_cita' cita.id_citas %}" data-cancel-url="{% url 'cancelar_cita_secretaria' cita.id_citas %}">
             <div>
-                <p class="font-medium text-sm" style="color:var(--text-primary);">{{ cita.id_paciente|default:"Paciente" }} — {{ cita.id_especialidades|default:"—" }}</p>
+                <p class="font-medium text-sm" style="color:var(--text-primary);">{{ cita.id_paciente|default:"—" }} — {{ cita.id_especialidades|default:"—" }}</p>
                 <p class="text-xs mt-0.5" style="color:var(--text-secondary);">
                     {{ cita.fecha_consulta|date:"d/m/Y" }} {{ cita.fecha_consulta|time:"H:i" }} · {{ cita.id_doctor|default:"—" }} · {{ cita.id_consultorio|default:"—" }}
                 </p>
             </div>
             <div class="flex gap-2">
-                <button onclick="openModal('confirmar',{{ cita.id_citas }})" class="btn-success text-xs px-3 py-1.5">Confirmar</button>
-                <button onclick="openModal('rechazar',{{ cita.id_citas }})" class="btn-danger text-xs px-3 py-1.5">Rechazar</button>
+                {% if cita.estado == 'solicitada' %}
+                    <span class="badge-pendiente">{% trans "Pendiente" %}</span>
+                {% elif cita.estado == 'confirmada' or cita.estado == 'aprobada' %}
+                    <span class="badge-confirmada">{% trans "Confirmada" %}</span>
+                {% elif cita.estado == 'en_consulta' %}
+                    <span class="badge-en-consulta">{% trans "En consulta" %}</span>
+                {% elif cita.estado == 'atendida' %}
+                    <span class="badge-completada">{% trans "Completada" %}</span>
+                {% elif cita.estado == 'cancelada' or cita.estado == 'rechazada' or cita.estado == 'no_asistio' %}
+                    <span class="badge-cancelada">{% trans "Cancelada" %}</span>
+                {% else %}
+                    <span class="badge-pendiente">{% trans "Pendiente" %}</span>
+                {% endif %}
             </div>
         </div>
         {% empty %}
         <div class="px-6 py-8 text-center">
             <div class="flex flex-col items-center">
                 <svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p class="text-sm font-medium" style="color:var(--text-secondary);">No hay solicitudes pendientes</p>
+                <p class="text-sm font-medium" style="color:var(--text-secondary);">{% trans "No hay solicitudes pendientes" %}</p>
             </div>
         </div>
         {% endfor %}
