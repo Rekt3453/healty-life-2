@@ -1977,7 +1977,7 @@ msgid "Cuenta:"
 msgstr "Account:"
 
 msgid "Cédula"
-msgstr ""
+msgstr "ID Number"
 
 msgid "Describe el método de pago"
 msgstr "Describe the payment method"
@@ -2086,3 +2086,72 @@ msgstr "Go back"
 
 msgid "Volver a mis citas"
 msgstr "Back to my appointments"
+
+msgid "11 dígitos. Ej: 04241234567"
+msgstr "11 digits. Ex: 04241234567"
+
+msgid "7-8 dígitos numéricos."
+msgstr "7-8 numeric digits."
+
+msgid "Correo Electrónico"
+msgstr "Email"
+
+msgid "Credenciales de acceso"
+msgstr "Access credentials"
+
+msgid "Datos personales"
+msgstr "Personal data"
+
+msgid "Debe ser mayor de 18 años."
+msgstr "Must be over 18 years old."
+
+msgid "El Super Admin gestiona un centro médico y sus sedes."
+msgstr "The Super Admin manages a medical center and its branches."
+
+msgid "Máx. 30 caracteres. Solo letras, números y guiones bajos."
+msgstr "Max. 30 characters. Letters, numbers and underscores only."
+
+msgid "Cargando..."
+msgstr "Loading..."
+
+msgid "Cedula"
+msgstr "ID Number"
+
+msgid "Cerrar Sesion"
+msgstr "Log Out"
+
+msgid "Confirmar contrasena"
+msgstr "Confirm password"
+
+msgid "Consultorio"
+msgstr "Office"
+
+msgid "Datos Profesionales"
+msgstr "Professional data"
+
+msgid "Latitud"
+msgstr "Latitude"
+
+msgid "Longitud"
+msgstr "Longitude"
+
+msgid "Nueva contrasena"
+msgstr "New password"
+
+msgid "Panel Gerente"
+msgstr "Manager Panel"
+
+msgid "Personal"
+msgstr "Staff"
+
+msgid "Registrar Doctor"
+msgstr "Register Doctor"
+
+msgid "Tipo de Cedula"
+msgstr "ID Type"
+
+msgid "Volver al Personal"
+msgstr "Back to Staff"
+
+msgid "opcional"
+msgstr "optional"

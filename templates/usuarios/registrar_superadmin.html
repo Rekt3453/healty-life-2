@@ -33,7 +33,7 @@
         </div>
         <div>
             <h1 class="font-bold text-lg tracking-tight">Healthy Life</h1>
-            <p class="text-xs text-slate-400">Panel Root</p>
+            <p class="text-xs text-slate-400">{% trans "Panel Root" %}</p>
         </div>
     </div>
     <nav class="p-4 space-y-1">
@@ -61,7 +61,7 @@
         </div>
         <span class="font-bold text-gray-900">Healthy Life</span>
     </div>
-    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">Salir</a>
+    <a href="{% url 'logout_root' %}" class="text-red-600 text-sm font-medium">{% trans "Salir" %}</a>
 </div>
 
 <main class="lg:ml-64 min-h-screen">
@@ -71,7 +71,7 @@
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Dashboard
             </a>
             <h1 class="text-3xl font-bold text-gray-900">{% trans "Registrar Super Admin" %}</h1>
-            <p class="text-gray-500 mt-1">El Super Admin gestiona un centro médico y sus sedes.</p>
+            <p class="text-gray-500 mt-1">{% trans "El Super Admin gestiona un centro médico y sus sedes." %}</p>
         </div>
 
         {% if messages %}
@@ -93,20 +93,20 @@
                     <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                         <i data-lucide="key-round" class="w-4 h-4 text-blue-600"></i>
                     </div>
-                    <h2 class="text-lg font-semibold text-gray-900">Credenciales de acceso</h2>
+                    <h2 class="text-lg font-semibold text-gray-900">{% trans "Credenciales de acceso" %}</h2>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label for="id_username" class="block text-sm font-semibold text-gray-700 mb-2">Nombre de Usuario <span class="text-red-500">*</span></label>
+                        <label for="id_username" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Nombre de Usuario" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.username }}
                         </div>
                         <p class="error-msg" id="err-username"></p>
-                        <p class="text-xs text-gray-400 mt-1">Máx. 30 caracteres. Solo letras, números y guiones bajos.</p>
+                        <p class="text-xs text-gray-400 mt-1">{% trans "Máx. 30 caracteres. Solo letras, números y guiones bajos." %}</p>
                     </div>
                     <div>
-                        <label for="id_correo" class="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico <span class="text-red-500">*</span></label>
+                        <label for="id_correo" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Correo Electrónico" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="mail" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.correo }}
@@ -121,11 +121,11 @@
                     <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                         <i data-lucide="user-circle" class="w-4 h-4 text-emerald-600"></i>
                     </div>
-                    <h2 class="text-lg font-semibold text-gray-900">Datos personales</h2>
+                    <h2 class="text-lg font-semibold text-gray-900">{% trans "Datos personales" %}</h2>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label for="id_nombre_1" class="block text-sm font-semibold text-gray-700 mb-2">Primer Nombre <span class="text-red-500">*</span></label>
+                        <label for="id_nombre_1" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Primer Nombre" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.nombre_1 }}
@@ -133,7 +133,7 @@
                         <p class="error-msg" id="err-nombre_1"></p>
                     </div>
                     <div>
-                        <label for="id_nombre_2" class="block text-sm font-semibold text-gray-700 mb-2">Segundo Nombre</label>
+                        <label for="id_nombre_2" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Segundo Nombre" %}</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.nombre_2 }}
@@ -141,7 +141,7 @@
                         <p class="error-msg" id="err-nombre_2"></p>
                     </div>
                     <div>
-                        <label for="id_apellido_1" class="block text-sm font-semibold text-gray-700 mb-2">Primer Apellido <span class="text-red-500">*</span></label>
+                        <label for="id_apellido_1" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Primer Apellido" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.apellido_1 }}
@@ -149,7 +149,7 @@
                         <p class="error-msg" id="err-apellido_1"></p>
                     </div>
                     <div>
-                        <label for="id_apellido_2" class="block text-sm font-semibold text-gray-700 mb-2">Segundo Apellido</label>
+                        <label for="id_apellido_2" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Segundo Apellido" %}</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.apellido_2 }}
@@ -157,7 +157,7 @@
                         <p class="error-msg" id="err-apellido_2"></p>
                     </div>
                     <div>
-                        <label for="id_tipo_cedula" class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Cédula <span class="text-red-500">*</span></label>
+                        <label for="id_tipo_cedula" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Tipo de Cédula" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="credit-card" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.tipo_cedula }}
@@ -165,16 +165,16 @@
                         <p class="error-msg" id="err-tipo_cedula"></p>
                     </div>
                     <div>
-                        <label for="id_cedula" class="block text-sm font-semibold text-gray-700 mb-2">Cédula <span class="text-red-500">*</span></label>
+                        <label for="id_cedula" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Cédula" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="hash" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.cedula }}
                         </div>
                         <p class="error-msg" id="err-cedula"></p>
-                        <p class="text-xs text-gray-400 mt-1">7-8 dígitos numéricos.</p>
+                        <p class="text-xs text-gray-400 mt-1">{% trans "7-8 dígitos numéricos." %}</p>
                     </div>
                     <div>
-                        <label for="id_sexo" class="block text-sm font-semibold text-gray-700 mb-2">Sexo</label>
+                        <label for="id_sexo" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Sexo" %}</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="users" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.sexo }}
@@ -182,25 +182,25 @@
                         <p class="error-msg" id="err-sexo"></p>
                     </div>
                     <div>
-                        <label for="id_fecha_nacimiento" class="block text-sm font-semibold text-gray-700 mb-2">Fecha de Nacimiento <span class="text-red-500">*</span></label>
+                        <label for="id_fecha_nacimiento" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Fecha de Nacimiento" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="calendar" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.fecha_nacimiento }}
                         </div>
                         <p class="error-msg" id="err-fecha_nacimiento"></p>
-                        <p class="text-xs text-gray-400 mt-1">Debe ser mayor de 18 años.</p>
+                        <p class="text-xs text-gray-400 mt-1">{% trans "Debe ser mayor de 18 años." %}</p>
                     </div>
                     <div>
-                        <label for="id_telefono" class="block text-sm font-semibold text-gray-700 mb-2">Teléfono <span class="text-red-500">*</span></label>
+                        <label for="id_telefono" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Teléfono" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="phone" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.telefono }}
                         </div>
                         <p class="error-msg" id="err-telefono"></p>
-                        <p class="text-xs text-gray-400 mt-1">11 dígitos. Ej: 04241234567</p>
+                        <p class="text-xs text-gray-400 mt-1">{% trans "11 dígitos. Ej: 04241234567" %}</p>
                     </div>
                     <div>
-                        <label for="id_id_cm" class="block text-sm font-semibold text-gray-700 mb-2">Centro Médico <span class="text-red-500">*</span></label>
+                        <label for="id_id_cm" class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Centro Médico" %} <span class="text-red-500">*</span></label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="building-2" class="w-5 h-5 text-slate-400"></i></div>
                             {{ form.id_cm }}
@@ -212,7 +212,7 @@
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
                 <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all flex-1">
-                    <i data-lucide="save" class="w-4 h-4"></i> {% trans "{% trans "Registrar Super Admin" %}" %}
+                    <i data-lucide="save" class="w-4 h-4"></i> {% trans "Registrar Super Admin" %}
                 </button>
                 <a href="{% url 'dashboard_root' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors flex-1">
                     <i data-lucide="x" class="w-4 h-4"></i> Cancelar

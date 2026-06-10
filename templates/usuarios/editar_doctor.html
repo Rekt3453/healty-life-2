@@ -7,250 +7,271 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% trans "Editar Doctor" %} - Healthy Life</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .hero-section { background: linear-gradient(135deg, #065f46 0%, #059669 100%); min-height: 100vh; }
-        .form-card { background: rgba(255,255,255,0.97); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .form-input { transition: all .3s; border: 2px solid #e5e7eb; }
-        .form-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.1); outline: none; }
-        .btn-save { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: all .3s; }
-        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(16,185,129,.4); }
-        .section-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: .75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .field-error { color: #dc2626; font-size: .75rem; margin-top: .25rem; }
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); }
+        .nav-item { transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item.active { background: rgba(255,255,255,0.15); border-left: 3px solid #60a5fa; }
+        .form-card { background: #fff; border: 1px solid #f1f5f9; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .form-input, .form-select { transition: all 0.2s ease; border: 1.5px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 0.75rem; width: 100%; }
+        .form-input:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
+        .btn-save { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); transition: all 0.3s; }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(59,130,246,0.4); }
+        .field-error { color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem; }
     </style>
 </head>
-<body class="bg-gray-50">
-<div class="hero-section relative">
-    <header class="relative z-10">
-        <nav class="container mx-auto px-4 py-5">
-            <div class="flex justify-between items-center">
-                <span class="text-xl font-bold text-white">Healthy Life</span>
-                <a href="{% url 'lista_personal' %}" class="text-white hover:text-green-100 flex items-center space-x-2 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
-                    <span>Volver al Personal</span>
-                </a>
-            </div>
-        </nav>
-    </header>
+<body class="bg-slate-50 min-h-screen">
 
-    <main class="relative z-10 container mx-auto px-4 py-8 pb-16">
-        <div class="max-w-4xl mx-auto">
-            <div class="form-card rounded-2xl p-8">
-
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-1">{% trans "Editar Doctor" %}</h1>
-                    <p class="text-gray-500 text-sm">
-                        <span class="font-semibold text-green-700">Dr. {{ doctor.nombre_1 }} {{ doctor.apellido_1 }}</span>
-                        &nbsp;·&nbsp; Sede: {{ sede }}
-                    </p>
-                </div>
-
-                {% if messages %}
-                <div class="mb-6 space-y-2">
-                    {% for message in messages %}
-                    <div class="border rounded-lg p-4 text-sm font-medium
-                        {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
-                        {% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
-                        {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <form method="POST" novalidate>
-                    {% csrf_token %}
-
-                    <!-- Credenciales -->
-                    <div class="section-card">
-                        <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-                            </svg>
-                            Credenciales de Acceso
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre de usuario *</label>
-                                {{ form.username }}
-                                {% if form.username.errors %}<p class="field-error">{{ form.username.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico *</label>
-                                {{ form.email }}
-                                {% if form.email.errors %}<p class="field-error">{{ form.email.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div class="md:col-span-2 flex items-center space-x-3 pt-1">
-                                {{ form.status }}
-                                <label class="text-sm font-semibold text-gray-700 cursor-pointer">{{ form.status.label }}</label>
-                                {% if form.status.errors %}<p class="field-error">{{ form.status.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nueva contraseña <span class="text-gray-400 font-normal">(opcional)</span></label>
-                                {{ form.password1 }}
-                                {% if form.password1.errors %}<p class="field-error">{{ form.password1.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Confirmar contraseña</label>
-                                {{ form.password2 }}
-                                {% if form.password2.errors %}<p class="field-error">{{ form.password2.errors|join:", " }}</p>{% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Datos personales -->
-                    <div class="section-card">
-                        <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                            Datos Personales
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Primer nombre *</label>
-                                {{ form.nombre_1 }}
-                                {% if form.nombre_1.errors %}<p class="field-error">{{ form.nombre_1.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Segundo nombre</label>
-                                {{ form.nombre_2 }}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Primer apellido *</label>
-                                {{ form.apellido_1 }}
-                                {% if form.apellido_1.errors %}<p class="field-error">{{ form.apellido_1.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Segundo apellido</label>
-                                {{ form.apellido_2 }}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de cédula *</label>
-                                {{ form.tipo_cedula }}
-                                {% if form.tipo_cedula.errors %}<p class="field-error">{{ form.tipo_cedula.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Cédula *</label>
-                                {{ form.cedula }}
-                                {% if form.cedula.errors %}<p class="field-error">{{ form.cedula.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Sexo *</label>
-                                {{ form.sexo }}
-                                {% if form.sexo.errors %}<p class="field-error">{{ form.sexo.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono *</label>
-                                {{ form.telefono }}
-                                {% if form.telefono.errors %}<p class="field-error">{{ form.telefono.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de nacimiento *</label>
-                                {{ form.fecha_nacimiento }}
-                                {% if form.fecha_nacimiento.errors %}<p class="field-error">{{ form.fecha_nacimiento.errors|join:", " }}</p>{% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Datos profesionales -->
-                    <div class="section-card">
-                        <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                            Datos Profesionales
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Especialidad</label>
-                                {{ form.id_especialidad_doctor }}
-                                {% if form.id_especialidad_doctor.errors %}<p class="field-error">{{ form.id_especialidad_doctor.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Consultorio</label>
-                                {{ form.id_consultorio }}
-                                {% if form.id_consultorio.errors %}<p class="field-error">{{ form.id_consultorio.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Horario</label>
-                                {{ form.id_horario }}
-                                {% if form.id_horario.errors %}<p class="field-error">{{ form.id_horario.errors|join:", " }}</p>{% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Dirección -->
-                    <div class="section-card">
-                        <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            Dirección
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Estado *</label>
-                                {{ form.id_estado }}
-                                {% if form.id_estado.errors %}<p class="field-error">{{ form.id_estado.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Municipio *</label>
-                                {{ form.id_municipio }}
-                                {% if form.id_municipio.errors %}<p class="field-error">{{ form.id_municipio.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Ciudad *</label>
-                                {{ form.id_ciudad }}
-                                {% if form.id_ciudad.errors %}<p class="field-error">{{ form.id_ciudad.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Parroquia *</label>
-                                {{ form.id_parroquia }}
-                                {% if form.id_parroquia.errors %}<p class="field-error">{{ form.id_parroquia.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Dirección *</label>
-                                {{ form.direccion }}
-                                {% if form.direccion.errors %}<p class="field-error">{{ form.direccion.errors|join:", " }}</p>{% endif %}
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Referencia</label>
-                                {{ form.referencia }}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Latitud</label>
-                                {{ form.latitud }}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Longitud</label>
-                                {{ form.longitud }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex space-x-4 mt-2">
-                        <button type="submit" class="btn-save flex-1 py-3 px-4 rounded-lg text-white font-semibold text-lg shadow-lg">
-                            Guardar cambios
-                        </button>
-                        <a href="{% url 'lista_personal' %}" class="flex-1 py-3 px-4 rounded-lg text-gray-700 font-semibold text-lg border border-gray-300 text-center hover:bg-gray-50 transition">
-                            Cancelar
-                        </a>
-                    </div>
-                </form>
-            </div>
+<aside class="sidebar-gradient fixed left-0 top-0 h-full w-64 text-white z-40 hidden lg:block">
+    <div class="p-6 flex items-center gap-3 border-b border-white/10">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+            <i data-lucide="heart-pulse" class="w-6 h-6 text-white"></i>
         </div>
-    </main>
+        <div>
+            <h1 class="font-bold text-lg tracking-tight">Healthy Life</h1>
+            <p class="text-xs text-slate-400">{% trans "Panel Gerente" %}</p>
+        </div>
+    </div>
+    <nav class="p-4 space-y-1">
+        <a href="{% url 'dashboard_gerente' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i> {% trans "Dashboard" %}
+        </a>
+        <a href="{% url 'lista_personal' %}" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium">
+            <i data-lucide="users" class="w-5 h-5"></i> {% trans "Personal" %}
+        </a>
+        <a href="{% url 'registrar_doctor' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="user-plus" class="w-5 h-5"></i> {% trans "Registrar Doctor" %}
+        </a>
+        <a href="{% url 'registrar_recepcionista' %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-300">
+            <i data-lucide="user-check" class="w-5 h-5"></i> {% trans "Registrar Recepcionista" %}
+        </a>
+    </nav>
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+        <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-300 hover:bg-red-500/10 transition-colors">
+            <i data-lucide="log-out" class="w-5 h-5"></i> {% trans "Cerrar Sesion" %}
+        </a>
+    </div>
+</aside>
+
+<div class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <i data-lucide="heart-pulse" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="font-bold text-gray-900">Healthy Life</span>
+    </div>
+    <a href="{% url 'logout' %}" class="text-red-600 text-sm font-medium">{% trans "Salir" %}</a>
 </div>
 
+<main class="lg:ml-64 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <a href="{% url 'lista_personal' %}" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> {% trans "Volver al Personal" %}
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">{% trans "Editar Doctor" %}</h1>
+            <p class="text-gray-500 mt-1">
+                <span class="font-semibold text-blue-600">Dr. {{ doctor.nombre_1 }} {{ doctor.apellido_1 }}</span>
+                &nbsp;&middot;&nbsp; {% trans "Sede" %}: {{ sede }}
+            </p>
+        </div>
+
+        {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 p-4 rounded-xl border {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
+                <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                <p class="text-sm font-medium">{{ message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" novalidate id="editForm">
+            {% csrf_token %}
+
+            <div class="form-card">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <i data-lucide="key-round" class="w-4 h-4 text-blue-600"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">{% trans "Credenciales de acceso" %}</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Nombre de Usuario" %} <span class="text-red-500">*</span></label>
+                        {{ form.username }}
+                        {% if form.username.errors %}<p class="field-error">{{ form.username.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Correo Electronico" %} <span class="text-red-500">*</span></label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<p class="field-error">{{ form.email.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div class="sm:col-span-2 flex items-center gap-3 pt-1">
+                        {{ form.status }}
+                        <label class="text-sm font-semibold text-gray-700 cursor-pointer">{{ form.status.label }}</label>
+                        {% if form.status.errors %}<p class="field-error">{{ form.status.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Nueva contrasena" %} <span class="text-gray-400 font-normal">({% trans "opcional" %})</span></label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}<p class="field-error">{{ form.password1.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Confirmar contrasena" %}</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}<p class="field-error">{{ form.password2.errors|join:", " }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                        <i data-lucide="user-circle" class="w-4 h-4 text-emerald-600"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">{% trans "Datos personales" %}</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Primer Nombre" %} <span class="text-red-500">*</span></label>
+                        {{ form.nombre_1 }}
+                        {% if form.nombre_1.errors %}<p class="field-error">{{ form.nombre_1.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Segundo Nombre" %}</label>
+                        {{ form.nombre_2 }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Primer Apellido" %} <span class="text-red-500">*</span></label>
+                        {{ form.apellido_1 }}
+                        {% if form.apellido_1.errors %}<p class="field-error">{{ form.apellido_1.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Segundo Apellido" %}</label>
+                        {{ form.apellido_2 }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Tipo de Cedula" %} <span class="text-red-500">*</span></label>
+                        {{ form.tipo_cedula }}
+                        {% if form.tipo_cedula.errors %}<p class="field-error">{{ form.tipo_cedula.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Cedula" %} <span class="text-red-500">*</span></label>
+                        {{ form.cedula }}
+                        {% if form.cedula.errors %}<p class="field-error">{{ form.cedula.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Sexo" %} <span class="text-red-500">*</span></label>
+                        {{ form.sexo }}
+                        {% if form.sexo.errors %}<p class="field-error">{{ form.sexo.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Telefono" %} <span class="text-red-500">*</span></label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}<p class="field-error">{{ form.telefono.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Fecha de Nacimiento" %} <span class="text-red-500">*</span></label>
+                        {{ form.fecha_nacimiento }}
+                        {% if form.fecha_nacimiento.errors %}<p class="field-error">{{ form.fecha_nacimiento.errors|join:", " }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
+                        <i data-lucide="stethoscope" class="w-4 h-4 text-violet-600"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">{% trans "Datos Profesionales" %}</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Especialidad" %}</label>
+                        {{ form.id_especialidad_doctor }}
+                        {% if form.id_especialidad_doctor.errors %}<p class="field-error">{{ form.id_especialidad_doctor.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Consultorio" %}</label>
+                        {{ form.id_consultorio }}
+                        {% if form.id_consultorio.errors %}<p class="field-error">{{ form.id_consultorio.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Horario" %}</label>
+                        {{ form.id_horario }}
+                        {% if form.id_horario.errors %}<p class="field-error">{{ form.id_horario.errors|join:", " }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-orange-600"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-900">{% trans "Direccion" %}</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Estado" %} <span class="text-red-500">*</span></label>
+                        {{ form.id_estado }}
+                        {% if form.id_estado.errors %}<p class="field-error">{{ form.id_estado.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Municipio" %} <span class="text-red-500">*</span></label>
+                        {{ form.id_municipio }}
+                        {% if form.id_municipio.errors %}<p class="field-error">{{ form.id_municipio.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Ciudad" %} <span class="text-red-500">*</span></label>
+                        {{ form.id_ciudad }}
+                        {% if form.id_ciudad.errors %}<p class="field-error">{{ form.id_ciudad.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Parroquia" %} <span class="text-red-500">*</span></label>
+                        {{ form.id_parroquia }}
+                        {% if form.id_parroquia.errors %}<p class="field-error">{{ form.id_parroquia.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Direccion" %} <span class="text-red-500">*</span></label>
+                        {{ form.direccion }}
+                        {% if form.direccion.errors %}<p class="field-error">{{ form.direccion.errors|join:", " }}</p>{% endif %}
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Referencia" %}</label>
+                        {{ form.referencia }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Latitud" %}</label>
+                        {{ form.latitud }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{% trans "Longitud" %}</label>
+                        {{ form.longitud }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button type="submit" class="btn-save flex-1 py-3 px-4 rounded-xl text-white font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+                    <i data-lucide="save" class="w-4 h-4 inline-block mr-1"></i> {% trans "Guardar cambios" %}
+                </button>
+                <a href="{% url 'lista_personal' %}" class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i> {% trans "Cancelar" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</main>
+
 <script>
+lucide.createIcons();
+
 const AJAX_MUNICIPIOS = "{% url 'cargar_municipios' %}";
 const AJAX_CIUDADES   = "{% url 'cargar_ciudades' %}";
 const AJAX_PARROQUIAS = "{% url 'cargar_parroquias' %}";
@@ -275,25 +296,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     estadoSel.addEventListener('change', function () {
         const id = this.value;
-        municipioSel.innerHTML = '<option value="">Cargando...</option>';
-        ciudadSel.innerHTML    = '<option value="">Seleccione una ciudad</option>';
-        parroquiaSel.innerHTML = '<option value="">Seleccione una parroquia</option>';
+        municipioSel.innerHTML = '<option value="">{% trans "Cargando..." %}</option>';
+        ciudadSel.innerHTML    = '<option value="">{% trans "Seleccione una ciudad" %}</option>';
+        parroquiaSel.innerHTML = '<option value="">{% trans "Seleccione una parroquia" %}</option>';
         if (!id) return;
         fetch(`${AJAX_MUNICIPIOS}?estado_id=${id}`)
             .then(r => r.json())
-            .then(d => poblarSelect(municipioSel, d, 'id_municipio', 'municipio', 'Seleccione un municipio'));
+            .then(d => poblarSelect(municipioSel, d, 'id_municipio', 'municipio', '{% trans "Seleccione un municipio" %}'));
         fetch(`${AJAX_CIUDADES}?estado_id=${id}`)
             .then(r => r.json())
-            .then(d => poblarSelect(ciudadSel, d, 'id_ciudad', 'ciudad', 'Seleccione una ciudad'));
+            .then(d => poblarSelect(ciudadSel, d, 'id_ciudad', 'ciudad', '{% trans "Seleccione una ciudad" %}'));
     });
 
     municipioSel.addEventListener('change', function () {
         const id = this.value;
-        parroquiaSel.innerHTML = '<option value="">Cargando...</option>';
+        parroquiaSel.innerHTML = '<option value="">{% trans "Cargando..." %}</option>';
         if (!id) return;
         fetch(`${AJAX_PARROQUIAS}?municipio_id=${id}`)
             .then(r => r.json())
-            .then(d => poblarSelect(parroquiaSel, d, 'id_parroquia', 'parroquia', 'Seleccione una parroquia'));
+            .then(d => poblarSelect(parroquiaSel, d, 'id_parroquia', 'parroquia', '{% trans "Seleccione una parroquia" %}'));
     });
 });
 </script>

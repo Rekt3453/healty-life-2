@@ -1979,7 +1979,7 @@ msgid "Cuenta:"
 msgstr "Conta:"
 
 msgid "Cédula"
-msgstr ""
+msgstr "Documento"
 
 msgid "Describe el método de pago"
 msgstr "Descreva o método de pagamento"
@@ -2089,3 +2089,72 @@ msgstr "Voltar"
 
 msgid "Volver a mis citas"
 msgstr "Voltar às minhas consultas"
+
+msgid "11 dígitos. Ej: 04241234567"
+msgstr "11 dígitos. Ex: 04241234567"
+
+msgid "7-8 dígitos numéricos."
+msgstr "7-8 dígitos numéricos."
+
+msgid "Correo Electrónico"
+msgstr "E-mail"
+
+msgid "Credenciales de acceso"
+msgstr "Credenciais de acesso"
+
+msgid "Datos personales"
+msgstr "Dados pessoais"
+
+msgid "Debe ser mayor de 18 años."
+msgstr "Deve ser maior de 18 anos."
+
+msgid "El Super Admin gestiona un centro médico y sus sedes."
+msgstr "O Super Admin gerencia um centro médico e suas filiais."
+
+msgid "Máx. 30 caracteres. Solo letras, números y guiones bajos."
+msgstr "Máx. 30 caracteres. Apenas letras, números e sublinhados."
+
+msgid "Cargando..."
+msgstr "Carregando..."
+
+msgid "Cedula"
+msgstr "Documento"
+
+msgid "Cerrar Sesion"
+msgstr "Sair"
+
+msgid "Confirmar contrasena"
+msgstr "Confirmar senha"
+
+msgid "Consultorio"
+msgstr "Consultório"
+
+msgid "Datos Profesionales"
+msgstr "Dados Profissionais"
+
+msgid "Latitud"
+msgstr "Latitude"
+
+msgid "Longitud"
+msgstr "Longitude"
+
+msgid "Nueva contrasena"
+msgstr "Nova senha"
+
+msgid "Panel Gerente"
+msgstr "Painel Gerente"
+
+msgid "Personal"
+msgstr "Equipe"
+
+msgid "Registrar Doctor"
+msgstr "Cadastrar Médico"
+
+msgid "Tipo de Cedula"
+msgstr "Tipo de Documento"
+
+msgid "Volver al Personal"
+msgstr "Voltar à Equipe"
+
+msgid "opcional"
+msgstr "opcional"
