@@ -17,6 +17,54 @@
 <!-- Hero Section -->
 {% include 'partials/_hero_section.html' %}
 
+<!-- Video Tutorial Section -->
+<div class="my-5" style="width: 100%; padding: 0 20px;">
+    <div style="max-width: 952px; margin: 0 auto; text-align: center;">
+        <h5 class="mb-3 fw-bold">
+            {% trans "Ver nuestro tutorial en vídeo" %}
+        </h5>
+        <p class="text-muted mb-4">
+            {% trans "Aprende a registrarte paso a paso" %}
+        </p>
+        <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 1rem;">
+            <iframe
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                src="https://www.youtube-nocookie.com/embed/lbOlvXqbQwg"
+                title="YouTube video player: Registro Healthy Life"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen
+                loading="lazy">
+            </iframe>
+        </div>
+        <p class="small text-muted mt-3">
+            {% trans "Tutorial en vídeo – guía completa para usar la plataforma" %}
+        </p>
+    </div>
+</div>
+
+<!-- Video Tutorial Section - Appointment Scheduling -->
+<div class="my-5" style="width: 100%; padding: 0 20px;">
+    <div style="max-width: 952px; margin: 0 auto; text-align: center;">
+        <h5 class="mb-3 fw-bold">
+            {% trans "Aprende a solicitar una cita paso a paso" %}
+        </h5>
+        <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 1rem;">
+            <iframe
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                src="https://www.youtube-nocookie.com/embed/Zvb3GpNCSwE"
+                title="YouTube video player: Solicitar Cita Healthy Life"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen
+                loading="lazy">
+            </iframe>
+        </div>
+    </div>
+</div>
+
 <!-- Sección de Servicios -->
 {% include 'partials/_servicios_section.html' %}
 

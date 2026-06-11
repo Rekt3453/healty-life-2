@@ -1154,6 +1154,18 @@ msgstr "Ver Detalhes"
 msgid "Ver todas"
 msgstr "Ver todas"
 
+msgid "Ver nuestro tutorial en vídeo"
+msgstr "Assista ao nosso tutorial em vídeo"
+
+msgid "Aprende a registrarte paso a paso"
+msgstr "Aprenda a se registrar passo a passo"
+
+msgid "Aprende a solicitar una cita paso a paso"
+msgstr "Aprenda a solicitar uma consulta passo a passo"
+
+msgid "Tutorial en vídeo – guía completa para usar la plataforma"
+msgstr "Tutorial em vídeo – guia completo para usar a plataforma"
+
 msgid "Ver todas mis citas"
 msgstr "Ver todas as minhas consultas"
 
