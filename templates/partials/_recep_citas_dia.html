@@ -6,8 +6,8 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
             <div>
-                <h2 class="text-base font-bold" style="color:var(--text-primary);">{% trans "Citas del día" %}</h2>
-                <p class="text-xs" style="color:var(--text-secondary);">{{ citas_hoy|default:"0" }} {% trans "citas programadas" %} · {{ citas_en_consulta|default:"0" }} {% trans "en consulta" %}</p>
+                <h2 class="text-base font-bold" style="color:var(--text-primary);">{% trans "Consultas do dia" %}</h2>
+                <p class="text-xs" style="color:var(--text-secondary);">{{ citas_hoy|default:"0" }} {% trans "consultas programadas" %} · {{ citas_en_consulta|default:"0" }} {% trans "em consulta" %}</p>
             </div>
         </div>
         <a href="{% url 'gestionar_citas' %}?hoy=1" class="btn-ghost">{% trans "Ver todas" %}</a>
@@ -54,7 +54,7 @@
                         {% elif cita.estado == 'confirmada' or cita.estado == 'aprobada' %}
                             <button onclick="openModal('llego',{{ cita.id_citas }})" class="btn-success text-xs px-2 py-1 inline-flex items-center gap-1 mr-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                Llegó
+                                {% trans "Llegó" %}
                             </button>
                             <button onclick="openModal('cancelar',{{ cita.id_citas }})" class="btn-danger text-xs px-3 py-1.5">{% trans "Cancelar" %}</button>
                         {% else %}
@@ -75,7 +75,7 @@
                     <td colspan="7" class="px-6 py-8 text-center" style="color:var(--text-secondary);">
                         <div class="flex flex-col items-center">
                             <svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <p class="text-sm font-medium">{% trans "No hay citas programadas para hoy" %}</p>
+                            <p class="text-sm font-medium">{% trans "Nenhuma consulta programada para hoje" %}</p>
                         </div>
                     </td>
                 </tr>

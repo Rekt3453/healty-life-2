@@ -650,7 +650,7 @@ msgid "Cuidamos tu salud con"
 msgstr "Cuidamos da sua saúde com"
 
 msgid "Datos del Tutor o Representante Legal"
-msgstr "Dados do Guardião ou Representante Legal"
+msgstr "Dados do Tutor ou Representante Legal"
 
 msgid "Describe brevemente el motivo de tu consulta..."
 msgstr "Descreva resumidamente o motivo da sua consulta..."
@@ -972,10 +972,10 @@ msgid "Sedes:"
 msgstr "Sede:"
 
 msgid "Segundo Apellido"
-msgstr "Segundo sobrenome"
+msgstr "Segundo Sobrenome"
 
 msgid "Segundo Nombre"
-msgstr "Nome do meio"
+msgstr "Segundo Nome"
 
 msgid "Selecciona un día disponible y luego un horario"
 msgstr "Selecione um dia disponível e depois um horário"
@@ -1008,7 +1008,7 @@ msgid "Seleccione una ciudad"
 msgstr "Selecione uma cidade"
 
 msgid "Seleccione una parroquia"
-msgstr "Selecione uma freguesia"
+msgstr "Selecione uma paróquia"
 
 msgid "Servicio"
 msgstr "Serviço"
@@ -1155,7 +1155,7 @@ msgid "Ver todas"
 msgstr "Ver todas"
 
 msgid "Ver nuestro tutorial en vídeo"
-msgstr "Assista ao nosso tutorial em vídeo"
+msgstr "Veja nosso tutorial em vídeo"
 
 msgid "Aprende a registrarte paso a paso"
 msgstr "Aprenda a se registrar passo a passo"
@@ -1164,7 +1164,7 @@ msgid "Aprende a solicitar una cita paso a paso"
 msgstr "Aprenda a solicitar uma consulta passo a passo"
 
 msgid "Tutorial en vídeo – guía completa para usar la plataforma"
-msgstr "Tutorial em vídeo – guia completo para usar a plataforma"
+msgstr "Tutorial em vídeo – guia completa para usar a plataforma"
 
 msgid "Ver todas mis citas"
 msgstr "Ver todas as minhas consultas"
@@ -1219,7 +1219,7 @@ msgid "Cambiar contraseña"
 msgstr "Alterar senha"
 
 msgid "Cancelar cita"
-msgstr "Cancelar consulta"
+msgstr "Cancelar Consulta"
 
 msgid "Cerrar"
 msgstr "Fechar"
@@ -2638,7 +2638,7 @@ msgid "Solicitudes"
 msgstr "Solicitações"
 
 msgid "Pagos por confirmar"
-msgstr "Pagamentos para confirmar"
+msgstr "Pagamentos a confirmar"
 
 msgid "Aceptadas"
 msgstr "Aceitas"
@@ -2704,7 +2704,7 @@ msgid "Confirmar pago"
 msgstr "Confirmar pagamento"
 
 msgid "Rechazar cita"
-msgstr "Recusar consulta"
+msgstr "Rejeitar Consulta"
 
 msgid "¿Está seguro que desea confirmar el pago y aceptar esta cita?"
 msgstr "Tem certeza que deseja confirmar o pagamento e aceitar esta consulta?"
@@ -2900,3 +2900,153 @@ msgstr "Nenhuma consulta programada para hoje"
 
 msgid "registros"
 msgstr "registros"
+
+msgid "Registrar Paciente"
+msgstr "Registrar Paciente"
+
+msgid "Información Básica"
+msgstr "Informação Básica"
+
+msgid "Información Personal"
+msgstr "Informação Pessoal"
+
+msgid "Centro Médico y Sede"
+msgstr "Centro Médico e Sede"
+
+msgid "Ubicación"
+msgstr "Localização"
+
+msgid "Condición Especial"
+msgstr "Condição Especial"
+
+msgid "Primero seleccione un centro médico"
+msgstr "Primeiro selecione um centro médico"
+
+msgid "Confirmar cita"
+msgstr "Confirmar Consulta"
+
+msgid "¿Deseas confirmar esta cita? El paciente recibirá una notificación."
+msgstr "Deseja confirmar esta consulta? O paciente receberá uma notificação."
+
+msgid "Sí, confirmar"
+msgstr "Sim, confirmar"
+
+msgid "¿Deseas rechazar esta cita? Esta acción no se puede deshacer."
+msgstr "Deseja rejeitar esta consulta? Esta ação não pode ser desfeita."
+
+msgid "Motivo (opcional)"
+msgstr "Motivo (opcional)"
+
+msgid "Indica el motivo del rechazo..."
+msgstr "Indique o motivo da rejeição..."
+
+msgid "Sí, rechazar"
+msgstr "Sim, rejeitar"
+
+msgid "¿Deseas cancelar esta cita confirmada? El paciente será notificado."
+msgstr "Deseja cancelar esta consulta confirmada? O paciente será notificado."
+
+msgid "No, mantener"
+msgstr "Não, manter"
+
+msgid "Marcar como atendida"
+msgstr "Marcar como atendida"
+
+msgid "¿Confirmas que el paciente llegó a su consulta?"
+msgstr "Confirma que o paciente chegou para a consulta?"
+
+msgid "Sí, marcar llegada"
+msgstr "Sim, marcar chegada"
+
+msgid "Cita confirmada correctamente"
+msgstr "Consulta confirmada com sucesso"
+
+msgid "Cita rechazada correctamente"
+msgstr "Consulta rejeitada com sucesso"
+
+msgid "Cita cancelada correctamente"
+msgstr "Consulta cancelada com sucesso"
+
+msgid "Paciente marcado como atendido"
+msgstr "Paciente marcado como atendido"
+
+msgid "Confirmar Contraseña"
+msgstr "Confirmar Senha"
+
+msgid "Cédula de Identidad"
+msgstr "Bilhete de Identidade"
+
+msgid "Número de Teléfono"
+msgstr "Número de Telefone"
+
+msgid "Sede de Atención"
+msgstr "Centro de Atendimento"
+
+msgid "Seleccione una sede"
+msgstr "Selecione uma sede"
+
+msgid "Seleccione un estado"
+msgstr "Selecione um estado"
+
+msgid "Tengo una condición médica que requiere atención especial"
+msgstr "Tenho uma condição médica que requer atenção especial"
+
+msgid "Describa su condición médica"
+msgstr "Descreva sua condição médica"
+
+msgid "Nombre completo del tutor/responsable"
+msgstr "Nome completo do tutor/responsável"
+
+msgid "Cédula del tutor"
+msgstr "Cédula do tutor"
+
+msgid "Teléfono del tutor"
+msgstr "Telefone do tutor"
+
+msgid "Parentesco del tutor"
+msgstr "Parentesco do tutor"
+
+msgid "Seleccione parentesco"
+msgstr "Selecione parentesco"
+
+msgid "Padre"
+msgstr "Pai"
+
+msgid "Madre"
+msgstr "Mãe"
+
+msgid "Tutor legal"
+msgstr "Tutor legal"
+
+msgid "Abuelo/a"
+msgstr "Avô/Avó"
+
+msgid "Correo del tutor"
+msgstr "E-mail do tutor"
+
+msgid "Error al cargar sedes"
+msgstr "Erro ao carregar sedes"
+
+msgid "Agendadas"
+msgstr "Agendadas"
+
+msgid "En planta"
+msgstr "Em plantão"
+
+msgid "Consultas do dia"
+msgstr "Consultas do dia"
+
+msgid "consultas programadas"
+msgstr "consultas programadas"
+
+msgid "em consulta"
+msgstr "em consulta"
+
+msgid "Nenhuma consulta programada para hoje"
+msgstr "Nenhuma consulta programada para hoje"
+
+msgid "Nenhuma solicitação pendente"
+msgstr "Nenhuma solicitação pendente"
+
+msgid "Não há consultas agendadas nos próximos dias"
+msgstr "Não há consultas agendadas nos próximos dias"

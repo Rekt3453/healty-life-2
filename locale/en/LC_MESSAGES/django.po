@@ -329,7 +329,7 @@ msgid "Buscar cuenta"
 msgstr "Search account"
 
 msgid "Cancelar"
-msgstr "Cancelar"
+msgstr "Cancel"
 
 msgid "Ciudad"
 msgstr "City"
@@ -380,7 +380,7 @@ msgid "Entre 8 y 30 caracteres"
 msgstr "Between 8 and 30 characters"
 
 msgid "Estado"
-msgstr "Estado"
+msgstr "State"
 
 msgid "Estudios"
 msgstr "Studies"
@@ -434,7 +434,7 @@ msgid "Recuperar Contrasena"
 msgstr "Recover Password"
 
 msgid "Referencia"
-msgstr "Referencia"
+msgstr "Reference"
 
 msgid "Registrar"
 msgstr "Register"
@@ -647,7 +647,7 @@ msgid "Cuidamos tu salud con"
 msgstr "We take care of your health with"
 
 msgid "Datos del Tutor o Representante Legal"
-msgstr "Guardian or Legal Representative Data"
+msgstr "Tutor or Legal Representative Data"
 
 msgid "Describe brevemente el motivo de tu consulta..."
 msgstr "Briefly describe the reason for your inquiry..."
@@ -969,7 +969,7 @@ msgid "Segundo Apellido"
 msgstr "Second Last Name"
 
 msgid "Segundo Nombre"
-msgstr "Middle name"
+msgstr "Second Name"
 
 msgid "Selecciona un día disponible y luego un horario"
 msgstr "Select an available day and then a time"
@@ -1152,10 +1152,10 @@ msgid "Ver nuestro tutorial en vídeo"
 msgstr "Watch our video tutorial"
 
 msgid "Aprende a registrarte paso a paso"
-msgstr "Learn how to register step by step"
+msgstr "Learn to register step by step"
 
 msgid "Aprende a solicitar una cita paso a paso"
-msgstr "Learn how to request an appointment step by step"
+msgstr "Learn to request an appointment step by step"
 
 msgid "Tutorial en vídeo – guía completa para usar la plataforma"
 msgstr "Video tutorial – complete guide to using the platform"
@@ -1213,7 +1213,7 @@ msgid "Cambiar contraseña"
 msgstr "Change password"
 
 msgid "Cancelar cita"
-msgstr "Cancel appointment"
+msgstr "Cancel Appointment"
 
 msgid "Cerrar"
 msgstr "Close"
@@ -1456,7 +1456,7 @@ msgid "Preguntas de seguridad"
 msgstr "Security questions"
 
 msgid "Primer Apellido"
-msgstr "Last Name"
+msgstr "First Last Name"
 
 msgid "Primer Nombre"
 msgstr "First Name"
@@ -1590,7 +1590,7 @@ msgid "Borrador"
 msgstr "Borrador"
 
 msgid "Cancelada"
-msgstr "Cancelada"
+msgstr "Cancelled"
 
 msgid "Consulta general pediátrica"
 msgstr "General pediatric consultation"
@@ -2627,16 +2627,16 @@ msgid "Administra todas las citas del sistema"
 msgstr "Administra todas las citas del sistema"
 
 msgid "Total citas"
-msgstr "Total citas"
+msgstr "Total appointments"
 
 msgid "Solicitudes"
-msgstr "Solicitudes"
+msgstr "Requests"
 
 msgid "Pagos por confirmar"
-msgstr "Pagos por confirmar"
+msgstr "Payments to confirm"
 
 msgid "Aceptadas"
-msgstr "Aceptadas"
+msgstr "Accepted"
 
 msgid "Limpiar filtros"
 msgstr "Limpiar filtros"
@@ -2699,7 +2699,7 @@ msgid "Confirmar pago"
 msgstr "Confirmar pago"
 
 msgid "Rechazar cita"
-msgstr "Rechazar cita"
+msgstr "Reject Appointment"
 
 msgid "¿Está seguro que desea confirmar el pago y aceptar esta cita?"
 msgstr "¿Está seguro que desea confirmar el pago y aceptar esta cita?"
@@ -2895,3 +2895,157 @@ msgstr "No appointments scheduled for today"
 
 msgid "registros"
 msgstr "records"
+
+msgid "Registrar Paciente"
+msgstr "Register Patient"
+
+msgid "Información Básica"
+msgstr "Basic Information"
+
+msgid "Información Personal"
+msgstr "Personal Information"
+
+msgid "Centro Médico y Sede"
+msgstr "Medical Center and Branch"
+
+msgid "Ubicación"
+msgstr "Location"
+
+msgid "Condición Especial"
+msgstr "Special Condition"
+
+msgid "Primero seleccione un centro médico"
+msgstr "First select a medical center"
+
+msgid "Confirmar cita"
+msgstr "Confirm Appointment"
+
+msgid "¿Deseas confirmar esta cita? El paciente recibirá una notificación."
+msgstr ""
+"Do you want to confirm this appointment? The patient will receive a "
+"notification."
+
+msgid "Sí, confirmar"
+msgstr "Yes, confirm"
+
+msgid "¿Deseas rechazar esta cita? Esta acción no se puede deshacer."
+msgstr "Do you want to reject this appointment? This action cannot be undone."
+
+msgid "Motivo (opcional)"
+msgstr "Reason (optional)"
+
+msgid "Indica el motivo del rechazo..."
+msgstr "Indicate the reason for rejection..."
+
+msgid "Sí, rechazar"
+msgstr "Yes, reject"
+
+msgid "¿Deseas cancelar esta cita confirmada? El paciente será notificado."
+msgstr ""
+"Do you want to cancel this confirmed appointment? The patient will be "
+"notified."
+
+msgid "No, mantener"
+msgstr "No, keep it"
+
+msgid "Marcar como atendida"
+msgstr "Mark as attended"
+
+msgid "¿Confirmas que el paciente llegó a su consulta?"
+msgstr "Do you confirm that the patient arrived for their appointment?"
+
+msgid "Sí, marcar llegada"
+msgstr "Yes, mark arrival"
+
+msgid "Cita confirmada correctamente"
+msgstr "Appointment confirmed successfully"
+
+msgid "Cita rechazada correctamente"
+msgstr "Appointment rejected successfully"
+
+msgid "Cita cancelada correctamente"
+msgstr "Appointment cancelled successfully"
+
+msgid "Paciente marcado como atendido"
+msgstr "Patient marked as attended"
+
+msgid "Confirmar Contraseña"
+msgstr "Confirm Password"
+
+msgid "Cédula de Identidad"
+msgstr "ID Card"
+
+msgid "Número de Teléfono"
+msgstr "Phone Number"
+
+msgid "Sede de Atención"
+msgstr "Attention Center"
+
+msgid "Seleccione una sede"
+msgstr "Select a center"
+
+msgid "Seleccione un estado"
+msgstr "Select a state"
+
+msgid "Tengo una condición médica que requiere atención especial"
+msgstr "I have a medical condition that requires special attention"
+
+msgid "Describa su condición médica"
+msgstr "Describe your medical condition"
+
+msgid "Nombre completo del tutor/responsable"
+msgstr "Full name of tutor/guardian"
+
+msgid "Cédula del tutor"
+msgstr "Tutor's ID"
+
+msgid "Teléfono del tutor"
+msgstr "Tutor's Phone"
+
+msgid "Parentesco del tutor"
+msgstr "Tutor's Relationship"
+
+msgid "Seleccione parentesco"
+msgstr "Select relationship"
+
+msgid "Padre"
+msgstr "Father"
+
+msgid "Madre"
+msgstr "Mother"
+
+msgid "Tutor legal"
+msgstr "Legal guardian"
+
+msgid "Abuelo/a"
+msgstr "Grandparent"
+
+msgid "Correo del tutor"
+msgstr "Tutor's Email"
+
+msgid "Error al cargar sedes"
+msgstr "Error loading centers"
+
+msgid "Agendadas"
+msgstr "Scheduled"
+
+msgid "En planta"
+msgstr "On duty"
+
+msgid "Consultas do dia"
+msgstr "Today's appointments"
+
+msgid "consultas programadas"
+msgstr "scheduled appointments"
+
+msgid "em consulta"
+msgstr "in consultation"
+
+msgid "Nenhuma consulta programada para hoje"
+msgstr "No appointments scheduled for today"
+
+msgid "Nenhuma solicitação pendente"
+msgstr "No pending requests"
+
+msgid "Não há consultas agendadas nos próximos dias"
+msgstr "No appointments scheduled for the coming days"

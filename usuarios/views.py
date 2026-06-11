@@ -930,6 +930,57 @@ def dashboard_recepcionista(request):
     nombre = datos.nombre_completo if datos else user.username
     stats  = get_recepcionista_dashboard_context()
     return render(request, 'usuarios/dashboard_recepcionista.html', {'nombre': nombre, **stats})
+
+
+def registrar_paciente_recepcionista(request):
+    """Vista para que la recepcionista registre un paciente sin salir de su dashboard."""
+    user, backend, err = resolve_and_check(
+        request, UserRecepcionista, 'id_user_recepcionista', 'recepcionista', 'login_recepcionista'
+    )
+    if err:
+        return err
+
+    datos = backend.get_datos_personales(user)
+    nombre = datos.nombre_completo if datos else user.username
+
+    if request.method == 'POST':
+        form = RegistroPacienteForm(request.POST)
+        if form.is_valid():
+            try:
+                user_paciente = form.save()
+                datos_paciente = PacienteDatosPersonales.objects.filter(id_user_paciente=user_paciente).first()
+                nombre_paciente = datos_paciente.nombre_completo if datos_paciente else user_paciente.username
+                messages.success(
+                    request,
+                    f"Paciente registrado exitosamente: {nombre_paciente}. "
+                    "Se ha enviado un correo de bienvenida."
+                )
+                registrar_evento(
+                    user=user_paciente,
+                    role='paciente',
+                    action='CREATE',
+                    model_affected='UserPaciente',
+                    object_id=user_paciente.pk,
+                    details={'username': user_paciente.username, 'tipo': 'paciente'},
+                    request=request,
+                )
+                return redirect('dashboard_recepcionista')
+            except Exception as e:
+                messages.error(request, f'Error al registrar: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        form = RegistroPacienteForm()
+
+    return render(request, 'usuarios/registrar_paciente_recepcionista.html', {
+        'form': form,
+        'centros_medicos': CentroMedico.objects.filter(status=True).order_by('nombre_cm'),
+        'nombre': nombre,
+    })
+
+
 def dashboard_gerente(request):
     """Dashboard de gerente — datos reales"""
     user, backend, err = resolve_and_check(

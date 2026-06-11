@@ -134,7 +134,7 @@
                     <div>
                         <p class="text-xs font-medium" style="color:var(--text-secondary);">{% trans "Citas hoy" %}</p>
                         <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ citas_hoy|default:"0" }}</p>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{% trans "Programadas" %}</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{% trans "Agendadas" %}</p>
                     </div>
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(0,112,243,.1);color:var(--accent);">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -170,7 +170,7 @@
                     <div>
                         <p class="text-xs font-medium" style="color:var(--text-secondary);">{% trans "Médicos activos" %}</p>
                         <p class="text-2xl font-bold mt-1" style="color:var(--text-primary);">{{ medicos_activos|default:"0" }}</p>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{% trans "En turno" %}</p>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{% trans "En planta" %}</p>
                     </div>
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(37,99,235,.1);color:#2563EB;">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-8v8"/></svg>
@@ -179,19 +179,12 @@
             </div>
         </div>
 
-        <!-- Búsqueda rápida -->
-        <div class="dashboard-card p-5 fade-in">
-            <div class="flex flex-col md:flex-row md:items-center gap-4">
-                <div class="relative flex-1">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style="color:var(--text-secondary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input id="patientSearchInput" type="text" placeholder="{% trans "Buscar paciente, médico o especialidad..." %}" class="input-modern pl-10" oninput="searchDashboard(this.value)">
-                </div>
-                <a href="{% url 'registro' %}" class="btn-primary whitespace-nowrap">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    Registrar paciente
-                </a>
-            </div>
-            <div id="patientSearchResults" class="hidden mt-4 space-y-2"></div>
+        <!-- Registrar paciente -->
+        <div class="flex justify-end fade-in">
+            <a href="{% url 'registrar_paciente_recepcionista' %}" class="btn-primary whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                {% trans "Registrar paciente" %}
+            </a>
         </div>
 
         {% include "partials/_recep_citas_dia.html" %}

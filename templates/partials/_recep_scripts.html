@@ -1,10 +1,12 @@
+{% load i18n %}
 <script>
 (function(){
-    var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-    var dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
     var h=new Date();
     var el=document.getElementById('currentDate');
-    if(el) el.textContent=dias[h.getDay()]+', '+h.getDate()+' de '+meses[h.getMonth()]+' de '+h.getFullYear();
+    if(el){
+        var fmt=new Intl.DateTimeFormat(document.documentElement.lang||'es',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        el.textContent=fmt.format(h);
+    }
 })();
 
 let currentAction=null, currentRowId=null;
@@ -61,22 +63,22 @@ function confirmAction(action){
     if(action==='confirmar'){
         var url=target?target.getAttribute('data-confirm-url'):null;
         if(url){submitForm(url,{});}
-        else{showToast('Cita confirmada correctamente','success'); closeModal(action);}
+        else{showToast('{% trans "Cita confirmada correctamente" %}','success'); closeModal(action);}
     } else if(action==='rechazar'){
         var url=target?target.getAttribute('data-reject-url'):null;
         var reason=document.getElementById('rejectReason');
         var fields={};
         if(reason&&reason.value.trim()) fields['motivo']=reason.value.trim();
         if(url){submitForm(url,fields);}
-        else{showToast('Cita rechazada correctamente','error'); closeModal(action);}
+        else{showToast('{% trans "Cita rechazada correctamente" %}','error'); closeModal(action);}
     } else if(action==='cancelar'){
         var url=target?target.getAttribute('data-cancel-url'):null;
-        if(url){submitForm(url,{'motivo_cancelacion':'Cancelada por recepcionista/gerente'});}
-        else{showToast('Cita cancelada correctamente','error'); closeModal(action);}
+        if(url){submitForm(url,{'motivo_cancelacion':'{% trans "Cancelada por recepcionista/gerente" %}'});}
+        else{showToast('{% trans "Cita cancelada correctamente" %}','error'); closeModal(action);}
     } else if(action==='llego'){
         var url=target?target.getAttribute('data-llego-url'):null;
         if(url){submitForm(url,{});}
-        else{showToast('Paciente marcado como atendido','success'); closeModal(action);}
+        else{showToast('{% trans "Paciente marcado como atendido" %}','success'); closeModal(action);}
     }
 }
 

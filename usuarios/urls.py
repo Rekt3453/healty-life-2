@@ -41,6 +41,7 @@ urlpatterns = [
     path('dashboard/medico/', views.dashboard_medico, name='dashboard_medico'),
     path('perfil/doctor/', views.perfil_doctor, name='perfil_doctor'),
     path('dashboard/recepcionista/', views.dashboard_recepcionista, name='dashboard_recepcionista'),
+    path('dashboard/recepcionista/registrar-paciente/', views.registrar_paciente_recepcionista, name='registrar_paciente_recepcionista'),
     path('dashboard/gerente/', views.dashboard_gerente, name='dashboard_gerente'),
     path('dashboard/gerente/reporte/pdf/', views.reporte_gerente_pdf, name='reporte_gerente_pdf'),
     path('dashboard/gerente/pagar-honorario/', citas_views.pagar_honorario_doctor, name='pagar_honorario_doctor'),

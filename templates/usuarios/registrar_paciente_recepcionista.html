@@ -1,0 +1,378 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Registrar Paciente" %} - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+    <style>
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:8px 16px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .input-modern{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;}
+        .input-modern:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
+        /* Form styles */
+        .form-control, .form-select{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;}
+        .form-control:focus, .form-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        textarea.form-control{min-height:80px;resize:vertical;}
+        .form-check-input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        @media(max-width:640px){.form-row{grid-template-columns:1fr;}}
+        .section-label{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem;}
+    </style>
+</head>
+<body class="min-h-screen">
+
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
+        </a>
+    </div>
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_recepcionista' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            {% trans "Dashboard" %}
+        </a>
+        <a href="{% url 'gestionar_citas' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            {% trans "Citas" %}
+        </a>
+        <a href="{% url 'facturas_recepcionista' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            {% trans "Facturación" %}
+        </a>
+        <a href="{% url 'lista_pacientes' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            {% trans "Pacientes" %}
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            {% trans "Cerrar sesión" %}
+        </a>
+    </div>
+</aside>
+
+<!-- Main -->
+<div class="dashboard-main">
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="{% trans "Menú" %}">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'dashboard_recepcionista' %}" class="hover:underline">{% trans "Dashboard" %}</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">{% trans "Registrar Paciente" %}</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">{% trans "Registrar Paciente" %}</h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+                <p class="text-sm font-semibold" style="color:var(--text-primary);">{{ nombre }}</p>
+                <p class="text-xs" style="color:var(--text-secondary);">{% trans "Recepcionista" %}</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="p-6 max-w-5xl mx-auto">
+        {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+            <div class="px-4 py-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="dashboard-card p-6 md:p-8">
+            <form method="POST" class="space-y-8">
+                {% csrf_token %}
+
+                <!-- Información Básica -->
+                <div>
+                    <div class="section-label">{% trans "Información Básica" %}</div>
+                    <div class="form-row">
+                        <div>{{ form.username.label_tag }} {{ form.username }} {% if form.username.errors %}<p class="text-red-600 text-xs mt-1">{{ form.username.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.email.label_tag }} {{ form.email }} {% if form.email.errors %}<p class="text-red-600 text-xs mt-1">{{ form.email.errors|join:", " }}</p>{% endif %}</div>
+                    </div>
+                    <div class="form-row mt-4">
+                        <div>{{ form.password1.label_tag }} {{ form.password1 }} {% if form.password1.errors %}<p class="text-red-600 text-xs mt-1">{{ form.password1.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.password2.label_tag }} {{ form.password2 }} {% if form.password2.errors %}<p class="text-red-600 text-xs mt-1">{{ form.password2.errors|join:", " }}</p>{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- Información Personal -->
+                <div>
+                    <div class="section-label">{% trans "Información Personal" %}</div>
+                    <div class="form-row">
+                        <div>{{ form.nombre_1.label_tag }} {{ form.nombre_1 }} {% if form.nombre_1.errors %}<p class="text-red-600 text-xs mt-1">{{ form.nombre_1.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.nombre_2.label_tag }} {{ form.nombre_2 }} {% if form.nombre_2.errors %}<p class="text-red-600 text-xs mt-1">{{ form.nombre_2.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.apellido_1.label_tag }} {{ form.apellido_1 }} {% if form.apellido_1.errors %}<p class="text-red-600 text-xs mt-1">{{ form.apellido_1.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.apellido_2.label_tag }} {{ form.apellido_2 }} {% if form.apellido_2.errors %}<p class="text-red-600 text-xs mt-1">{{ form.apellido_2.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.tipo_cedula.label_tag }} {{ form.tipo_cedula }} {% if form.tipo_cedula.errors %}<p class="text-red-600 text-xs mt-1">{{ form.tipo_cedula.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.cedula.label_tag }} {{ form.cedula }} {% if form.cedula.errors %}<p class="text-red-600 text-xs mt-1">{{ form.cedula.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.sexo.label_tag }} {{ form.sexo }} {% if form.sexo.errors %}<p class="text-red-600 text-xs mt-1">{{ form.sexo.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.fecha_nacimiento.label_tag }} {{ form.fecha_nacimiento }} {% if form.fecha_nacimiento.errors %}<p class="text-red-600 text-xs mt-1">{{ form.fecha_nacimiento.errors|join:", " }}</p>{% endif %}</div>
+                    </div>
+                    <div class="mt-4">{{ form.telefono.label_tag }} {{ form.telefono }} {% if form.telefono.errors %}<p class="text-red-600 text-xs mt-1">{{ form.telefono.errors|join:", " }}</p>{% endif %}</div>
+                </div>
+
+                <!-- Centro Médico y Sede -->
+                <div>
+                    <div class="section-label">{% trans "Centro Médico y Sede" %}</div>
+                    <div class="form-row">
+                        <div>
+                            <label for="id_centro_medico">{% trans "Centro Médico" %} *</label>
+                            <select name="centro_medico" id="id_centro_medico" class="form-select" required>
+                                <option value="">{% trans "Seleccione un centro médico" %}</option>
+                                {% for cm in centros_medicos %}
+                                <option value="{{ cm.id_cm }}" {% if request.POST.centro_medico == cm.id_cm|stringformat:'s' %}selected{% endif %}>{{ cm.nombre_cm }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>{{ form.sede.label_tag }} {{ form.sede }} {% if form.sede.errors %}<p class="text-red-600 text-xs mt-1">{{ form.sede.errors|join:", " }}</p>{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- Ubicación -->
+                <div>
+                    <div class="section-label">{% trans "Ubicación" %}</div>
+                    <div class="form-row">
+                        <div>{{ form.id_estado.label_tag }} {{ form.id_estado }} {% if form.id_estado.errors %}<p class="text-red-600 text-xs mt-1">{{ form.id_estado.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.id_municipio.label_tag }} {{ form.id_municipio }} {% if form.id_municipio.errors %}<p class="text-red-600 text-xs mt-1">{{ form.id_municipio.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.id_ciudad.label_tag }} {{ form.id_ciudad }} {% if form.id_ciudad.errors %}<p class="text-red-600 text-xs mt-1">{{ form.id_ciudad.errors|join:", " }}</p>{% endif %}</div>
+                        <div>{{ form.id_parroquia.label_tag }} {{ form.id_parroquia }} {% if form.id_parroquia.errors %}<p class="text-red-600 text-xs mt-1">{{ form.id_parroquia.errors|join:", " }}</p>{% endif %}</div>
+                    </div>
+                    <div class="form-row mt-4">
+                        <div>{{ form.direccion.label_tag }} {{ form.direccion }}</div>
+                        <div>{{ form.referencia.label_tag }} {{ form.referencia }}</div>
+                    </div>
+                </div>
+
+                <!-- Condición Especial -->
+                <div>
+                    <div class="section-label">{% trans "Condición Especial" %}</div>
+                    <div class="flex items-center gap-2 mb-3">
+                        {{ form.tiene_condicion_especial }}
+                        <label for="{{ form.tiene_condicion_especial.id_for_label }}" class="text-sm" style="color:var(--text-primary);">{{ form.tiene_condicion_especial.label }}</label>
+                    </div>
+                    <div id="seccion-condicion-especial" style="display:none;">
+                        {{ form.descripcion_condicion.label_tag }} {{ form.descripcion_condicion }}
+                    </div>
+                </div>
+
+                <!-- Tutor -->
+                <div id="seccion-tutor" style="display:none;">
+                    <div class="section-label">{% trans "Datos del Tutor o Representante Legal" %}</div>
+                    <div class="form-row">
+                        <div>{{ form.tutor_nombre.label_tag }} {{ form.tutor_nombre }}</div>
+                        <div>{{ form.tutor_cedula.label_tag }} {{ form.tutor_cedula }}</div>
+                        <div>{{ form.tutor_telefono.label_tag }} {{ form.tutor_telefono }}</div>
+                        <div>{{ form.tutor_parentesco.label_tag }} {{ form.tutor_parentesco }}</div>
+                    </div>
+                    <div class="mt-4">{{ form.tutor_correo.label_tag }} {{ form.tutor_correo }}</div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t" style="border-color:var(--border);">
+                    <a href="{% url 'dashboard_recepcionista' %}" class="btn-secondary">{% trans "Cancelar" %}</a>
+                    <button type="submit" class="btn-primary">{% trans "Registrar paciente" %}</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+function toggleSidebar() {
+    var s = document.getElementById('sidebar');
+    var o = document.getElementById('sidebarOverlay');
+    s.classList.toggle('open');
+    o.classList.toggle('active');
+}
+
+// ==================== SELECTORES EN CASCADA (UBICACIÓN) ====================
+(function () {
+    const AJAX_MUNICIPIOS = "{% url 'cargar_municipios' %}";
+    const AJAX_CIUDADES   = "{% url 'cargar_ciudades' %}";
+    const AJAX_PARROQUIAS = "{% url 'cargar_parroquias' %}";
+
+    function poblarSelect(sel, data, valKey, labelKey, placeholder) {
+        sel.innerHTML = '<option value="">' + placeholder + '</option>';
+        data.forEach(function (item) {
+            var o = document.createElement('option');
+            o.value = item[valKey];
+            o.textContent = item[labelKey];
+            sel.appendChild(o);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var estadoSel    = document.getElementById('id_estado');
+        var municipioSel = document.getElementById('id_municipio');
+        var ciudadSel    = document.getElementById('id_ciudad');
+        var parroquiaSel = document.getElementById('id_parroquia');
+
+        if (!estadoSel) return;
+
+        estadoSel.addEventListener('change', function () {
+            var id = this.value;
+            municipioSel.innerHTML = '<option value="">{% trans "Cargando..." %}</option>';
+            ciudadSel.innerHTML    = '<option value="">{% trans "Seleccione una ciudad" %}</option>';
+            parroquiaSel.innerHTML = '<option value="">{% trans "Seleccione una parroquia" %}</option>';
+            if (!id) return;
+            fetch(AJAX_MUNICIPIOS + '?estado_id=' + id)
+                .then(function (r) { return r.json(); })
+                .then(function (d) { poblarSelect(municipioSel, d, 'id_municipio', 'municipio', '{% trans "Seleccione un municipio" %}'); });
+            fetch(AJAX_CIUDADES + '?estado_id=' + id)
+                .then(function (r) { return r.json(); })
+                .then(function (d) { poblarSelect(ciudadSel, d, 'id_ciudad', 'ciudad', '{% trans "Seleccione una ciudad" %}'); });
+        });
+
+        municipioSel.addEventListener('change', function () {
+            var id = this.value;
+            parroquiaSel.innerHTML = '<option value="">{% trans "Cargando..." %}</option>';
+            if (!id) return;
+            fetch(AJAX_PARROQUIAS + '?municipio_id=' + id)
+                .then(function (r) { return r.json(); })
+                .then(function (d) { poblarSelect(parroquiaSel, d, 'id_parroquia', 'parroquia', '{% trans "Seleccione una parroquia" %}'); });
+        });
+    });
+}());
+
+// ==================== CENTRO MÉDICO -> SEDE ====================
+document.addEventListener('DOMContentLoaded', function() {
+    const cmSelect = document.getElementById('id_centro_medico');
+    const sedeSelect = document.getElementById('id_sede');
+    if (!cmSelect || !sedeSelect) return;
+
+    function resetSede() {
+        sedeSelect.innerHTML = '<option value="">{% trans "Primero seleccione un centro médico" %}</option>';
+        sedeSelect.disabled = true;
+    }
+    if (!cmSelect.value) resetSede();
+
+    cmSelect.addEventListener('change', function() {
+        const cmId = this.value;
+        if (!cmId) { resetSede(); return; }
+        sedeSelect.disabled = true;
+        sedeSelect.innerHTML = '<option value="">{% trans "Cargando..." %}</option>';
+        fetch('/ajax/sedes/?cm_id=' + encodeURIComponent(cmId))
+            .then(r => r.json())
+            .then(data => {
+                sedeSelect.innerHTML = '<option value="">{% trans "Seleccione una sede" %}</option>';
+                data.forEach(sede => {
+                    const option = document.createElement('option');
+                    option.value = sede.id_sede;
+                    option.textContent = sede.nombre_sede;
+                    sedeSelect.appendChild(option);
+                });
+                sedeSelect.disabled = false;
+            })
+            .catch(() => { sedeSelect.innerHTML = '<option value="">{% trans "Error al cargar sedes" %}</option>'; });
+    });
+});
+
+// ==================== MENOR DE EDAD Y CONDICIÓN ESPECIAL ====================
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaNacimientoInput = document.getElementById('id_fecha_nacimiento');
+    const tieneCondicionCheckbox = document.getElementById('id_tiene_condicion_especial');
+    const seccionCondicionEspecial = document.getElementById('seccion-condicion-especial');
+    const descripcionCondicion = document.getElementById('id_descripcion_condicion');
+    const seccionTutor = document.getElementById('seccion-tutor');
+    const tutorNombre = document.getElementById('id_tutor_nombre');
+    const tutorCedula = document.getElementById('id_tutor_cedula');
+    const tutorTelefono = document.getElementById('id_tutor_telefono');
+    const tutorParentesco = document.getElementById('id_tutor_parentesco');
+    const tutorCorreo = document.getElementById('id_tutor_correo');
+
+    function calcularEdad(fechaNacimiento) {
+        const hoy = new Date();
+        const nacimiento = new Date(fechaNacimiento);
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const mes = hoy.getMonth() - nacimiento.getMonth();
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+        return edad;
+    }
+
+    function toggleSeccionTutor(mostrar) {
+        if (mostrar) {
+            seccionTutor.style.display = 'block';
+            tutorNombre.required = true; tutorNombre.style.display = 'block';
+            tutorCedula.required = true; tutorCedula.style.display = 'block';
+            tutorTelefono.required = true; tutorTelefono.style.display = 'block';
+            tutorParentesco.required = true; tutorParentesco.style.display = 'block';
+            tutorCorreo.required = true; tutorCorreo.style.display = 'block';
+        } else {
+            seccionTutor.style.display = 'none';
+            tutorNombre.required = false; tutorNombre.style.display = 'none';
+            tutorCedula.required = false; tutorCedula.style.display = 'none';
+            tutorTelefono.required = false; tutorTelefono.style.display = 'none';
+            tutorParentesco.required = false; tutorParentesco.style.display = 'none';
+            tutorCorreo.required = false; tutorCorreo.style.display = 'none';
+        }
+    }
+
+    if (fechaNacimientoInput) {
+        fechaNacimientoInput.addEventListener('change', function() {
+            if (this.value) {
+                const edad = calcularEdad(this.value);
+                toggleSeccionTutor(edad < 18);
+            }
+        });
+        if (fechaNacimientoInput.value) {
+            const edad = calcularEdad(fechaNacimientoInput.value);
+            if (edad < 18) toggleSeccionTutor(true);
+        }
+    }
+
+    if (tieneCondicionCheckbox) {
+        tieneCondicionCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                seccionCondicionEspecial.style.display = 'block';
+                descripcionCondicion.style.display = 'block';
+                descripcionCondicion.required = true;
+            } else {
+                seccionCondicionEspecial.style.display = 'none';
+                descripcionCondicion.style.display = 'none';
+                descripcionCondicion.required = false;
+            }
+        });
+        if (tieneCondicionCheckbox.checked) {
+            seccionCondicionEspecial.style.display = 'block';
+            descripcionCondicion.style.display = 'block';
+            descripcionCondicion.required = true;
+        }
+    }
+});
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator, EmailValidator, MinLengthValidator
+from django.utils.translation import gettext_lazy as _
 from datetime import date, timedelta
 from .models import (
     UserPaciente, UserDoctor, UserRecepcionista, UserAdmin, UserSuperAdmin,
@@ -62,7 +63,7 @@ class RegistroPacienteForm(forms.Form):
         max_length=30,
         min_length=4,
         required=True,
-        label="Nombre de Usuario",
+        label=_("Nombre de Usuario"),
         validators=[
             RegexValidator(r'^[a-zA-Z0-9_-]+$', 'Solo letras, números, guiones y guiones bajos'),
         ],
@@ -81,7 +82,7 @@ class RegistroPacienteForm(forms.Form):
     email = forms.EmailField(
         max_length=30,
         required=True,
-        label="Correo Electrónico",
+        label=_("Correo Electrónico"),
         validators=[EmailValidator(message='Ingrese un correo electrónico válido')],
         error_messages={
             'required': 'El correo electrónico es obligatorio',
@@ -97,7 +98,7 @@ class RegistroPacienteForm(forms.Form):
     
     password1 = forms.CharField(
         required=True,
-        label="Contraseña",
+        label=_("Contraseña"),
         min_length=8,
         max_length=30,
         validators=[
@@ -116,7 +117,7 @@ class RegistroPacienteForm(forms.Form):
     
     password2 = forms.CharField(
         required=True,
-        label="Confirmar Contraseña",
+        label=_("Confirmar Contraseña"),
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'placeholder': 'Repita su contraseña',
@@ -127,41 +128,41 @@ class RegistroPacienteForm(forms.Form):
     # ==================== DATOS PERSONALES ====================
     nombre_1 = forms.CharField(
         max_length=30, min_length=2, required=True,
-        label="Primer Nombre",
+        label=_("Primer Nombre"),
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras')],
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Juan', 'data-validate': 'nombre', 'maxlength': '30'})
     )
     
     nombre_2 = forms.CharField(
         max_length=30, required=False,
-        label="Segundo Nombre",
+        label=_("Segundo Nombre"),
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$', 'Solo letras')],
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Carlos (opcional)', 'data-validate': 'nombre', 'maxlength': '30'})
     )
     
     apellido_1 = forms.CharField(
         max_length=30, min_length=2, required=True,
-        label="Primer Apellido",
+        label=_("Primer Apellido"),
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras')],
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Pérez', 'data-validate': 'apellido', 'maxlength': '30'})
     )
     
     apellido_2 = forms.CharField(
         max_length=30, required=False,
-        label="Segundo Apellido",
+        label=_("Segundo Apellido"),
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$', 'Solo letras')],
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: García (opcional)', 'data-validate': 'apellido', 'maxlength': '30'})
     )
     
     tipo_cedula = forms.ChoiceField(
         choices=[('V','V'), ('E','E'), ('J','J')],
-        required=True, label="Tipo de Cédula",
+        required=True, label=_("Tipo de Cédula"),
         widget=forms.Select(attrs={'class': 'form-select', 'data-validate': 'select'})
     )
     
     cedula = forms.CharField(
         max_length=8, min_length=7, required=True,
-        label="Cédula de Identidad",
+        label=_("Cédula de Identidad"),
         validators=[
             RegexValidator(r'^\d+$', 'Solo números'),
             MinLengthValidator(7, 'Mínimo 7 dígitos'),
@@ -171,12 +172,12 @@ class RegistroPacienteForm(forms.Form):
     
     sexo = forms.ChoiceField(
         choices=[('M','Masculino'), ('F','Femenino'), ('NB','No Binario'), ('O','Otro'), ('PN','Prefiero no decirlo')],
-        required=True, label="Sexo",
+        required=True, label=_("Sexo"),
         widget=forms.Select(attrs={'class': 'form-select', 'data-validate': 'select'})
     )
     
     fecha_nacimiento = forms.DateField(
-        required=True, label="Fecha de Nacimiento",
+        required=True, label=_("Fecha de Nacimiento"),
         widget=forms.DateInput(attrs={
             'class': 'form-control',
             'type': 'date',
@@ -189,7 +190,7 @@ class RegistroPacienteForm(forms.Form):
     
     telefono = forms.CharField(
         max_length=15, min_length=10, required=True,
-        label="Número de Teléfono",
+        label=_("Número de Teléfono"),
         validators=[RegexValidator(r'^\d+$', 'Solo números'), MinLengthValidator(10, 'Mínimo 10 dígitos')],
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '04121234567', 'data-validate': 'telefono'})
     )
@@ -198,8 +199,8 @@ class RegistroPacienteForm(forms.Form):
     sede = forms.ModelChoiceField(
         queryset=Sede.objects.filter(status=True).order_by('nombre_sede'),
         required=True,
-        label="Sede de Atención",
-        empty_label="Seleccione una sede",
+        label=_("Sede de Atención"),
+        empty_label=_("Seleccione una sede"),
         error_messages={'required': 'Debe seleccionar una sede'},
         widget=forms.Select(attrs={
             'class': 'form-select',
@@ -211,41 +212,41 @@ class RegistroPacienteForm(forms.Form):
     # ==================== UBICACIÓN GEOGRÁFICA ====================
     id_estado = forms.ModelChoiceField(
         queryset=Estado.objects.all().order_by('estado'),
-        required=True, label="Estado",
-        empty_label="Seleccione un estado",
+        required=True, label=_("Estado"),
+        empty_label=_("Seleccione un estado"),
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_estado', 'data-validate': 'select'})
     )
     
     id_municipio = forms.ModelChoiceField(
         queryset=Municipio.objects.none(),
-        required=True, label="Municipio",
-        empty_label="Seleccione un municipio",
+        required=True, label=_("Municipio"),
+        empty_label=_("Seleccione un municipio"),
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_municipio'})
     )
     
     id_ciudad = forms.ModelChoiceField(
         queryset=Ciudad.objects.none(),
-        required=True, label="Ciudad",
-        empty_label="Seleccione una ciudad",
+        required=True, label=_("Ciudad"),
+        empty_label=_("Seleccione una ciudad"),
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_ciudad'})
     )
     
     id_parroquia = forms.ModelChoiceField(
         queryset=Parroquia.objects.none(),
-        required=True, label="Parroquia",
-        empty_label="Seleccione una parroquia",
+        required=True, label=_("Parroquia"),
+        empty_label=_("Seleccione una parroquia"),
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_parroquia'})
     )
     
     direccion = forms.CharField(
         max_length=100, required=False,
-        label="Dirección",
+        label=_("Dirección"),
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Dirección de domicilio (opcional)', 'maxlength': '100'})
     )
     
     referencia = forms.CharField(
         max_length=100, required=False,
-        label="Referencia",
+        label=_("Referencia"),
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Punto de referencia (opcional)', 'maxlength': '100'})
     )
     
@@ -253,7 +254,7 @@ class RegistroPacienteForm(forms.Form):
     # ==================== CONDICIÓN ESPECIAL ====================
     tiene_condicion_especial = forms.BooleanField(
         required=False,
-        label="Tengo una condición médica que requiere atención especial",
+        label=_("Tengo una condición médica que requiere atención especial"),
         widget=forms.CheckboxInput(attrs={
             'class': 'form-check-input',
             'id': 'id_tiene_condicion_especial',
@@ -263,7 +264,7 @@ class RegistroPacienteForm(forms.Form):
     
     descripcion_condicion = forms.CharField(
         required=False,
-        label="Describa su condición médica",
+        label=_("Describa su condición médica"),
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 3,
@@ -276,7 +277,7 @@ class RegistroPacienteForm(forms.Form):
     # ==================== DATOS DEL TUTOR ====================
     tutor_nombre = forms.CharField(
         max_length=100, required=False,
-        label="Nombre completo del tutor/responsable",
+        label=_("Nombre completo del tutor/responsable"),
         validators=[RegexValidator(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', 'Solo letras')],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -288,7 +289,7 @@ class RegistroPacienteForm(forms.Form):
     
     tutor_cedula = forms.CharField(
         max_length=20, required=False,
-        label="Cédula del tutor",
+        label=_("Cédula del tutor"),
         validators=[RegexValidator(r'^\d+$', 'Solo números')],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -300,7 +301,7 @@ class RegistroPacienteForm(forms.Form):
     
     tutor_telefono = forms.CharField(
         max_length=15, required=False,
-        label="Teléfono del tutor",
+        label=_("Teléfono del tutor"),
         validators=[RegexValidator(r'^\d+$', 'Solo números')],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -312,15 +313,15 @@ class RegistroPacienteForm(forms.Form):
     
     tutor_parentesco = forms.ChoiceField(
         choices=[
-            ('', 'Seleccione parentesco'),
-            ('padre', 'Padre'),
-            ('madre', 'Madre'),
-            ('tutor_legal', 'Tutor legal'),
-            ('abuelo', 'Abuelo/a'),
-            ('otro', 'Otro'),
+            ('', _("Seleccione parentesco")),
+            ('padre', _("Padre")),
+            ('madre', _("Madre")),
+            ('tutor_legal', _("Tutor legal")),
+            ('abuelo', _("Abuelo/a")),
+            ('otro', _("Otro")),
         ],
         required=False,
-        label="Parentesco del tutor",
+        label=_("Parentesco del tutor"),
         widget=forms.Select(attrs={
             'class': 'form-select',
             'id': 'id_tutor_parentesco',
@@ -330,7 +331,7 @@ class RegistroPacienteForm(forms.Form):
     
     tutor_correo = forms.EmailField(
         required=False,
-        label="Correo del tutor",
+        label=_("Correo del tutor"),
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'Correo del tutor',
