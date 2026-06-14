@@ -1,5 +1,6 @@
 import hashlib
 import re
+import logging
 from datetime import datetime
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -7,12 +8,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponse
+from django.db.models import Q
 from .models import (
     UserSuperAdmin, Superadmin, Sede, DireccionSede, CentroMedico,
     UserAdmin, Administrador, DireccionAdmin,
+    UserDoctor, UserRecepcionista,
     Estado, Municipio, Ciudad, Parroquia, AuditLog,
 )
 from .audit_services import registrar_evento
+from .authentication import is_rate_limited, _record_failed, get_client_ip
+
+logger = logging.getLogger('usuarios')
 
 # Obtener el CentroMedico del superadmin a través de su sede
 def _get_centro(sa):
@@ -54,12 +60,39 @@ def login_superadmin(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
+        ip = get_client_ip(request)
+
+        if is_rate_limited(username, ip):
+            messages.error(request, 'Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo.')
+            return render(request, 'usuarios/login_superadmin.html')
+
         password_hash = hashlib.md5(password.encode()).hexdigest()
 
         user = UserSuperAdmin.objects.filter(
-            username=username, contrasena=password_hash, status=True
+            username=username, contrasena=password_hash
         ).first()
         if user:
+            if not user.status or not user.contrasena:
+                try:
+                    from .email_config import generar_token_activacion, enviar_correo_activacion
+                    from django.db import connection
+                    token = generar_token_activacion(user.pk, user.correo)
+                    with connection.cursor() as c:
+                        c.execute("UPDATE user_superadmin SET token_activacion = %s WHERE id_user_superadmin = %s", [token, user.pk])
+                    enlace = request.build_absolute_uri(f"/activar-cuenta/{user.pk}/{token}/")
+                    sa_profile = Superadmin.objects.filter(id_user_superadmin=user).first()
+                    if sa_profile:
+                        user.nombre_1 = sa_profile.nombre_1
+                        user.nombre_2 = sa_profile.nombre_2
+                        user.apellido_1 = sa_profile.apellido_1
+                        user.apellido_2 = sa_profile.apellido_2
+                    enviar_correo_activacion(user, 'Super Admin', enlace)
+                    messages.info(request, "Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu correo.")
+                except Exception as mail_err:
+                    logger.warning(f"No se pudo reenviar correo de activación: {mail_err}")
+                    messages.info(request, "Tu cuenta aún no está activada. Contacta al administrador.")
+                return render(request, 'usuarios/login_superadmin.html')
+
             request.session['_superadmin_user_id'] = user.id_superadmin
             request.session['_superadmin_username'] = user.username
             registrar_evento(
@@ -74,6 +107,7 @@ def login_superadmin(request):
             messages.success(request, f'Bienvenido, {user.username}')
             return redirect('dashboard_superadmin')
         else:
+            _record_failed(username, ip)
             messages.error(request, 'Credenciales incorrectas.')
 
     return render(request, 'usuarios/login_superadmin.html')
@@ -90,16 +124,13 @@ def dashboard_superadmin(request):
         sedes = Sede.objects.filter(
             id_cm=centro
         ).select_related('id_direccion').order_by('nombre_sede')
-    else:
-        sedes = Sede.objects.all().select_related('id_direccion').order_by('nombre_sede')
-
-    sede_ids = list(sedes.values_list('id_sede', flat=True))
-    if sede_ids:
+        sede_ids = list(sedes.values_list('id_sede', flat=True))
         gerentes = Administrador.objects.filter(
             id_sede__in=sede_ids
         ).select_related('id_user_admin', 'id_sede').order_by('nombre_1')
     else:
-        gerentes = Administrador.objects.all().select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+        sedes = Sede.objects.none()
+        gerentes = Administrador.objects.none()
 
     context = {
         'superadmin': sa,
@@ -209,13 +240,12 @@ def registrar_gerente(request):
             id_cm=centro, status=True
         ).order_by('nombre_sede')
     else:
-        sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+        sedes = Sede.objects.none()
     estados = Estado.objects.all().order_by('estado')
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         correo = request.POST.get('correo', '').strip()
-        password = request.POST.get('password', '')
         nombre_1 = request.POST.get('nombre_1', '').strip().upper()
         nombre_2 = request.POST.get('nombre_2', '').strip().upper() or None
         apellido_1 = request.POST.get('apellido_1', '').strip().upper()
@@ -233,7 +263,7 @@ def registrar_gerente(request):
         direccion = request.POST.get('direccion', '').strip()
 
         errors = []
-        if not all([username, correo, password, nombre_1, apellido_1, cedula, id_sede, telefono]):
+        if not all([username, correo, nombre_1, apellido_1, cedula, id_sede, telefono]):
             errors.append('Completa todos los campos obligatorios.')
         if len(username) > 30:
             errors.append('El username no puede exceder 30 caracteres.')
@@ -249,8 +279,8 @@ def registrar_gerente(request):
             errors.append('Apellido 2: solo letras, maximo 30 caracteres.')
         if tipo_cedula not in ('V', 'E', 'J'):
             errors.append('Tipo de cedula invalido.')
-        if not re.match(r'^\d{7,9}$', cedula):
-            errors.append('La cedula debe tener entre 7 y 9 digitos numericos.')
+        if not re.match(r'^\d{7,8}$', cedula):
+            errors.append('La cedula debe tener entre 7 y 8 digitos numericos.')
         if fecha_nacimiento:
             try:
                 from datetime import date as _date
@@ -263,10 +293,8 @@ def registrar_gerente(request):
                         errors.append('El gerente debe tener al menos 18 años.')
             except ValueError:
                 errors.append('La fecha de nacimiento no es valida.')
-        if not re.match(r'^(0412|0426|0424|0422)-\d{3}-\d{4}$', telefono):
-            errors.append('El telefono debe tener el formato 0412-123-4567.')
-        if len(password) < 8:
-            errors.append('La contrasena debe tener minimo 8 caracteres.')
+        if not re.match(r'^(0412|0426|0424|0422)\d{7}$', telefono):
+            errors.append('El telefono debe tener el formato 04121234567 (11 digitos, sin guiones).')
         if UserAdmin.objects.filter(username=username).exists():
             errors.append('El username ya esta en uso.')
         if UserAdmin.objects.filter(email=correo).exists():
@@ -279,13 +307,12 @@ def registrar_gerente(request):
                 messages.error(request, e)
         else:
             try:
-                password_hash = hashlib.md5(password.encode()).hexdigest()
                 user_admin = UserAdmin.objects.create(
                     username=username,
                     email=correo,
-                    password=password_hash,
+                    password='',
                     id_sede_id=id_sede,
-                    status=True,
+                    status=False,
                 )
 
                 dir_admin = None
@@ -314,6 +341,28 @@ def registrar_gerente(request):
                     id_direccion_admin=dir_admin,
                     status=True,
                 )
+                # Enviar correo de activación
+                try:
+                    from usuarios.email_config import generar_token_activacion, enviar_correo_activacion
+                    from django.db import connection
+                    token = generar_token_activacion(user_admin.pk, user_admin.email)
+                    with connection.cursor() as c:
+                        c.execute("UPDATE user_admin SET token_activacion = %s WHERE id_user_admin = %s", [token, user_admin.pk])
+                    enlace = request.build_absolute_uri(f"/activar-cuenta/{user_admin.pk}/{token}/")
+                    admin_profile = Administrador.objects.filter(id_user_admin=user_admin).first()
+                    # Pasar user_admin con atributos de nombre del perfil para el correo
+                    if admin_profile:
+                        user_admin.nombre_1 = admin_profile.nombre_1
+                        user_admin.nombre_2 = admin_profile.nombre_2
+                        user_admin.apellido_1 = admin_profile.apellido_1
+                        user_admin.apellido_2 = admin_profile.apellido_2
+                    enviar_correo_activacion(user_admin, 'Gerente', enlace)
+                    messages.success(request, f'Gerente {username} registrado. Se envió un correo de activación.')
+                except Exception as mail_err:
+                    import traceback
+                    traceback.print_exc()
+                    messages.warning(request, f'Gerente {username} registrado, pero NO se pudo enviar el correo de activación. Error: {mail_err}')
+
                 registrar_evento(
                     user=user_sa,
                     role='superadmin',
@@ -323,29 +372,6 @@ def registrar_gerente(request):
                     details={'username': username, 'sede_id': id_sede, 'rol': 'gerente'},
                     request=request,
                 )
-
-                try:
-                    send_mail(
-                        subject='Bienvenido a Healthy Life - Tu cuenta ha sido creada',
-                        message=f"""Hola {nombre_1} {apellido_1},
-
-Tu cuenta de gerente ha sido creada exitosamente en Healthy Life.
-
-Usuario: {username}
-Sede asignada: {Sede.objects.filter(id_sede=id_sede).first() or 'N/A'}
-
-Puedes iniciar sesion con tu usuario y contrasena.
-
-Saludos,
-Equipo Healthy Life""",
-                        from_email=None,
-                        recipient_list=[correo],
-                        fail_silently=True,
-                    )
-                except Exception:
-                    pass
-
-                messages.success(request, f'Gerente {username} registrado exitosamente.')
                 return redirect('dashboard_superadmin')
             except Exception as e:
                 messages.error(request, f'Error al registrar el gerente: {e}')
@@ -365,9 +391,14 @@ Equipo Healthy Life""",
 @_superadmin_required
 def lista_sedes(request):
     user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     filtro = request.GET.get('filtro', 'todos')
 
-    queryset = Sede.objects.all().select_related('id_cm').order_by('nombre_sede')
+    if centro:
+        queryset = Sede.objects.filter(id_cm=centro).select_related('id_cm').order_by('nombre_sede')
+    else:
+        queryset = Sede.objects.none()
+
     if filtro == 'activos':
         queryset = queryset.filter(status=True)
     elif filtro == 'inactivos':
@@ -381,14 +412,22 @@ def lista_sedes(request):
         'user_sa': user_sa,
         'page_obj': page_obj,
         'filtro': filtro,
+        'centro': centro,
     }
     return render(request, 'usuarios/lista_sedes.html', context)
 
 
 @_superadmin_required
 def toggle_sede_status(request, id_sede):
-    user_sa, _ = _get_superadmin_user(request)
+    user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     sede = get_object_or_404(Sede, pk=id_sede)
+
+    # Validar que la sede pertenezca al centro médico del superadmin
+    if centro and sede.id_cm_id != centro.id_cm:
+        messages.error(request, 'No tienes permiso para modificar esta sede.')
+        return redirect('lista_sedes')
+
     sede.status = not sede.status if sede.status is not None else True
     sede.save()
     estado = 'activada' if sede.status else 'desactivada'
@@ -448,9 +487,18 @@ def editar_sede(request, id_sede):
 @_superadmin_required
 def lista_gerentes(request):
     user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     filtro = request.GET.get('filtro', 'todos')
 
-    queryset = Administrador.objects.all().select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro)
+        sede_ids = list(sedes.values_list('id_sede', flat=True))
+        queryset = Administrador.objects.filter(
+            id_sede__in=sede_ids
+        ).select_related('id_user_admin', 'id_sede').order_by('nombre_1')
+    else:
+        queryset = Administrador.objects.none()
+
     if filtro == 'activos':
         queryset = queryset.filter(status=True)
     elif filtro == 'inactivos':
@@ -464,14 +512,22 @@ def lista_gerentes(request):
         'user_sa': user_sa,
         'page_obj': page_obj,
         'filtro': filtro,
+        'centro': centro,
     }
     return render(request, 'usuarios/lista_gerentes.html', context)
 
 
 @_superadmin_required
 def toggle_gerente_status(request, id_administrador):
-    user_sa, _ = _get_superadmin_user(request)
+    user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     gerente = get_object_or_404(Administrador, pk=id_administrador)
+
+    # Validar que el gerente pertenezca al centro médico del superadmin
+    if centro and gerente.id_sede and gerente.id_sede.id_cm_id != centro.id_cm:
+        messages.error(request, 'No tienes permiso para modificar este gerente.')
+        return redirect('lista_gerentes')
+
     gerente.status = not gerente.status if gerente.status is not None else True
     gerente.save()
     estado = 'activado' if gerente.status else 'desactivado'
@@ -491,8 +547,18 @@ def toggle_gerente_status(request, id_administrador):
 @_superadmin_required
 def editar_gerente(request, id_administrador):
     user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
     gerente = get_object_or_404(Administrador, pk=id_administrador)
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
+
+    # Validar que el gerente pertenezca al centro médico del superadmin
+    if centro and gerente.id_sede and gerente.id_sede.id_cm_id != centro.id_cm:
+        messages.error(request, 'No tienes permiso para editar este gerente.')
+        return redirect('lista_gerentes')
+
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro, status=True).order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.none()
 
     if request.method == 'POST':
         nombre_1 = request.POST.get('nombre_1', '').strip().upper()
@@ -565,8 +631,18 @@ def reportes_superadmin(request):
     else:
         fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
 
+    # Obtener sedes del centro médico del superadmin
+    centro = _get_centro(sa)
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro, status=True).order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.none()
+    mis_sede_ids = list(sedes.values_list('id_sede', flat=True))
+
     if id_sede:
         id_sede = int(id_sede)
+        if id_sede not in mis_sede_ids:
+            id_sede = None
 
     # Métricas generales
     datos_atencion = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, id_sede)
@@ -574,8 +650,6 @@ def reportes_superadmin(request):
     datos_honorarios = ReportesService.reporte_pagos_medicos(fecha_inicio, fecha_fin, id_sede)
     datos_pacientes = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, id_sede)
     datos_doctores = ReportesService.reporte_doctores(id_sede)
-
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
 
     # Desglose por sede (solo cuando no se filtra una sede específica)
     breakdown = []
@@ -815,8 +889,19 @@ def reportes_superadmin_pdf(request):
     else:
         fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
 
+    # Obtener sedes del centro médico del superadmin
+    user_sa, sa = _get_superadmin_user(request)
+    centro = _get_centro(sa)
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro, status=True).order_by('nombre_sede')
+    else:
+        sedes = Sede.objects.none()
+    mis_sede_ids = list(sedes.values_list('id_sede', flat=True))
+
     if id_sede:
         id_sede = int(id_sede)
+        if id_sede not in mis_sede_ids:
+            id_sede = None
 
     # Metricas
     datos_atencion = ReportesService.reporte_diario_atencion(fecha_inicio, fecha_fin, id_sede)
@@ -825,7 +910,6 @@ def reportes_superadmin_pdf(request):
     datos_pacientes = ReportesService.reporte_pacientes_nuevos(fecha_inicio, fecha_fin, id_sede)
     datos_doctores = ReportesService.reporte_doctores(id_sede)
 
-    sedes = Sede.objects.filter(status=True).order_by('nombre_sede')
     sede_obj = None
     if id_sede:
         sede_obj = get_object_or_404(Sede, pk=id_sede)
@@ -919,8 +1003,35 @@ def audit_log_list(request):
     user_sa, sa = _get_superadmin_user(request)
     centro = _get_centro(sa)
 
-    # Excluir siempre eventos del rol root
-    queryset = AuditLog.objects.exclude(role='root')
+    # Excluir eventos de root y de otros superadmins
+    queryset = AuditLog.objects.exclude(role__in=['root', 'superadmin'])
+
+    # Filtrar por centro médico: solo usuarios de las sedes del centro
+    if centro:
+        sedes = Sede.objects.filter(id_cm=centro)
+        sede_ids = list(sedes.values_list('id_sede', flat=True))
+        # Obtener IDs de usuarios que pertenecen a esas sedes
+        admin_ids = list(UserAdmin.objects.filter(
+            id_sede__in=sede_ids
+        ).values_list('id_user_admin', flat=True))
+        doctor_ids = list(UserDoctor.objects.filter(
+            id_sede__in=sede_ids
+        ).values_list('id_user_doctor', flat=True))
+        recep_ids = list(UserRecepcionista.objects.filter(
+            id_sede__in=sede_ids
+        ).values_list('id_user_recepcionista', flat=True))
+        # Pacientes no tienen sede fija en su modelo; mostrar todos los pacientes por ahora
+        # o filtrar por los que tengan citas en esas sedes (complejo). Por simplicidad,
+        # incluiremos logs de paciente sin filtrar por sede.
+        user_ids = set(admin_ids + doctor_ids + recep_ids)
+        if user_ids:
+            queryset = queryset.filter(
+                Q(id_user__in=user_ids) | Q(role='paciente')
+            )
+        else:
+            queryset = queryset.filter(role='paciente')
+    else:
+        queryset = queryset.none()
 
     # Filtros GET
     filtro_user_id = request.GET.get('user_id', '').strip()
@@ -966,8 +1077,8 @@ def audit_log_list(request):
     except Exception:
         page_obj = paginator.page(1)
 
-    # Roles disponibles (todos menos root) para que siempre aparezcan en el filtro
-    roles_unicos = ['gerente', 'medico', 'paciente', 'recepcionista', 'superadmin']
+    # Roles disponibles (todos menos root y superadmin)
+    roles_unicos = ['gerente', 'medico', 'paciente', 'recepcionista']
     acciones_unicas = AuditLog.objects.exclude(role='root').values_list('action', flat=True).distinct().order_by('action')
 
     context = {

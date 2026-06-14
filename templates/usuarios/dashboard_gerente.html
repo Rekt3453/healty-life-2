@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Gerencia - Healthy Life</title>
+    <title>{% trans "Panel de Gerencia" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -74,13 +75,17 @@
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
             Especialidades
         </a>
+        <a href="{% url 'lista_sedes_gerente' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Sedes
+        </a>
         <a href="{% url 'lista_horarios' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Horarios
         </a>
-        <a href="#" class="sidebar-link">
+        <a href="{% url 'reporte_gerente_pdf' %}" class="sidebar-link">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Reportes
+            {% trans "Reportes" %}
         </a>
     </nav>
     <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
@@ -94,25 +99,26 @@
 <div class="dashboard-main">
     <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
         <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="{% trans "Menu" %}">
                 <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <div>
                 <nav class="text-sm" style="color:var(--text-secondary);">
-                    <a href="{% url 'home' %}" class="hover:underline">Inicio</a>
+                    <a href="{% url 'home' %}" class="hover:underline">{% trans "Inicio" %}</a>
                     <span class="mx-2">/</span>
-                    <span style="color:var(--text-primary);">Panel de Gerencia</span>
+                    <span style="color:var(--text-primary);">{% trans "Panel de Gerencia" %}</span>
                 </nav>
-                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Panel de Gerencia</h1>
-                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Vision general del negocio y gestion de la clinica</p>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">{% trans "Panel de Gerencia" %}</h1>
+                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">{% trans "Vision general del negocio y gestion de la clinica" %}</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
+            {% include "partials/_language_selector.html" %}
             <span class="text-xs font-medium hidden sm:block" style="color:var(--text-secondary);">{% now "l, j \\d\\e F \\d\\e Y" %}</span>
-            <button class="btn-secondary" onclick="alert('Generando reporte...')">
+            <a href="{% url 'reporte_gerente_pdf' %}" class="btn-secondary">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Generar reporte
-            </button>
+            </a>
         </div>
     </header>
 
@@ -225,12 +231,6 @@
                         </div>
                         <span class="text-sm font-semibold" style="color:var(--text-primary);">Horarios Globales</span>
                     </a>
-                    <a href="{% url 'registrar_doctor' %}" class="flex items-center gap-3 p-3 rounded-xl border hover:border-blue-300 transition-colors" style="border-color:var(--border);background:var(--card-bg);">
-                        <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(139,92,246,.1);color:#8B5CF6;">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                        </div>
-                        <span class="text-sm font-semibold" style="color:var(--text-primary);">Registrar Doctor</span>
-                    </a>
                 </div>
             </div>
 
@@ -240,34 +240,125 @@
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Pendientes</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.pendientes|default:"24" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.pendientes|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.pendientes|default:"30" }}%;background:#eab308;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.pendientes|default:"30" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.pendientes|default_if_none:'0' }}" style="background:#eab308;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.pendientes|default_if_none:'0' }}% del total</p>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Aprobadas</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.aprobadas|default:"56" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.aprobadas|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.aprobadas|default:"55" }}%;background:#059669;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.aprobadas|default:"55" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.aprobadas|default_if_none:'0' }}" style="background:#059669;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.aprobadas|default_if_none:'0' }}% del total</p>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Canceladas</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.canceladas|default:"8" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.canceladas|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.canceladas|default:"8" }}%;background:#DC2626;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.canceladas|default:"8" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.canceladas|default_if_none:'0' }}" style="background:#DC2626;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.canceladas|default_if_none:'0' }}% del total</p>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-sm font-medium" style="color:var(--text-primary);">Completadas</span>
-                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.completadas|default:"42" }}</span>
+                            <span class="text-sm font-semibold" style="color:var(--text-primary);">{{ citas_por_estado.completadas|default_if_none:"0" }}</span>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:{{ porcentajes.completadas|default:"42" }}%;background:#2563EB;"></div></div>
-                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.completadas|default:"42" }}% del total</p>
+                        <div class="progress-track"><div class="progress-fill" data-width="{{ porcentajes.completadas|default_if_none:'0' }}" style="background:#2563EB;"></div></div>
+                        <p class="text-xs mt-1" style="color:var(--text-secondary);">{{ porcentajes.completadas|default_if_none:'0' }}% del total</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comisiones pendientes a doctores -->
+        <div class="dashboard-card overflow-hidden fade-in table-desktop mb-6" style="animation-delay:.18s;">
+            <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold" style="color:var(--text-primary);">Comisiones pendientes a doctores</h2>
+                        <p class="text-xs" style="color:var(--text-secondary);">40% de cada consulta atendida — Total pendiente: <strong>${{ total_honorarios_pendientes|default:"0.00" }}</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead><tr class="border-b" style="border-color:var(--border);background:#F8FAFC;">
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">{% trans "Doctor" %}</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Fecha consulta</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Base</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Comisión (40%)</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">{% trans "Estado" %}</th>
+                        <th class="px-6 py-3 font-medium text-left" style="color:var(--text-secondary);">Acción</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for h in honorarios_pendientes %}
+                        <tr class="border-b hover:bg-gray-50 transition-colors" style="border-color:var(--border);">
+                            <td class="px-6 py-4 font-medium" style="color:var(--text-primary);">
+                                Dr. {{ h.id_doctor.nombre_1|default:"" }} {{ h.id_doctor.apellido_1|default:"" }}
+                            </td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">
+                                {{ h.id_cita.fecha_consulta|date:"d/m/Y H:i"|default:"—" }}
+                            </td>
+                            <td class="px-6 py-4" style="color:var(--text-secondary);">
+                                {{ h.porcentaje_comision|default:"40" }}%
+                            </td>
+                            <td class="px-6 py-4 font-semibold" style="color:#059669;">${{ h.monto_honorario|default:"0.00" }}</td>
+                            <td class="px-6 py-4"><span class="badge-pendiente">Pendiente</span></td>
+                            <td class="px-6 py-4">
+                                <form method="post" action="{% url 'pagar_honorario_doctor' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="id_honorario" value="{{ h.id_honorario }}">
+                                    <button type="submit" class="btn-pagar-honorario inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors" style="background:#0070F3;" data-monto="{{ h.monto_honorario|default:'0.00' }}" data-doctor="Dr. {{ h.id_doctor.nombre_1|default:'' }} {{ h.id_doctor.apellido_1|default:'' }}">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        Pagar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="px-6 py-8 text-center" style="color:var(--text-secondary);">No hay comisiones pendientes.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagos a recepcionistas -->
+        <div class="dashboard-card overflow-hidden fade-in table-desktop mb-6" style="animation-delay:.19s;">
+            <div class="px-6 py-5 border-b flex items-center justify-between" style="border-color:var(--border);">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold" style="color:var(--text-primary);">Pagos a recepcionistas este mes</h2>
+                        <p class="text-xs" style="color:var(--text-secondary);">Egresos registrados en caja por concepto de recepcionista, nómina o salario — Total: <strong>${{ pagos_recepcionistas_mes|default:"0.00" }}</strong></p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs" style="color:var(--text-secondary);">Pagos registrados</p>
+                    <p class="text-xl font-bold" style="color:var(--accent);">{{ cantidad_pagos_recepcionistas|default:"0" }}</p>
+                </div>
+            </div>
+            <div class="px-6 py-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                        <p class="text-xs font-medium mb-1" style="color:#64748B;">Total pagado</p>
+                        <p class="text-xl font-bold" style="color:#0070F3;">${{ pagos_recepcionistas_mes|default:"0.00" }}</p>
+                    </div>
+                    <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                        <p class="text-xs font-medium mb-1" style="color:#64748B;">Cantidad de pagos</p>
+                        <p class="text-xl font-bold" style="color:#059669;">{{ cantidad_pagos_recepcionistas|default:"0" }}</p>
+                    </div>
+                    <div class="p-4 rounded-xl" style="background:#F8FAFC;">
+                        <p class="text-xs font-medium mb-1" style="color:#64748B;">Promedio por pago</p>
+                        <p class="text-xl font-bold" style="color:#D97706;">${{ promedio_pago_recepcionista|default:"0.00" }}</p>
                     </div>
                 </div>
             </div>
@@ -344,22 +435,52 @@
     </main>
 </div>
 
+<script type="application/json" id="chartEspLabels">
+{{ citas_especialidad_labels|default:"['Cardiologia','Pediatria','Dermatologia','Odontologia','Ginecologia','Traumatologia']"|safe }}
+</script>
+<script type="application/json" id="chartEspData">
+{{ citas_especialidad_data|default:"[45,32,28,24,18,15]"|safe }}
+</script>
+<script type="application/json" id="chartIngLabels">
+{{ ingresos_labels|default:"['Jun','Jul','Ago','Sep','Oct','Nov']"|safe }}
+</script>
+<script type="application/json" id="chartIngData">
+{{ ingresos_data|default:"[8200,9500,8800,10200,11500,12500]"|safe }}
+</script>
 <script>
 function toggleSidebar(){
     var s=document.getElementById('sidebar'), o=document.getElementById('sidebarOverlay');
     if(s)s.classList.toggle('open'); if(o)o.classList.toggle('active');
 }
 
+// Aplicar anchos de barras de progreso desde data-width
+document.querySelectorAll('.progress-fill[data-width]').forEach(function(el){
+    el.style.width = el.dataset.width + '%';
+});
+
+// Confirmación para pagos a médicos
+document.querySelectorAll('.btn-pagar-honorario').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+        var monto = btn.dataset.monto || '0.00';
+        var doctor = btn.dataset.doctor || 'Médico';
+        if(!confirm('¿Confirmar pago de $' + monto + ' al ' + doctor + '?')){
+            e.preventDefault();
+        }
+    });
+});
+
 // Chart.js — Citas por especialidad
+var espLabels=JSON.parse(document.getElementById('chartEspLabels').textContent);
+var espData=JSON.parse(document.getElementById('chartEspData').textContent);
 var ctxEsp=document.getElementById('chartEspecialidades');
 if(ctxEsp){
     new Chart(ctxEsp,{
         type:'bar',
         data:{
-            labels:{{ citas_especialidad_labels|default:"['Cardiologia','Pediatria','Dermatologia','Odontologia','Ginecologia','Traumatologia']"|safe }},
+            labels:espLabels,
             datasets:[{
                 label:'Citas',
-                data:{{ citas_especialidad_data|default:"[45,32,28,24,18,15]"|safe }},
+                data:espData,
                 backgroundColor:['#0070F3','#0070F3','#0070F3','#0070F3','#0070F3','#0070F3'],
                 borderRadius:6,
                 barThickness:24
@@ -378,15 +499,17 @@ if(ctxEsp){
 }
 
 // Chart.js — Ingresos mensuales
+var ingLabels=JSON.parse(document.getElementById('chartIngLabels').textContent);
+var ingData=JSON.parse(document.getElementById('chartIngData').textContent);
 var ctxIng=document.getElementById('chartIngresos');
 if(ctxIng){
     new Chart(ctxIng,{
         type:'line',
         data:{
-            labels:{{ ingresos_labels|default:"['Jun','Jul','Ago','Sep','Oct','Nov']"|safe }},
+            labels:ingLabels,
             datasets:[{
                 label:'Ingresos ($)',
-                data:{{ ingresos_data|default:"[8200,9500,8800,10200,11500,12500]"|safe }},
+                data:ingData,
                 borderColor:'#0070F3',
                 backgroundColor:'rgba(0,112,243,.12)',
                 fill:true,
@@ -418,5 +541,6 @@ if(ctxIng){
 })();
 </script>
 
+{% include "partials/_session_timeout.html" %}
 </body>
 </html>

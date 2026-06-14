@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Sede - Healthy Life</title>
+    <title>{% trans "Registrar Sede" %} - Healthy Life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -100,7 +101,7 @@
         <main class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
             <div class="max-w-2xl">
                 <div class="mb-6">
-                    <h1 class="text-2xl font-bold" style="color:var(--text-primary);">Registrar Sede</h1>
+                    <h1 class="text-2xl font-bold" style="color:var(--text-primary);">{% trans "Registrar Sede" %}</h1>
                     <p class="mt-1 text-sm" style="color:var(--text-secondary);">La sede quedara asociada a tu centro medico automaticamente.</p>
                 </div>
 
@@ -123,7 +124,7 @@
                             <p class="section-title">Datos de la sede</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="sm:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Sede <span class="text-red-500">*</span></label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Nombre de la Sede" %} <span class="text-red-500">*</span></label>
                                     <input type="text" name="nombre_sede" maxlength="30" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" placeholder="Ej: Sede Centro" required>
                                 </div>
                                 <div>
@@ -131,47 +132,47 @@
                                     <input type="text" name="rif_sede" maxlength="12" pattern="^J-\d{8}-\d$" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" placeholder="J-12345678-9" required>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefono <span class="text-red-500">*</span></label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Telefono" %} <span class="text-red-500">*</span></label>
                                     <input type="text" name="telefono" maxlength="13" pattern="^(0412|0426|0424|0422)-\d{3}-\d{4}$" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" placeholder="0412-123-4567" required>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Direccion -->
+                        <!-- {% trans "Direccion" %} -->
                         <div>
-                            <p class="section-title">Direccion</p>
+                            <p class="section-title">{% trans "Direccion" %}</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Estado <span class="text-red-500">*</span></label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Estado" %} <span class="text-red-500">*</span></label>
                                     <select name="id_estado" id="id_estado" class="form-select w-full px-3 py-2 rounded-lg text-gray-900 bg-white" required>
-                                        <option value="">-- Estado --</option>
+                                        <option value="">-- {% trans "Estado" %} --</option>
                                         {% for e in estados %}<option value="{{ e.id_estado }}">{{ e.estado }}</option>{% endfor %}
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Municipio <span class="text-red-500">*</span></label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Municipio" %} <span class="text-red-500">*</span></label>
                                     <select name="id_municipio" id="id_municipio" class="form-select w-full px-3 py-2 rounded-lg text-gray-900 bg-white" required>
-                                        <option value="">-- Municipio --</option>
+                                        <option value="">-- {% trans "Municipio" %} --</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad <span class="text-red-500">*</span></label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Ciudad" %} <span class="text-red-500">*</span></label>
                                     <select name="id_ciudad" id="id_ciudad" class="form-select w-full px-3 py-2 rounded-lg text-gray-900 bg-white" required>
-                                        <option value="">-- Ciudad --</option>
+                                        <option value="">-- {% trans "Ciudad" %} --</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Parroquia <span class="text-red-500">*</span></label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Parroquia" %} <span class="text-red-500">*</span></label>
                                     <select name="id_parroquia" id="id_parroquia" class="form-select w-full px-3 py-2 rounded-lg text-gray-900 bg-white" required>
-                                        <option value="">-- Parroquia --</option>
+                                        <option value="">-- {% trans "Parroquia" %} --</option>
                                     </select>
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Direccion <span class="text-red-500">*</span></label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Direccion" %} <span class="text-red-500">*</span></label>
                                     <textarea name="direccion" rows="2" maxlength="100" class="form-input w-full px-3 py-2 rounded-lg text-gray-900" required></textarea>
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Referencia</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Referencia" %}</label>
                                     <textarea name="referencia" rows="2" maxlength="100" class="form-input w-full px-3 py-2 rounded-lg text-gray-900"></textarea>
                                 </div>
                             </div>
@@ -179,7 +180,7 @@
 
                         <div class="flex gap-3 pt-2">
                             <button type="submit" class="flex-1 py-2.5 rounded-lg text-white text-sm font-semibold shadow-md hover:opacity-90 transition" style="background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);">
-                                Registrar Sede
+                                {% trans "Registrar Sede" %}
                             </button>
                             <a href="{% url 'dashboard_superadmin' %}" class="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold text-center hover:bg-gray-50 transition">
                                 Cancelar
@@ -208,7 +209,7 @@
         if(this.value){
             cargarOpciones(`/ajax/municipios/?estado_id=${this.value}`, 'id_municipio', 'id_municipio', 'municipio');
             cargarOpciones(`/ajax/ciudades/?estado_id=${this.value}`, 'id_ciudad', 'id_ciudad', 'ciudad');
-            document.getElementById('id_parroquia').innerHTML = '<option value="">-- Parroquia --</option>';
+            document.getElementById('id_parroquia').innerHTML = '<option value="">-- {% trans "Parroquia" %} --</option>';
         }
     });
     document.getElementById('id_municipio').addEventListener('change', function(){

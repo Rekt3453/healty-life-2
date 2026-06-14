@@ -1,0 +1,2088 @@
+# English translations for Healthy Life
+# Copyright (C) 2026
+# This file is distributed under the same license as the PACKAGE package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-09 12:00+0000\n"
+"PO-Revision-Date: 2026-06-09 12:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: clinica_root/settings/base.py:125
+msgid "Español"
+msgstr "Spanish"
+
+#: clinica_root/settings/base.py:126
+msgid "English"
+msgstr "English"
+
+#: clinica_root/settings/base.py:127
+msgid "Português"
+msgstr "Portuguese"
+
+#: usuarios/views.py
+msgid ""
+"Tu cuenta aún no está activada. Hemos reenviado el enlace de activación a tu"
+" correo."
+msgstr ""
+"Your account is not yet activated. We have resent the activation link to "
+"your email."
+
+#: usuarios/views.py
+msgid "Tu cuenta aún no está activada. Contacta al administrador."
+msgstr "Your account is not yet activated. Contact the administrator."
+
+#: usuarios/views.py
+msgid "Demasiados intentos fallidos. Espere 1 minuto e intente de nuevo."
+msgstr "Too many failed attempts. Please wait 1 minute and try again."
+
+#: usuarios/views.py
+msgid "Credenciales incorrectas"
+msgstr "Incorrect credentials"
+
+#: usuarios/views.py
+msgid "Has cerrado sesión correctamente"
+msgstr "You have logged out successfully"
+
+#: usuarios/views.py
+msgid ""
+"Cuenta creada con éxito. Has sido registrado como paciente especial (menor "
+"de edad). Los datos de tu tutor han sido guardados. Revisa tu correo "
+"electrónico."
+msgstr ""
+"Account created successfully. You have been registered as a special patient "
+"(minor). Your guardian's data has been saved. Check your email."
+
+#: usuarios/views.py
+msgid ""
+"Cuenta creada con éxito. Has sido registrado como paciente especial. Revisa "
+"tu correo electrónico."
+msgstr ""
+"Account created successfully. You have been registered as a special patient."
+" Check your email."
+
+#: usuarios/views.py
+msgid ""
+"Cuenta creada con éxito. Bienvenido al sistema. Revisa tu correo "
+"electrónico."
+msgstr ""
+"Account created successfully. Welcome to the system. Check your email."
+
+#: usuarios/views.py
+msgid "Ingresa tu correo electrónico."
+msgstr "Enter your email address."
+
+#: usuarios/views.py
+msgid ""
+"Si el correo está registrado en nuestro sistema, recibirás instrucciones "
+"para recuperar tu contraseña."
+msgstr ""
+"If the email is registered in our system, you will receive instructions to "
+"recover your password."
+
+#: usuarios/views.py
+msgid "Mínimo 8 caracteres."
+msgstr "Minimum 8 characters."
+
+#: usuarios/views.py
+msgid "Las contraseñas no coinciden."
+msgstr "Passwords do not match."
+
+#: usuarios/views.py
+msgid "Contraseña actualizada. Inicia sesión."
+msgstr "Password updated. Log in."
+
+#: usuarios/views.py
+msgid "Enlace vencido"
+msgstr "Expired link"
+
+#: usuarios/views.py
+msgid "Máximo 30 caracteres."
+msgstr "Maximum 30 characters."
+
+#: usuarios/views.py
+msgid "Debe contener al menos una mayúscula."
+msgstr "Must contain at least one uppercase letter."
+
+#: usuarios/views.py
+msgid "Debe contener al menos una minúscula."
+msgstr "Must contain at least one lowercase letter."
+
+#: usuarios/views.py
+msgid "Debe contener al menos un número."
+msgstr "Must contain at least one number."
+
+#: usuarios/views.py
+msgid "Debe contener al menos un carácter especial (@, #, $, etc.)."
+msgstr "Must contain at least one special character (@, #, $, etc.)."
+
+#: usuarios/views.py
+msgid "No se pudo actualizar la cuenta. Contacta al administrador."
+msgstr "Could not update the account. Contact the administrator."
+
+#: usuarios/views.py
+msgid "Error al guardar la contraseña. Intenta de nuevo."
+msgstr "Error saving the password. Try again."
+
+#: usuarios/views.py
+msgid "Contraseña establecida correctamente. Ya puedes iniciar sesión."
+msgstr "Password set successfully. You can now log in."
+
+#: usuarios/views.py
+msgid "Usuario o contraseña incorrectos"
+msgstr "Incorrect username or password"
+
+#: usuarios/views.py
+msgid "No tienes permisos para acceder a esta página"
+msgstr "You do not have permission to access this page"
+
+#: usuarios/views.py
+msgid "No se encontró tu perfil de paciente."
+msgstr "Your patient profile was not found."
+
+#: usuarios/views.py
+msgid "No se encontró tu perfil de médico."
+msgstr "Your doctor profile was not found."
+
+#: templates/usuarios/login_paciente.html
+msgid "Volver"
+msgstr "Back"
+
+#: templates/usuarios/login_paciente.html
+msgid "Acceso Pacientes"
+msgstr "Patient Access"
+
+#: templates/usuarios/login_paciente.html
+msgid "Ingresa tus credenciales para continuar"
+msgstr "Enter your credentials to continue"
+
+#: templates/usuarios/login_paciente.html
+msgid "Nombre de Usuario"
+msgstr "Username"
+
+#: templates/usuarios/login_paciente.html
+msgid "Tu nombre de usuario"
+msgstr "Your username"
+
+#: templates/usuarios/login_paciente.html
+msgid "Contrasena"
+msgstr "Password"
+
+#: templates/usuarios/login_paciente.html
+msgid "Tu contrasena"
+msgstr "Your password"
+
+#: templates/usuarios/login_paciente.html
+msgid "Iniciar Sesion"
+msgstr "Sign In"
+
+#: templates/usuarios/login_paciente.html
+msgid "Olvidaste tu contrasena?"
+msgstr "Forgot your password?"
+
+#: templates/usuarios/login_paciente.html
+msgid "No tienes cuenta?"
+msgstr "Don't have an account?"
+
+#: templates/usuarios/login_paciente.html
+msgid "Registrate aqui"
+msgstr "Sign up here"
+
+#: templates/usuarios/login_paciente.html
+msgid "Medico"
+msgstr "Doctor"
+
+#: templates/usuarios/login_paciente.html
+msgid "Recepcionista"
+msgstr "Receptionist"
+
+#: templates/usuarios/login_paciente.html
+msgid "Gerente"
+msgstr "Manager"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Volver al dashboard"
+msgstr "Back to dashboard"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Volver al inicio"
+msgstr "Back to home"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Crea tu cuenta"
+msgstr "Create your account"
+
+#: templates/usuarios/registro_paciente.html
+msgid "Registrate para acceder a nuestros servicios medicos"
+msgstr "Register to access our medical services"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mi Dashboard"
+msgstr "My Dashboard"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mis Citas"
+msgstr "My Appointments"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mi Perfil"
+msgstr "My Profile"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Historial Médico"
+msgstr "Medical History"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Mis Facturas"
+msgstr "My Invoices"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Menores a Cargo"
+msgstr "Minors in Charge"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Cerrar Sesión"
+msgstr "Log Out"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Abrir menú"
+msgstr "Open menu"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: templates/usuarios/dashboard_paciente.html
+msgid "Paciente"
+msgstr "Patient"
+
+#: templates/partials/_header_public.html
+msgid "Inicio"
+msgstr "Home"
+
+#: templates/partials/_header_public.html
+msgid "Servicios"
+msgstr "Services"
+
+#: templates/partials/_header_public.html
+msgid "Centros"
+msgstr "Centers"
+
+#: templates/partials/_header_public.html
+msgid "Nosotros"
+msgstr "About Us"
+
+#: templates/partials/_header_public.html
+msgid "Contacto"
+msgstr "Contact"
+
+#: templates/partials/_header_public.html
+msgid "Super Admin"
+msgstr "Super Admin"
+
+#: templates/partials/_header_public.html
+msgid "Root"
+msgstr "Root"
+
+msgid "Acceso Gerencia"
+msgstr "Management Access"
+
+msgid "Acceso Medicos"
+msgstr "Doctor Access"
+
+msgid "Acceso Recepcion"
+msgstr "Reception Access"
+
+msgid "Acceso Root"
+msgstr "Root Access"
+
+msgid "Acceso Super Admin"
+msgstr "Super Admin Access"
+
+msgid "Accion"
+msgstr "Action"
+
+msgid "Acciones"
+msgstr "Actions"
+
+msgid "Activar Cuenta"
+msgstr "Activate Account"
+
+msgid "Alergias"
+msgstr "Allergies"
+
+msgid "Antecedentes"
+msgstr "Medical History"
+
+msgid "Auditoria del Sistema"
+msgstr "System Audit"
+
+msgid "Buscar cuenta"
+msgstr "Search account"
+
+msgid "Cancelar"
+msgstr "Cancel"
+
+msgid "Ciudad"
+msgstr "City"
+
+msgid "Comprobante"
+msgstr "Receipt"
+
+msgid "Crear"
+msgstr "Create"
+
+msgid "Diagnostico"
+msgstr "Diagnosis"
+
+msgid "Direccion"
+msgstr "Address"
+
+msgid "Doctor"
+msgstr "Doctor"
+
+msgid "Editar Doctor"
+msgstr "Edit Doctor"
+
+msgid "Editar Especialidad"
+msgstr "Edit Specialty"
+
+msgid "Editar Gerente"
+msgstr "Edit Manager"
+
+msgid "Editar Recepcionista"
+msgstr "Edit Receptionist"
+
+msgid "Editar Sede"
+msgstr "Edit Branch"
+
+msgid "Editar Super Admin"
+msgstr "Edit Super Admin"
+
+msgid "Eliminar"
+msgstr "Delete"
+
+msgid "Eliminar Super Admin"
+msgstr "Delete Super Admin"
+
+msgid "Enfermedades"
+msgstr "Diseases"
+
+msgid "Entre 8 y 30 caracteres"
+msgstr "Between 8 and 30 characters"
+
+msgid "Estado"
+msgstr "State"
+
+msgid "Estudios"
+msgstr "Studies"
+
+msgid "Hora"
+msgstr "Time"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "IP"
+msgstr "IP"
+
+msgid "Lista de Pacientes"
+msgstr "Patient List"
+
+msgid "Medicamentos"
+msgstr "Medications"
+
+msgid "Municipio"
+msgstr "Municipality"
+
+msgid "Nombre"
+msgstr "Name"
+
+msgid "Nombre de la Sede"
+msgstr "Branch Name"
+
+msgid "O accede como:"
+msgstr "Or access as:"
+
+msgid "Panel de Gerencia"
+msgstr "Management Panel"
+
+msgid "Panel de administracion del sistema"
+msgstr "System Administration Panel"
+
+msgid "Panel de gestion de centros medicos"
+msgstr "Medical Centers Management Panel"
+
+msgid "Parroquia"
+msgstr "Parish"
+
+msgid "Preguntas de Seguridad"
+msgstr "Security Questions"
+
+msgid "RIF"
+msgstr "RIF"
+
+msgid "Recuperar Contrasena"
+msgstr "Recover Password"
+
+msgid "Referencia"
+msgstr "Reference"
+
+msgid "Registrar"
+msgstr "Register"
+
+msgid "Registrar Gerente"
+msgstr "Register Manager"
+
+msgid "Registrar Recepcionista"
+msgstr "Register Receptionist"
+
+msgid "Registrar Sede"
+msgstr "Register Branch"
+
+msgid "Registrar Super Admin"
+msgstr "Register Super Admin"
+
+msgid "Reportes"
+msgstr "Reports"
+
+msgid "Reposo"
+msgstr "Rest"
+
+msgid "Rol"
+msgstr "Role"
+
+msgid "Sedes"
+msgstr "Branches"
+
+msgid "Solicitar Cita"
+msgstr "Request Appointment"
+
+msgid "Super Admins"
+msgstr "Super Admins"
+
+msgid "Telefono"
+msgstr "Phone"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Username root"
+msgstr "Root username"
+
+msgid "Usuario"
+msgstr "User"
+
+msgid "Vacunas"
+msgstr "Vaccines"
+
+msgid "Verificar"
+msgstr "Verify"
+
+msgid "Volver al inicio de sesion"
+msgstr "Back to login"
+
+msgid "pacientes registrados"
+msgstr "registered patients"
+
+msgid "1 caracter especial"
+msgstr "1 special character"
+
+msgid "1 mayuscula"
+msgstr "1 capital letter"
+
+msgid "1 numero"
+msgstr "1 number"
+
+msgid ""
+"Accede a atención médica de calidad en nuestros centros médicos de "
+"Venezuela."
+msgstr "Access quality medical care in our medical centers in Venezuela."
+
+msgid "Acciones Rápidas"
+msgstr "Quick Actions"
+
+msgid "Acción"
+msgstr "Action"
+
+msgid "Agendar Consulta"
+msgstr "Schedule Consultation"
+
+msgid "Agendar cita"
+msgstr "Schedule appointment"
+
+msgid "Aprobada"
+msgstr "Approved"
+
+msgid "Atención"
+msgstr "Attention"
+
+msgid "Atención 24/7"
+msgstr "24/7 attention"
+
+msgid "Atención profesional y personalizada."
+msgstr "Professional and personalized attention."
+
+msgid "Atendida"
+msgstr "Attended"
+
+msgid "Atrás"
+msgstr "Back"
+
+msgid "Auditoría Completa del Sistema"
+msgstr "Complete System Audit"
+
+msgid "Años de experiencia"
+msgstr "Years of experience"
+
+msgid "Barquisimeto: +58 424-5782611"
+msgstr "Barquisimeto: +58 424-5782611"
+
+msgid "Bienvenido de vuelta,"
+msgstr "Welcome back,"
+
+msgid "Bienvenido,"
+msgstr "Welcome,"
+
+msgid "Calidad Certificada"
+msgstr "Certified Quality"
+
+msgid "Canceladas"
+msgstr "Canceled"
+
+msgid "Caracas: +58 414-5281090"
+msgstr "Caracas: +58 414-5281090"
+
+msgid "Cargando especialidades..."
+msgstr "Loading specialties..."
+
+msgid "Cargando fechas disponibles..."
+msgstr "Loading available dates..."
+
+msgid "Cargando horarios..."
+msgstr "Loading schedules..."
+
+msgid "Cargando médicos..."
+msgstr "Loading doctors..."
+
+msgid "Cedula de Identidad *"
+msgstr "Identity Card *"
+
+msgid "Centro Medico:"
+msgstr "Medical Center:"
+
+msgid "Centro Médico"
+msgstr "Medical Center"
+
+msgid "Citas Activas"
+msgstr "Active Appointments"
+
+msgid "Citas Hoy"
+msgstr "Quotes Today"
+
+msgid "Citas Recientes"
+msgstr "Recent Quotes"
+
+msgid "Citas hoy"
+msgstr "Quotes today"
+
+msgid "Ciudad *"
+msgstr "City *"
+
+msgid "Completa los pasos para agendar tu consulta médica"
+msgstr "Complete the steps to schedule your medical consultation"
+
+msgid "Completas"
+msgstr "Complete"
+
+msgid "Comprometidos con tu"
+msgstr "Committed to you"
+
+msgid "Comunícate con nosotros para cualquier consulta o para agendar tu cita"
+msgstr "Contact us for any questions or to schedule your appointment"
+
+msgid "Confirma tu cita"
+msgstr "Confirm your appointment"
+
+msgid "Confirmada"
+msgstr "Confirmed"
+
+msgid "Confirmar"
+msgstr "Confirm"
+
+msgid "Conoce más sobre nosotros"
+msgstr "Learn more about us"
+
+msgid "Consulta especializada en"
+msgstr "Consultation specialized in"
+
+msgid "Contactar por email"
+msgstr "Contact by email"
+
+msgid ""
+"Contamos con un equipo multidisciplinario de especialistas para cubrir todas"
+" tus necesidades de salud"
+msgstr ""
+"We have a multidisciplinary team of specialists to cover all your health "
+"needs"
+
+msgid "Continuar"
+msgstr "Continue"
+
+msgid "Correo Electronico"
+msgstr "Email"
+
+msgid "Crear Cuenta"
+msgstr "Create Account"
+
+msgid "Cuidamos tu salud con"
+msgstr "We take care of your health with"
+
+msgid "Datos del Tutor o Representante Legal"
+msgstr "Guardian or Legal Representative Data"
+
+msgid "Describe brevemente el motivo de tu consulta..."
+msgstr "Briefly describe the reason for your inquiry..."
+
+msgid "Dom"
+msgstr "Sun"
+
+msgid "Editar mi perfil"
+msgstr "Edit my profile"
+
+msgid "Elige fecha y hora"
+msgstr "Choose date and time"
+
+msgid "Elige la sede más conveniente para tu consulta"
+msgstr "Choose the most convenient location for your consultation"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Emergencias"
+msgstr "Emergencies"
+
+msgid "Emergencias: 24/7"
+msgstr "Emergencies: 24/7"
+
+msgid "En Consulta"
+msgstr "In Consultation"
+
+msgid ""
+"En Healthy Life combinamos tecnología médica avanzada con un equipo de "
+"profesionales altamente calificados"
+msgstr ""
+"At Healthy Life we ​​combine advanced medical technology with a team of "
+"highly qualified professionals"
+
+msgid "Envíanos un mensaje"
+msgstr "Send us a message"
+
+msgid "Equipamiento moderno"
+msgstr "Modern equipment"
+
+msgid ""
+"Eres menor de edad. Por favor completa los datos de tu tutor o representante"
+" legal."
+msgstr ""
+"You are a minor. Please complete the information of your guardian or legal "
+"representative."
+
+msgid "Especialidad"
+msgstr "Specialty"
+
+msgid "Especialidades"
+msgstr "Specialties"
+
+msgid "Especialidades Médicas"
+msgstr "Medical Specialties"
+
+msgid "Especialidades disponibles en la sede seleccionada"
+msgstr "Specialties available at the selected location"
+
+msgid "Especialistas en todas las áreas de la medicina para ti y tu familia."
+msgstr "Specialists in all areas of medicine for you and your family."
+
+msgid "Especialistas reconocidos"
+msgstr "Recognized specialists"
+
+msgid "Estado *"
+msgstr "State *"
+
+msgid "Estamos para"
+msgstr "We are for"
+
+msgid "Estándares internacionales"
+msgstr "International standards"
+
+msgid "Expertos"
+msgstr "Experts"
+
+msgid "Expertos Médicos"
+msgstr "Medical Experts"
+
+msgid "Fecha"
+msgstr "Date"
+
+msgid "Fecha / Hora"
+msgstr "Date/Time"
+
+msgid "Fecha de Nacimiento *"
+msgstr "Birthdate *"
+
+msgid "Fecha seleccionada:"
+msgstr "Selected date:"
+
+msgid "Fecha y hora"
+msgstr "Date and time"
+
+msgid "Gerentes"
+msgstr "Managers"
+
+msgid "Gestiona citas, pacientes y horarios del día"
+msgstr "Manage appointments, patients and schedules of the day"
+
+msgid "Gestiona tus consultas y pacientes de manera eficiente."
+msgstr "Manage your queries and patients efficiently."
+
+msgid "Gestión global de centros médicos y super administradores"
+msgstr "Global management of medical centers and super administrators"
+
+msgid "Healthy Life - Sistema de Gestión de Citas Médicas"
+msgstr "Healthy Life - Medical Appointment Management System"
+
+msgid "Healtylifesede@gmail.com"
+msgstr "Healthylifesede@gmail.com"
+
+msgid "Hora seleccionada:"
+msgstr "Selected time:"
+
+msgid "Horarios"
+msgstr "Schedules"
+
+msgid "Horarios disponibles"
+msgstr "Available times"
+
+msgid "Hoy, 2:00 PM"
+msgstr "Today, 2:00 PM"
+
+msgid "Informacion Basica"
+msgstr "Basic Information"
+
+msgid "Informacion Personal"
+msgstr "Personal Information"
+
+msgid "Informacion.healtylife@gmail.com"
+msgstr "Information.healthlife@gmail.com"
+
+msgid "Ingresar"
+msgstr "Get into"
+
+msgid "Inicia sesion aqui"
+msgstr "Log in here"
+
+msgid "Jue"
+msgstr "Thu"
+
+msgid "Las especialidades se filtran según el tipo de paciente seleccionado."
+msgstr ""
+"The specialties are filtered according to the type of patient selected."
+
+msgid "Llamar"
+msgstr "Call"
+
+msgid "Llamar ahora"
+msgstr "Call now"
+
+msgid "Lun"
+msgstr "Mon"
+
+msgid "Lun–Vie: 6:00 AM – 10:00 PM"
+msgstr "Mon–Fri: 6:00 AM – 10:00 PM"
+
+msgid "Mar"
+msgstr "Sea"
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Menú"
+msgstr "Menu"
+
+msgid "Mes anterior"
+msgstr "Previous month"
+
+msgid "Mes siguiente"
+msgstr "Next month"
+
+msgid "Minimo 8 caracteres"
+msgstr "Minimum 8 characters"
+
+msgid "Mié"
+msgstr "Wed"
+
+msgid "Motivo de la consulta"
+msgstr "Reason for consultation"
+
+msgid "Municipio *"
+msgstr "Municipality *"
+
+msgid "Médico"
+msgstr "Doctor"
+
+msgid "Médicos disponibles para"
+msgstr "Doctors available for"
+
+msgid "Ninguno / General"
+msgstr "None / General"
+
+msgid "No hay centros médicos registrados actualmente."
+msgstr "There are no medical centers currently registered."
+
+msgid ""
+"No hay días disponibles en este mes para este médico. Intenta con otro mes o"
+" selecciona otro doctor."
+msgstr ""
+"There are no days available this month for this doctor. Try another month or"
+" select another doctor."
+
+msgid "No hay especialidades disponibles en este momento."
+msgstr "There are no specialties available at this time."
+
+msgid "No hay especialidades disponibles para esta sede y tipo de paciente."
+msgstr ""
+"There are no specialties available for this location and type of patient."
+
+msgid "No hay médicos disponibles para esta especialidad y sede."
+msgstr "There are no doctors available for this specialty and location."
+
+msgid "No hay sedes disponibles."
+msgstr "There are no locations available."
+
+msgid "No tienes citas registradas."
+msgstr "You do not have registered appointments."
+
+msgid ""
+"Nuestro equipo de atención al cliente te ayudará a encontrar el centro "
+"médico más cercano y el especialista que necesitas."
+msgstr ""
+"Our customer service team will help you find the nearest medical center and "
+"specialist you need."
+
+msgid "Nuestros Centros Médicos"
+msgstr "Our Medical Centers"
+
+msgid "Nuestros Servicios"
+msgstr "Our Services"
+
+msgid "Pagar"
+msgstr "Pay"
+
+msgid "Pago en revisión"
+msgstr "Payment in review"
+
+msgid "Panel Root"
+msgstr "Root panel"
+
+msgid "Panel Super Admin"
+msgstr "Super Admin Dashboard"
+
+msgid "Panel de Administración Root"
+msgstr "Root Administration Panel"
+
+msgid "Panel de Recepción"
+msgstr "Reception Panel"
+
+msgid "Para mi menor:"
+msgstr "For my youngest:"
+
+msgid "Para mí"
+msgstr "For me"
+
+msgid "Parentesco"
+msgstr "Relationship"
+
+msgid "Parroquia *"
+msgstr "Parish *"
+
+msgid "Pendientes"
+msgstr "Earrings"
+
+msgid "Presencia en"
+msgstr "Presence in"
+
+msgid "Primer Apellido *"
+msgstr "First Last Name *"
+
+msgid "Primer Nombre *"
+msgstr "First name *"
+
+msgid "Privacidad"
+msgstr "Privacy"
+
+msgid "Programadas"
+msgstr "Scheduled"
+
+msgid "Proximas Citas"
+msgstr "Upcoming Appointments"
+
+msgid "Próxima Cita"
+msgstr "Next Appointment"
+
+msgid "Red de centros médicos con atención de calidad en cada rincón del país"
+msgstr ""
+"Network of medical centers with quality care in every corner of the country"
+
+msgid "Registrarse"
+msgstr "Register"
+
+msgid "Registro de eventos de todos los roles y centros médicos."
+msgstr "Event log for all roles and medical centers."
+
+msgid "Resumen de la cita"
+msgstr "Appointment summary"
+
+msgid "Revisa los detalles y solicita tu cita"
+msgstr "Check the details and request your appointment"
+
+msgid "Salir"
+msgstr "Go out"
+
+msgid "Sede"
+msgstr "Headquarters"
+
+msgid "Sede de Atencion"
+msgstr "Attention Headquarters"
+
+msgid "Sedes:"
+msgstr "Headquarters:"
+
+msgid "Segundo Apellido"
+msgstr "Second Last Name"
+
+msgid "Segundo Nombre"
+msgstr "Middle name"
+
+msgid "Selecciona un día disponible y luego un horario"
+msgstr "Select an available day and then a time"
+
+msgid "Selecciona un médico"
+msgstr "Select a doctor"
+
+msgid "Selecciona una especialidad para continuar"
+msgstr "Select a specialty to continue"
+
+msgid "Selecciona una fecha para ver los horarios disponibles."
+msgstr "Select a date to see available times."
+
+msgid "Selecciona una fecha y una hora para continuar"
+msgstr "Select a date and time to continue"
+
+msgid "Selecciona una sede"
+msgstr "Select a location"
+
+msgid "Seleccione la sede donde desea recibir atencion *"
+msgstr "Select the location where you wish to receive care *"
+
+msgid "Seleccione un centro médico"
+msgstr "Select a medical center"
+
+msgid "Seleccione un municipio"
+msgstr "Select a municipality"
+
+msgid "Seleccione una ciudad"
+msgstr "Select a city"
+
+msgid "Seleccione una parroquia"
+msgstr "Select a parish"
+
+msgid "Servicio"
+msgstr "Service"
+
+msgid "Servicio de Especialidad"
+msgstr "Specialty Service"
+
+msgid "Servicios médicos del doctor"
+msgstr "Doctor medical services"
+
+msgid "Sexo *"
+msgstr "Sex *"
+
+msgid "Siempre disponibles"
+msgstr "Always available"
+
+msgid "Sistema Médico Líder en Venezuela"
+msgstr "Leading Medical System in Venezuela"
+
+msgid "Sobre Nosotros"
+msgstr "About us"
+
+msgid "Solicitada"
+msgstr "Requested"
+
+msgid "Solicitar Nueva Cita"
+msgstr "Request New Appointment"
+
+msgid "Solicitar cita"
+msgstr "Request appointment"
+
+msgid "Solicitar nueva cita"
+msgstr "Request new appointment"
+
+msgid "Solicitar primera cita"
+msgstr "Request first appointment"
+
+msgid "Sáb"
+msgstr "Sat"
+
+msgid "Sáb: 7:00 AM – 9:00 PM"
+msgstr "Sat: 7:00 AM – 9:00 PM"
+
+msgid "Tecnología Avanzada"
+msgstr "Advanced Technology"
+
+msgid "Telefono *"
+msgstr "Phone *"
+
+msgid "Teléfonos"
+msgstr "Telephones"
+
+msgid "Tipo de Cedula *"
+msgstr "Type of ID *"
+
+msgid "Total Citas"
+msgstr "Total Appointments"
+
+msgid "Total de Citas"
+msgstr "Total Appointments"
+
+msgid "Total estimado:"
+msgstr "Estimated total:"
+
+msgid "Términos"
+msgstr "Terms"
+
+msgid "Ubicacion"
+msgstr "Location"
+
+msgid "Ver"
+msgstr "See"
+
+msgid "Ver todas las especialidades"
+msgstr "See all specialties"
+
+msgid "Vie"
+msgstr "Fri"
+
+msgid "Vision general del negocio y gestion de la clinica"
+msgstr "General overview of the business and management of the clinic"
+
+msgid "Volver al Dashboard"
+msgstr "Return to Dashboard"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "ayudarte"
+msgstr "help you"
+
+msgid "disponibles"
+msgstr "available"
+
+msgid "medicina"
+msgstr "medicine"
+
+msgid "para ofrecerte la mejor atención médica en Venezuela."
+msgstr "to offer you the best medical care in Venezuela."
+
+msgid "salud y bienestar"
+msgstr "health and well-being"
+
+msgid "tecnología y humanidad"
+msgstr "technology and humanity"
+
+msgid "© 2024 Healthy Life. Todos los derechos reservados."
+msgstr "© 2024 Healthy Life. All rights reserved."
+
+msgid "¿Necesitas ayuda para elegir?"
+msgstr "Do you need help choosing?"
+
+msgid "¿No ves tu especialidad?"
+msgstr "Don't you see your specialty?"
+
+msgid "¿Para quién es la cita?"
+msgstr "Who is the appointment for?"
+
+msgid "¿Qué especialidad necesitas?"
+msgstr "What specialty do you need?"
+
+msgid "¿Ya tienes cuenta?"
+msgstr "Do you already have an account?"
+
+msgid "Abrir WhatsApp"
+msgstr "Open WhatsApp"
+
+msgid "Conocer Centros"
+msgstr "Explore Centers"
+
+msgid "Horario"
+msgstr "Schedule"
+
+msgid "Identidad"
+msgstr "Identity"
+
+msgid "Pagar Saldo"
+msgstr "Pay Balance"
+
+msgid "Ver Detalles"
+msgstr "View Details"
+
+msgid "Ver todas"
+msgstr "View all"
+
+msgid "Ver todas mis citas"
+msgstr "View all my appointments"
+
+msgid ""
+"¿Tienes dudas? Escríbenos por WhatsApp y te responderemos lo antes posible."
+msgstr ""
+"Do you have questions? Write to us on WhatsApp and we will respond as soon "
+"as possible."
+
+msgid "Accesos rápidos"
+msgstr "Quick access"
+
+msgid "Activas"
+msgstr "Active"
+
+msgid "Activo"
+msgstr "Active"
+
+msgid "Actualizar"
+msgstr "Update"
+
+msgid "Actualizar contraseña"
+msgstr "Update password"
+
+msgid "Alerta 24h antes de cada cita"
+msgstr "Alert 24h before each appointment"
+
+msgid "Anterior"
+msgstr "Previous"
+
+msgid "Apellido"
+msgstr "Last name"
+
+msgid ""
+"Aún no tienes datos personales registrados. Completa el formulario de "
+"información personal para acceder a todas las funciones."
+msgstr ""
+"You do not yet have personal data registered. Complete the personal "
+"information form to access all features."
+
+msgid "Aún no tienes facturas"
+msgstr "You have no invoices yet"
+
+msgid "Buscar"
+msgstr "Search"
+
+msgid "Cambiar"
+msgstr "Change"
+
+msgid "Cambiar contraseña"
+msgstr "Change password"
+
+msgid "Cancelar cita"
+msgstr "Cancel appointment"
+
+msgid "Cerrar"
+msgstr "Close"
+
+msgid "Citas"
+msgstr "Appointments"
+
+msgid "Comienza agendando tu primera consulta médica."
+msgstr "Start by scheduling your first medical appointment."
+
+msgid "Completada"
+msgstr "Completed"
+
+msgid "Configurar"
+msgstr "Configure"
+
+msgid "Confirmar nueva contraseña"
+msgstr "Confirm new password"
+
+msgid "Consulta general"
+msgstr "General consultation"
+
+msgid "Consulta y actualiza tu información médica personal"
+msgstr "View and update your personal medical information"
+
+msgid "Consulta y descarga tus comprobantes de pago"
+msgstr "View and download your payment receipts"
+
+msgid "Consulta y edita la información clínica de tu hijo/a o dependiente"
+msgstr "View and edit the clinical information of your child or dependent"
+
+msgid "Consultas pasadas"
+msgstr "Past consultations"
+
+msgid "Contraseña"
+msgstr "Password"
+
+msgid "Contraseña actual"
+msgstr "Current password"
+
+msgid "Correo electrónico"
+msgstr "Email"
+
+msgid "Cuenta Activa"
+msgstr "Active Account"
+
+msgid "Cuenta Inactiva"
+msgstr "Inactive Account"
+
+msgid "Datos médicos"
+msgstr "Medical data"
+
+msgid "Descargar PDF"
+msgstr "Download PDF"
+
+msgid "Detalle de consulta"
+msgstr "Consultation detail"
+
+msgid "Detalle de factura"
+msgstr "Invoice detail"
+
+msgid "Diagnóstico"
+msgstr "Diagnosis"
+
+msgid "Dirección *"
+msgstr "Address *"
+
+msgid "Documento"
+msgstr "Document"
+
+msgid "Documentos adjuntos"
+msgstr "Attached documents"
+
+msgid "Editar"
+msgstr "Edit"
+
+msgid "Emisor"
+msgstr "Issuer"
+
+msgid "En consulta"
+msgstr "In consultation"
+
+msgid "Enfermedades / condiciones"
+msgstr "Diseases / conditions"
+
+msgid ""
+"Esta acción no se puede deshacer. ¿Confirmas que deseas cancelar esta cita?"
+msgstr ""
+"This action cannot be undone. Do you confirm you want to cancel this "
+"appointment?"
+
+msgid "Este año"
+msgstr "This year"
+
+msgid "Facturas totales"
+msgstr "Total invoices"
+
+msgid "Fecha de Nacimiento"
+msgstr "Date of Birth"
+
+msgid "Femenino"
+msgstr "Female"
+
+msgid "Filtrar"
+msgstr "Filter"
+
+msgid "Gestiona tu información personal y de contacto"
+msgstr "Manage your personal and contact information"
+
+msgid "Gestiona tus citas médicas agendadas"
+msgstr "Manage your scheduled medical appointments"
+
+msgid "Guardar"
+msgstr "Save"
+
+msgid "Guardar cambios"
+msgstr "Save changes"
+
+msgid "Guardar dirección"
+msgstr "Save address"
+
+msgid "Historial médico del menor"
+msgstr "Minor's medical history"
+
+msgid "Impuestos (0%)"
+msgstr "Taxes (0%)"
+
+msgid "Inactivas"
+msgstr "Inactive"
+
+msgid "Inactivo"
+msgstr "Inactive"
+
+msgid "Indicaciones"
+msgstr "Instructions"
+
+msgid "Información de contacto"
+msgstr "Contact information"
+
+msgid "Información de salud"
+msgstr "Health information"
+
+msgid "Información médica personal"
+msgstr "Personal medical information"
+
+msgid "Información personal"
+msgstr "Personal information"
+
+msgid "Ingresa tu contraseña actual y la nueva para actualizarla."
+msgstr "Enter your current password and the new one to update it."
+
+msgid "Limpiar"
+msgstr "Clear"
+
+msgid "Masculino"
+msgstr "Male"
+
+msgid "Medicamentos habituales"
+msgstr "Regular medications"
+
+msgid "Mi Historial Médico"
+msgstr "My Medical History"
+
+msgid "Miembro desde"
+msgstr "Member since"
+
+msgid "Monto total"
+msgstr "Total amount"
+
+msgid "Motivo:"
+msgstr "Reason:"
+
+msgid "Nacimiento"
+msgstr "Birth"
+
+msgid "Navegación del paciente"
+msgstr "Patient navigation"
+
+msgid "Ninguna"
+msgstr "None"
+
+msgid "No configuradas"
+msgstr "Not configured"
+
+msgid "No hay historial registrado."
+msgstr "No history registered."
+
+msgid "No tienes citas agendadas"
+msgstr "You have no scheduled appointments"
+
+msgid "No, volver"
+msgstr "No, go back"
+
+msgid "Notas importantes"
+msgstr "Important notes"
+
+msgid "Notificaciones por correo"
+msgstr "Email notifications"
+
+msgid "Nueva Cita"
+msgstr "New Appointment"
+
+msgid "Nueva contraseña"
+msgstr "New password"
+
+msgid "Nº Factura"
+msgstr "Invoice No."
+
+msgid "Observaciones"
+msgstr "Observations"
+
+msgid "Otro"
+msgstr "Other"
+
+msgid "Pagada (adelanto)"
+msgstr "Paid (advance)"
+
+msgid "Pagar ahora"
+msgstr "Pay now"
+
+msgid "Pagar saldo"
+msgstr "Pay balance"
+
+msgid "Pago pendiente"
+msgstr "Payment pending"
+
+msgid "Perfil incompleto"
+msgstr "Incomplete profile"
+
+msgid "Período"
+msgstr "Period"
+
+msgid "Por asignar"
+msgstr "To be assigned"
+
+msgid "Preferencias"
+msgstr "Preferences"
+
+msgid "Preguntas de seguridad"
+msgstr "Security questions"
+
+msgid "Primer Apellido"
+msgstr "Last Name"
+
+msgid "Primer Nombre"
+msgstr "First Name"
+
+msgid "Recetas médicas"
+msgstr "Medical prescriptions"
+
+msgid "Recibir actualizaciones y promociones"
+msgstr "Receive updates and promotions"
+
+msgid "Recordatorios de citas"
+msgstr "Appointment reminders"
+
+msgid "Registradas en el sistema"
+msgstr "Registered in the system"
+
+msgid "Resumen"
+msgstr "Summary"
+
+msgid "Seguridad"
+msgstr "Security"
+
+msgid "Seleccionar"
+msgstr "Select"
+
+msgid "Seleccionar ciudad"
+msgstr "Select city"
+
+msgid "Seleccionar estado"
+msgstr "Select state"
+
+msgid "Seleccionar municipio"
+msgstr "Select municipality"
+
+msgid "Seleccionar parroquia"
+msgstr "Select parish"
+
+msgid "Servicios realizados"
+msgstr "Services performed"
+
+msgid "Sexo"
+msgstr "Sex"
+
+msgid "Siguiente"
+msgstr "Next"
+
+msgid "Sin alergias registradas"
+msgstr "No allergies registered"
+
+msgid "Sin enfermedades registradas"
+msgstr "No diseases registered"
+
+msgid "Sin historial registrado"
+msgstr "No history registered"
+
+msgid "Sin vacunas registradas"
+msgstr "No vaccines registered"
+
+msgid "Subir"
+msgstr "Upload"
+
+msgid "Subtotal"
+msgstr "Subtotal"
+
+msgid "Sí, cancelar"
+msgstr "Yes, cancel"
+
+msgid "Teléfono"
+msgstr "Phone"
+
+msgid "Teléfono móvil"
+msgstr "Mobile phone"
+
+msgid "Tipo de sangre"
+msgstr "Blood type"
+
+msgid "Todos"
+msgstr "All"
+
+msgid "Todos los períodos"
+msgstr "All periods"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total adeudado"
+msgstr "Total owed"
+
+msgid "Total pagado"
+msgstr "Total paid"
+
+msgid "Tratamiento"
+msgstr "Treatment"
+
+msgid "Tus facturas aparecerán aquí después de agendar y pagar citas médicas."
+msgstr ""
+"Your invoices will appear here after scheduling and paying for medical "
+"appointments."
+
+msgid "Tutor / Paciente especial"
+msgstr "Guardian / Special Patient"
+
+msgid "Ver cita"
+msgstr "View appointment"
+
+msgid "Ver detalle"
+msgstr "View detail"
+
+msgid "Ver detalles"
+msgstr "View details"
+
+msgid "Ver receta completa"
+msgstr "View full prescription"
+
+msgid "¿Cancelar cita?"
+msgstr "Cancel appointment?"
+
+msgid "Última actualización: hace 3 meses"
+msgstr "Last updated: 3 months ago"
+
+msgid "Últimos 3 meses"
+msgstr "Last 3 months"
+
+msgid "Últimos 6 meses"
+msgstr "Last 6 months"
+
+msgid "Activa"
+msgstr "Active"
+
+msgid "Borrador"
+msgstr "Draft"
+
+msgid "Cancelada"
+msgstr "Cancelled"
+
+msgid "Consulta general pediátrica"
+msgstr "General pediatric consultation"
+
+msgid "Consulta por fiebre"
+msgstr "Fever consultation"
+
+msgid "Dirección"
+msgstr "Address"
+
+msgid "Editar historial"
+msgstr "Edit history"
+
+msgid "Emitida"
+msgstr "Issued"
+
+msgid "En proceso"
+msgstr "In progress"
+
+msgid "Finalizada"
+msgstr "Finished"
+
+msgid "Guardar contacto"
+msgstr "Save contact"
+
+msgid "Historial"
+msgstr "History"
+
+msgid "Historial médico de"
+msgstr "Medical history of"
+
+msgid "Medicina general"
+msgstr "General medicine"
+
+msgid "Mis Menores"
+msgstr "My Minors"
+
+msgid ""
+"Motivo: Control de crecimiento y desarrollo. El menor se encuentra en buen "
+"estado general."
+msgstr ""
+"Reason: Growth and development check. The minor is in good general "
+"condition."
+
+msgid ""
+"Motivo: Fiebre persistente de 38.5°C. Se prescribió antipirético y reposo."
+msgstr ""
+"Reason: Persistent fever of 38.5°C. Antipyretic and rest were prescribed."
+
+msgid "No hay dirección registrada. Haz clic en Editar para agregar una."
+msgstr "No address registered. Click Edit to add one."
+
+msgid "Pagada"
+msgstr "Paid"
+
+msgid "Pediatría"
+msgstr "Pediatrics"
+
+msgid "Pendiente"
+msgstr "Pending"
+
+msgid "Receta completa"
+msgstr "Full prescription"
+
+msgid "Sede Norte"
+msgstr "North Branch"
+
+msgid "Sede Principal"
+msgstr "Main Branch"
+
+msgid "Selecciona municipio primero"
+msgstr "Select municipality first"
+
+msgid "Volver a mis menores"
+msgstr "Back to my minors"
+
+msgid "? Esta acción no se puede deshacer."
+msgstr "? This action cannot be undone."
+
+msgid "Activos"
+msgstr "Active"
+
+msgid "Agregar menor"
+msgstr "Add minor"
+
+msgid "Agregar menor a cargo"
+msgstr "Add minor in care"
+
+msgid "Alergias o condiciones médicas"
+msgstr "Allergies or medical conditions"
+
+msgid "Aún no tienes menores a cargo registrados"
+msgstr "You have no registered minors in your care"
+
+msgid "Datos del Menor"
+msgstr "Minor's Data"
+
+msgid "Edad"
+msgstr "Age"
+
+msgid ""
+"El menor no tendrá credenciales de acceso propias. Será gestionado por usted"
+" como tutor desde este panel."
+msgstr ""
+"The minor will not have their own access credentials. It will be managed by "
+"you as a guardian from this panel."
+
+msgid "El nombre completo es obligatorio."
+msgstr "Full name is required."
+
+msgid "Eliminar menor"
+msgstr "Delete minor"
+
+msgid "Fecha de nacimiento"
+msgstr "Date of birth"
+
+msgid ""
+"Gestiona los perfiles de tus hijos o dependientes para agendar citas en su "
+"nombre"
+msgstr ""
+"Manage the profiles of your children or dependents to schedule appointments "
+"on their behalf"
+
+msgid "Guardar menor"
+msgstr "Save minor"
+
+msgid "Hija"
+msgstr "Daughter"
+
+msgid "Hijo"
+msgstr "Son"
+
+msgid "Identificación"
+msgstr "Identification"
+
+msgid "Menor"
+msgstr "Minor"
+
+msgid "Menor eliminado correctamente."
+msgstr "Minor deleted successfully."
+
+msgid "Menores registrados"
+msgstr "Registered minors"
+
+msgid "Mis Menores a Cargo"
+msgstr "Minors in My Care"
+
+msgid "Nombre completo"
+msgstr "Full name"
+
+msgid "Nota:"
+msgstr "Note:"
+
+msgid "Número de Cédula"
+msgstr "ID Number"
+
+msgid "Número de identificación"
+msgstr "Identification number"
+
+msgid "Opcional."
+msgstr "Optional."
+
+msgid "Opcional. Número de contacto de emergencia."
+msgstr "Optional. Emergency contact number."
+
+msgid "Opcional. Solo si el menor tiene cédula."
+msgstr "Optional. Only if the minor has an ID."
+
+msgid "Pupilo"
+msgstr "Ward"
+
+msgid ""
+"Registra a tus hijos o dependientes para poder agendar citas médicas en su "
+"nombre y gestionar su historial."
+msgstr ""
+"Register your children or dependents to be able to schedule medical "
+"appointments on their behalf and manage their history."
+
+msgid "Registrar Menor"
+msgstr "Register Minor"
+
+msgid "Selecciona..."
+msgstr "Select..."
+
+msgid "Sobrina"
+msgstr "Niece"
+
+msgid "Sobrino"
+msgstr "Nephew"
+
+msgid "Sí, eliminar"
+msgstr "Yes, delete"
+
+msgid "Teléfono de Contacto"
+msgstr "Contact Phone"
+
+msgid "Teléfono de contacto"
+msgstr "Contact phone"
+
+msgid "Tipo de Cédula"
+msgstr "ID Type"
+
+msgid "Todos los campos marcados con"
+msgstr "All fields marked with"
+
+msgid "guardado correctamente."
+msgstr "saved successfully."
+
+msgid "son obligatorios"
+msgstr "are required"
+
+msgid "¿Estás seguro de que deseas eliminar a"
+msgstr "Are you sure you want to delete"
+
+msgid "Acepto los"
+msgstr "I accept the"
+
+msgid "Banco"
+msgstr "Bank"
+
+msgid "Banco de Venezuela, Mercantil, etc."
+msgstr "Bank of Venezuela, Mercantil, etc."
+
+msgid "Banco emisor"
+msgstr "Issuing bank"
+
+msgid "Bancos locales o Pago Móvil"
+msgstr "Local banks or Mobile Payment"
+
+msgid "Cargo por reserva"
+msgstr "Reservation fee"
+
+msgid "Checkout de Reserva"
+msgstr "Reservation Checkout"
+
+msgid "Confirmar Reserva"
+msgstr "Confirm Reservation"
+
+msgid "Confirmar pago y reservar"
+msgstr "Confirm payment and reserve"
+
+msgid "Copiado"
+msgstr "Copied"
+
+msgid "Copiar"
+msgstr "Copy"
+
+msgid "Cédula del titular"
+msgstr "Holder ID"
+
+msgid "Datos para transferencia / Pago Móvil"
+msgstr "Transfer / Mobile Payment details"
+
+msgid "Debes aceptar los términos y condiciones para continuar."
+msgstr "You must accept the terms and conditions to continue."
+
+msgid "Ej: 123456"
+msgstr "E.g: 123456"
+
+msgid "El banco emisor debe tener entre 2 y 30 caracteres."
+msgstr "The issuing bank must have between 2 and 30 characters."
+
+msgid "El monto del pago debe tener formato 0,00 (ej: 5,00)."
+msgstr "The payment amount must be in format 0,00 (eg: 5,00)."
+
+msgid ""
+"El pago por reserva es un cargo adicional por reservar la cita, es "
+"independiente del precio del servicio."
+msgstr ""
+"The reservation payment is an additional charge for booking the appointment,"
+" it is independent of the service price."
+
+msgid "El teléfono debe tener 10 o 11 dígitos numéricos."
+msgstr "The phone must have 10 or 11 numeric digits."
+
+msgid "Especialidad / Servicio"
+msgstr "Specialty / Service"
+
+msgid "Exactamente 6 dígitos numéricos"
+msgstr "Exactly 6 numeric digits"
+
+msgid "Ingresa el monto con formato"
+msgstr "Enter the amount with format"
+
+msgid "Ingresa el monto con formato 0,00 (ej: 5,00)"
+msgstr "Enter the amount with format 0,00 (eg: 5,00)"
+
+msgid "La cédula debe tener entre 6 y 9 dígitos numéricos."
+msgstr "The ID must have between 6 and 9 numeric digits."
+
+msgid "La referencia debe tener exactamente 6 dígitos numéricos."
+msgstr "The reference must have exactly 6 numeric digits."
+
+msgid "Monto a pagar"
+msgstr "Amount to pay"
+
+msgid "Monto del pago"
+msgstr "Payment amount"
+
+msgid "Motivo"
+msgstr "Reason"
+
+msgid "Método de pago"
+msgstr "Payment method"
+
+msgid "Número de cuenta"
+msgstr "Account number"
+
+msgid "Número de referencia (últimos 6 dígitos)"
+msgstr "Reference number (last 6 digits)"
+
+msgid "Por definir"
+msgstr "To be defined"
+
+msgid "Revisa los detalles y completa el pago para agendar tu cita."
+msgstr ""
+"Review the details and complete the payment to schedule your appointment."
+
+msgid "Saldo:"
+msgstr "Balance:"
+
+msgid "Solo números, 10-11 dígitos"
+msgstr "Numbers only, 10-11 digits"
+
+msgid "Solo números, entre 6 y 9 dígitos"
+msgstr "Numbers only, between 6 and 9 digits"
+
+msgid "Tipo de cuenta"
+msgstr "Account type"
+
+msgid "Titular"
+msgstr "Holder"
+
+msgid "Transferencia / Pago Móvil"
+msgstr "Transfer / Mobile Payment"
+
+msgid ""
+"Tu pago ha sido registrado correctamente. La recepcionista verificará y "
+"confirmará tu cita en breve. Te hemos enviado un comprobante al correo."
+msgstr ""
+"Your payment has been successfully registered. The receptionist will verify "
+"and confirm your appointment shortly. We have sent a receipt to your email."
+
+msgid "Ver citas"
+msgstr "View appointments"
+
+msgid "Ver historial"
+msgstr "View history"
+
+msgid "adeudado"
+msgstr "owed"
+
+msgid "de la clínica."
+msgstr "of the clinic."
+
+msgid "ej: 5,00"
+msgstr "eg: 5,00"
+
+msgid "política de cancelación"
+msgstr "cancellation policy"
+
+msgid "términos y condiciones"
+msgstr "terms and conditions"
+
+msgid "y la"
+msgstr "and the"
+
+msgid "¡Cita reservada!"
+msgstr "Appointment reserved!"
+
+msgid "0,00"
+msgstr "0.00"
+
+msgid "Banco:"
+msgstr "Bank:"
+
+msgid "Canceladas / Rechazadas"
+msgstr ""
+
+msgid "Completadas"
+msgstr ""
+
+msgid "Confirmadas"
+msgstr ""
+
+msgid "Confirmar pago de consulta"
+msgstr "Confirm consultation payment"
+
+msgid "Confirmar pago en clínica"
+msgstr "Confirm clinic payment"
+
+msgid "Costo de consulta"
+msgstr "Consultation cost"
+
+msgid "Cuenta:"
+msgstr "Account:"
+
+msgid "Cédula"
+msgstr ""
+
+msgid "Describe el método de pago"
+msgstr "Describe the payment method"
+
+msgid "Desglose de cargos"
+msgstr ""
+
+msgid "Ej: 04121234567"
+msgstr ""
+
+msgid "Ej: 12345678"
+msgstr ""
+
+msgid "Ej: Zelle, PayPal, Binance"
+msgstr "E.g: Zelle, PayPal, Binance"
+
+msgid ""
+"El monto total deberá ser cancelado en la recepción el día de tu cita. Tu "
+"reserva quedará pendiente de confirmación."
+msgstr ""
+"The total amount must be paid at reception on the day of your appointment. "
+"Your reservation will remain pending confirmation."
+
+msgid "Has seleccionado"
+msgstr "You have selected"
+
+msgid "Monto"
+msgstr "Amount"
+
+msgid "Número de teléfono"
+msgstr "Phone number"
+
+msgid "Número de transacción"
+msgstr "Transaction number"
+
+msgid "Otro método acordado"
+msgstr ""
+
+msgid "Paga en la recepción el día de la consulta"
+msgstr ""
+
+msgid "Pagadas"
+msgstr ""
+
+msgid "Pago de Consulta"
+msgstr "Consultation Payment"
+
+msgid "Por pagar"
+msgstr ""
+
+msgid "Referencia (últimos 6 dígitos)"
+msgstr ""
+
+msgid "Referencia / Comprobante"
+msgstr "Reference / Receipt"
+
+msgid "Revisa los datos de tu cita y completa el pago para finalizar."
+msgstr "Review your appointment details and complete the payment to finish."
+
+msgid "Titular:"
+msgstr "Holder:"
+
+msgid "Total a pagar"
+msgstr "Total to pay"
+
+msgid ""
+"Tu pago ha sido registrado correctamente. La recepcionista verificará y "
+"confirmará tu pago en breve."
+msgstr ""
+"Your payment has been registered successfully. The receptionist will verify "
+"and confirm your payment shortly."
+
+msgid "Una vez realizado el pago, ingresa los datos abajo."
+msgstr "Once the payment is made, enter the data below."
+
+msgid "pago en efectivo"
+msgstr "cash payment"
+
+msgid "{% trans \"Registrar Super Admin"
+msgstr ""
+
+msgid "{{ count }} factura pagada{% plural %}{{ count }} facturas pagadas"
+msgstr ""
+
+msgid ""
+"{{ count }} factura pendiente{% plural %}{{ count }} facturas pendientes"
+msgstr ""
+
+msgid "¡Pago registrado!"
+msgstr "Payment registered!"
+
+msgid "Efectivo"
+msgstr "Cash"
+
+msgid "Transferencia bancaria"
+msgstr "Bank transfer"
+
+msgid "Tus datos están protegidos con encriptación SSL"
+msgstr ""
+
+msgid "Ver mis citas"
+msgstr ""
+
+msgid "Volver atrás"
+msgstr "Go back"
+
+msgid "Volver a mis citas"
+msgstr "Back to my appointments"
