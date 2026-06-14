@@ -1,0 +1,166 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Pago Recepcionista - Healthy Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/homepage_redesign.css' %}">
+    <style>
+        :root{--bg-primary:#F7F9FC;--card-bg:#FFFFFF;--text-primary:#1E293B;--text-secondary:#64748B;--accent:#0070F3;--border:#E2E8F0;}
+        body{background:var(--bg-primary);font-family:'Inter',sans-serif;}
+        .dashboard-sidebar{width:256px;position:fixed;left:0;top:0;bottom:0;background:var(--card-bg);border-right:1px solid var(--border);z-index:50;overflow-y:auto;transition:transform .3s ease;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:all .15s ease;}
+        .sidebar-link:hover,.sidebar-link.active{background:rgba(0,112,243,.08);color:var(--accent);}
+        .sidebar-link svg{width:20px;height:20px;}
+        .dashboard-main{margin-left:256px;min-height:100vh;}
+        .dashboard-card{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--border);}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto;}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;padding:10px 20px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--accent);cursor:pointer;transition:all .15s ease;}
+        .btn-primary:hover{background:#005CC2;}
+        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:var(--text-primary);padding:10px 20px;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid var(--border);cursor:pointer;transition:all .15s ease;text-decoration:none;}
+        .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+        .form-input{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;height:44px;}
+        .form-input:focus,.form-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        .form-select{width:100%;padding:10px 30px 10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;appearance:none;height:44px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:16px;}
+        .form-textarea{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:.875rem;color:var(--text-primary);transition:all .15s ease;resize:vertical;min-height:80px;}
+        .form-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,112,243,.12);}
+        .field-error{color:#DC2626;font-size:.75rem;margin-top:.25rem;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fadeIn .4s ease both;}
+        @media(max-width:1024px){.dashboard-sidebar{transform:translateX(-100%);}.dashboard-sidebar.open{transform:translateX(0);}.dashboard-main{margin-left:0;}}
+        @media(min-width:1025px){.sidebar-overlay{display:none!important;}}
+    </style>
+</head>
+<body class="min-h-screen">
+
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="dashboard-sidebar">
+    <div class="p-6">
+        <a href="{% url 'home' %}" class="flex items-center gap-3 text-xl font-bold" style="color:var(--text-primary);">
+            <svg class="w-8 h-8" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Healthy Life
+        </a>
+    </div>
+    <nav class="px-4 space-y-1">
+        <a href="{% url 'dashboard_gerente' %}" class="sidebar-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t" style="border-color:var(--border);">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:#EF4444;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Cerrar sesion
+        </a>
+    </div>
+</aside>
+
+<div class="dashboard-main">
+    <header class="flex items-center justify-between px-6 py-4" style="background:var(--card-bg);border-bottom:1px solid var(--border);">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
+                <svg class="w-6 h-6" style="color:var(--text-primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div>
+                <nav class="text-sm" style="color:var(--text-secondary);">
+                    <a href="{% url 'dashboard_gerente' %}" class="hover:underline">Dashboard</a>
+                    <span class="mx-2">/</span>
+                    <span style="color:var(--text-primary);">Registrar Pago Recepcionista</span>
+                </nav>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Registrar Pago a Recepcionista</h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-medium hidden sm:block" style="color:var(--text-secondary);">{% now "l, j \d\e F \d\e Y" %}</span>
+            <a href="{% url 'dashboard_gerente' %}" class="btn-secondary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Volver al Dashboard
+            </a>
+        </div>
+    </header>
+
+    <main class="p-6">
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100{% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                {% if message.tags == 'error' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'success' %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% else %}<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="dashboard-card p-6 fade-in max-w-2xl mx-auto">
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-2" style="color:var(--text-primary);">Información del Pago</h2>
+                <p class="text-sm" style="color:var(--text-secondary);">Complete el formulario para registrar un pago a recepcionista con la frecuencia deseada.</p>
+            </div>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--text-primary);">Monto del pago</label>
+                    {{ form.monto }}
+                    {% if form.monto.errors %}<p class="field-error">{{ form.monto.errors|join:", " }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--text-primary);">Frecuencia de pago</label>
+                    {{ form.frecuencia }}
+                    {% if form.frecuencia.errors %}<p class="field-error">{{ form.frecuencia.errors|join:", " }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--text-primary);">Concepto del pago</label>
+                    {{ form.concepto }}
+                    {% if form.concepto.errors %}<p class="field-error">{{ form.concepto.errors|join:", " }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--text-primary);">Método de pago (opcional)</label>
+                    {{ form.metodo_pago }}
+                    {% if form.metodo_pago.errors %}<p class="field-error">{{ form.metodo_pago.errors|join:", " }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--text-primary);">Observaciones (opcional)</label>
+                    {{ form.observaciones }}
+                    {% if form.observaciones.errors %}<p class="field-error">{{ form.observaciones.errors|join:", " }}</p>{% endif %}
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Registrar Pago
+                    </button>
+                    <a href="{% url 'dashboard_gerente' %}" class="btn-secondary">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+function toggleSidebar(){
+    var s=document.getElementById('sidebar'), o=document.getElementById('sidebarOverlay');
+    if(s)s.classList.toggle('open'); if(o)o.classList.toggle('active');
+}
+</script>
+
+{% include "partials/_session_timeout.html" %}
+</body>
+</html>

@@ -1925,24 +1925,54 @@ def eliminar_especialidad(request, id_especialidad):
 
 
 def lista_sedes_gerente(request):
-    """Muestra la sede asignada al gerente con resumen de personal y citas."""
-    user, sede = _get_gerente_sede(request)
+    """Muestra todas las sedes del mismo centro médico que la sede asignada al gerente,
+    con resumen de personal y citas de la sede seleccionada."""
+    user, sede_asignada = _get_gerente_sede(request)
     if not user:
         messages.error(request, 'Acceso denegado.')
         return redirect('login_gerente')
 
     from citas.models import Cita, ConsultaMedica
     from django.db.models import Count
+    from .models import Sede, CentroMedico
 
-    doctores_count = Doctor.objects.filter(id_sede=sede).count() if sede else 0
-    recepcionistas_count = Recepcionista.objects.filter(id_sede=sede).count() if sede else 0
-    citas_count = Cita.objects.filter(id_sede=sede).count() if sede else 0
+    # Obtener el centro médico de la sede asignada al gerente
+    centro_medico = sede_asignada.id_cm if sede_asignada else None
+
+    # Obtener todas las sedes del mismo centro médico
+    sedes_del_centro = []
+    if centro_medico:
+        sedes_del_centro = Sede.objects.filter(
+            id_cm=centro_medico,
+            status=True
+        ).select_related('id_cm').order_by('nombre_sede')
+
+    # Determinar la sede seleccionada (por GET parameter o la asignada por defecto)
+    sede_seleccionada_id = request.GET.get('sede_id')
+    if sede_seleccionada_id:
+        try:
+            sede_seleccionada = Sede.objects.filter(
+                id_sede=sede_seleccionada_id,
+                id_cm=centro_medico
+            ).first()
+        except (ValueError, Sede.DoesNotExist):
+            sede_seleccionada = sede_asignada
+    else:
+        sede_seleccionada = sede_asignada
+
+    # Calcular estadísticas para la sede seleccionada
+    doctores_count = Doctor.objects.filter(id_sede=sede_seleccionada).count() if sede_seleccionada else 0
+    recepcionistas_count = Recepcionista.objects.filter(id_sede=sede_seleccionada).count() if sede_seleccionada else 0
+    citas_count = Cita.objects.filter(id_sede=sede_seleccionada).count() if sede_seleccionada else 0
     consultas_cerradas = ConsultaMedica.objects.filter(
-        id_cita__id_sede=sede, estado=ConsultaMedica.ESTADO_CERRADA
-    ).count() if sede else 0
+        id_cita__id_sede=sede_seleccionada, estado=ConsultaMedica.ESTADO_CERRADA
+    ).count() if sede_seleccionada else 0
 
     return render(request, 'usuarios/lista_sedes_gerente.html', {
-        'sede': sede,
+        'sede_asignada': sede_asignada,
+        'sede_seleccionada': sede_seleccionada,
+        'sedes_del_centro': sedes_del_centro,
+        'centro_medico': centro_medico,
         'doctores_count': doctores_count,
         'recepcionistas_count': recepcionistas_count,
         'citas_count': citas_count,
@@ -1950,6 +1980,85 @@ def lista_sedes_gerente(request):
         'nombre': user.username,
     })
 
+
+
+
+def crear_consultorio(request):
+    """Vista para que el gerente cree un nuevo consultorio."""
+    from .forms import ConsultorioForm
+
+    user, sede_asignada = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+
+    # Obtener el centro médico de la sede asignada
+    centro_medico_id = sede_asignada.id_cm.id_cm if sede_asignada and sede_asignada.id_cm else None
+
+    if request.method == 'POST':
+        form = ConsultorioForm(
+            request.POST,
+            sede_id=sede_asignada.id_sede if sede_asignada else None,
+            centro_medico_id=centro_medico_id
+        )
+        if form.is_valid():
+            consultorio = form.save(commit=False)
+            # Asignar el centro médico de la sede asignada
+            if sede_asignada and sede_asignada.id_cm:
+                consultorio.id_cm = sede_asignada.id_cm
+            consultorio.save()
+            messages.success(request, f'Consultorio "{consultorio.consultorios}" creado exitosamente.')
+            return redirect('lista_sedes_gerente')
+    else:
+        form = ConsultorioForm(
+            sede_id=sede_asignada.id_sede if sede_asignada else None,
+            centro_medico_id=centro_medico_id
+        )
+
+    return render(request, 'usuarios/crear_consultorio.html', {
+        'form': form,
+        'sede': sede_asignada,
+        'nombre': user.username,
+    })
+
+
+
+def registrar_pago_recepcionista(request):
+    """Vista para que el gerente registre pagos a recepcionistas."""
+    from .forms import PagoRecepcionistaForm
+
+    user, sede_asignada = _get_gerente_sede(request)
+    if not user:
+        messages.error(request, 'Acceso denegado.')
+        return redirect('login_gerente')
+
+    if request.method == 'POST':
+        form = PagoRecepcionistaForm(request.POST)
+        if form.is_valid():
+            from citas.models import MovimientoCaja
+            from django.utils import timezone
+            
+            # Crear el movimiento de caja
+            movimiento = MovimientoCaja.objects.create(
+                tipo_movimiento=MovimientoCaja.TIPO_EGRESO,
+                monto=form.cleaned_data['monto'],
+                concepto=f"{form.cleaned_data['concepto']} ({form.cleaned_data['frecuencia']})",
+                metodo_pago=form.cleaned_data.get('metodo_pago', ''),
+                id_sede=sede_asignada,
+                id_usuario_registro=user.pk,
+                observaciones=form.cleaned_data.get('observaciones', ''),
+                status=True
+            )
+            messages.success(request, f'Pago de ${form.cleaned_data["monto"]} registrado exitosamente.')
+            return redirect('dashboard_gerente')
+    else:
+        form = PagoRecepcionistaForm()
+
+    return render(request, 'usuarios/registrar_pago_recepcionista.html', {
+        'form': form,
+        'sede': sede_asignada,
+        'nombre': user.username,
+    })
 
 def reporte_gerente_pdf(request):
     """Genera y descarga un PDF con reportes del mes actual para la sede del gerente."""

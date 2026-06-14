@@ -478,19 +478,61 @@ def get_gerente_dashboard_context():
         pacientes_mes_anterior = 0
 
     try:
-        ingresos_mes = PagoCita.objects.filter(
+        # Ingresos de pagos de citas
+        ingresos_pagos_citas = PagoCita.objects.filter(
             fecha_pago__date__gte=inicio_mes,
             estado_pago=Cita.ESTADO_PAGADA_ADELANTO
         ).aggregate(total=Sum('monto_pagar'))['total'] or 0
+
+        # Ingresos de servicios realizados en consultas médicas
+        from citas.models import ConsultaMedica, ConsultaServicio
+        ingresos_servicios = ConsultaServicio.objects.filter(
+            id_consulta__fecha_inicio__date__gte=inicio_mes
+        ).aggregate(total=Sum('precio_cobrado'))['total'] or 0
+
+        # $5 por cada cita aceptada (APROBADA, CONFIRMADA, EN_CONSULTA, ATENDIDA, PAGADA_ADELANTO)
+        estados_aceptados = [
+            Cita.ESTADO_APROBADA,
+            Cita.ESTADO_CONFIRMADA,
+            Cita.ESTADO_EN_CONSULTA,
+            Cita.ESTADO_ATENDIDA,
+            Cita.ESTADO_PAGADA_ADELANTO
+        ]
+        citas_aceptadas_count = Cita.objects.filter(
+            fecha_consulta__date__gte=inicio_mes,
+            estado__in=estados_aceptados
+        ).count()
+        ingresos_tarifa_citas = citas_aceptadas_count * 5
+
+        # Total de ingresos
+        ingresos_mes = float(ingresos_pagos_citas or 0) + float(ingresos_servicios or 0) + float(ingresos_tarifa_citas)
     except Exception:
         ingresos_mes = 0
 
     try:
-        ingresos_mes_anterior = PagoCita.objects.filter(
+        # Ingresos de pagos de citas mes anterior
+        ingresos_pagos_citas_ant = PagoCita.objects.filter(
             fecha_pago__date__gte=inicio_mes_ant,
             fecha_pago__date__lte=fin_mes_ant,
             estado_pago=Cita.ESTADO_PAGADA_ADELANTO
         ).aggregate(total=Sum('monto_pagar'))['total'] or 0
+
+        # Ingresos de servicios mes anterior
+        ingresos_servicios_ant = ConsultaServicio.objects.filter(
+            id_consulta__fecha_inicio__date__gte=inicio_mes_ant,
+            id_consulta__fecha_inicio__date__lte=fin_mes_ant
+        ).aggregate(total=Sum('precio_cobrado'))['total'] or 0
+
+        # $5 por cada cita aceptada mes anterior
+        citas_aceptadas_count_ant = Cita.objects.filter(
+            fecha_consulta__date__gte=inicio_mes_ant,
+            fecha_consulta__date__lte=fin_mes_ant,
+            estado__in=estados_aceptados
+        ).count()
+        ingresos_tarifa_citas_ant = citas_aceptadas_count_ant * 5
+
+        # Total de ingresos mes anterior
+        ingresos_mes_anterior = float(ingresos_pagos_citas_ant or 0) + float(ingresos_servicios_ant or 0) + float(ingresos_tarifa_citas_ant)
     except Exception:
         ingresos_mes_anterior = 0
 
@@ -531,6 +573,14 @@ def get_gerente_dashboard_context():
     ingresos_labels = []
     ingresos_data = []
     try:
+        # Estados aceptados para la tarifa de $5 por cita
+        estados_aceptados = [
+            Cita.ESTADO_APROBADA,
+            Cita.ESTADO_CONFIRMADA,
+            Cita.ESTADO_EN_CONSULTA,
+            Cita.ESTADO_ATENDIDA,
+            Cita.ESTADO_PAGADA_ADELANTO
+        ]
         for i in range(5, -1, -1):
             mes_ref = (hoy.replace(day=1) - timedelta(days=1))
             if i > 0:
@@ -538,14 +588,34 @@ def get_gerente_dashboard_context():
                     mes_ref = mes_ref.replace(day=1) - timedelta(days=1)
             mes_ref = mes_ref.replace(day=1)
             fin_mes = (mes_ref + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-            total = PagoCita.objects.filter(
+
+            # Ingresos de pagos de citas
+            ingresos_pagos_citas = PagoCita.objects.filter(
                 fecha_pago__date__gte=mes_ref,
                 fecha_pago__date__lte=fin_mes,
                 estado_pago=Cita.ESTADO_PAGADA_ADELANTO
             ).aggregate(total=Sum('monto_pagar'))['total'] or 0
+
+            # Ingresos de servicios realizados en consultas médicas
+            ingresos_servicios = ConsultaServicio.objects.filter(
+                id_consulta__fecha_inicio__date__gte=mes_ref,
+                id_consulta__fecha_inicio__date__lte=fin_mes
+            ).aggregate(total=Sum('precio_cobrado'))['total'] or 0
+
+            # $5 por cada cita aceptada
+            citas_aceptadas_count = Cita.objects.filter(
+                fecha_consulta__date__gte=mes_ref,
+                fecha_consulta__date__lte=fin_mes,
+                estado__in=estados_aceptados
+            ).count()
+            ingresos_tarifa_citas = citas_aceptadas_count * 5
+
+            # Total de ingresos del mes
+            total = float(ingresos_pagos_citas or 0) + float(ingresos_servicios or 0) + float(ingresos_tarifa_citas)
+
             meses_nombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
             ingresos_labels.append(meses_nombres[mes_ref.month - 1])
-            ingresos_data.append(float(total))
+            ingresos_data.append(total)
     except Exception:
         pass
 

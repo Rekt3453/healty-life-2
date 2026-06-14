@@ -2117,3 +2117,95 @@ class RegistroSuperAdminForm(forms.Form):
         if Superadmin.objects.filter(cedula=cedula).exists():
             raise ValidationError('Esta cédula ya está registrada.')
         return cedula
+
+
+class ConsultorioForm(forms.ModelForm):
+    """Formulario para crear consultorios"""
+    class Meta:
+        model = Consultorio
+        fields = ['consultorios', 'id_sede', 'id_cm', 'status']
+        widgets = {
+            'consultorios': forms.TextInput(attrs={
+                'class': 'form-input w-full px-3 py-2 rounded-lg',
+                'placeholder': 'Nombre del consultorio (ej: Consultorio 101)'
+            }),
+            'id_sede': forms.HiddenInput(),
+            'id_cm': forms.HiddenInput(),
+            'status': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 rounded border-gray-300'
+            })
+        }
+        labels = {
+            'consultorios': 'Nombre del Consultorio',
+            'id_sede': 'Sede',
+            'id_cm': 'Centro Médico',
+            'status': 'Estado'
+        }
+
+    def __init__(self, *args, sede_id=None, centro_medico_id=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if sede_id:
+            self.fields['id_sede'].initial = sede_id
+        if centro_medico_id:
+            self.fields['id_cm'].initial = centro_medico_id
+
+
+class PagoRecepcionistaForm(forms.Form):
+    """Formulario para registrar pagos a recepcionistas"""
+    FRECUENCIA_CHOICES = [
+        ('diario', 'Diario'),
+        ('semanal', 'Semanal'),
+        ('quincenal', 'Quincenal'),
+        ('mensual', 'Mensual'),
+    ]
+
+    monto = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        required=True,
+        label='Monto del pago',
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input w-full px-3 py-2 rounded-lg',
+            'placeholder': '0.00',
+            'step': '0.01'
+        })
+    )
+
+    frecuencia = forms.ChoiceField(
+        choices=FRECUENCIA_CHOICES,
+        required=True,
+        label='Frecuencia de pago',
+        widget=forms.Select(attrs={
+            'class': 'form-select w-full px-3 py-2 rounded-lg'
+        })
+    )
+
+    concepto = forms.CharField(
+        max_length=255,
+        required=True,
+        label='Concepto del pago',
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full px-3 py-2 rounded-lg',
+            'placeholder': 'Pago de nómina - Recepcionista'
+        })
+    )
+
+    metodo_pago = forms.CharField(
+        max_length=100,
+        required=False,
+        label='Método de pago',
+        widget=forms.TextInput(attrs={
+            'class': 'form-input w-full px-3 py-2 rounded-lg',
+            'placeholder': 'Transferencia, Efectivo, etc.'
+        })
+    )
+
+    observaciones = forms.CharField(
+        required=False,
+        label='Observaciones',
+        widget=forms.Textarea(attrs={
+            'class': 'form-textarea w-full px-3 py-2 rounded-lg',
+            'rows': 3,
+            'placeholder': 'Detalles adicionales del pago...'
+        })
+    )

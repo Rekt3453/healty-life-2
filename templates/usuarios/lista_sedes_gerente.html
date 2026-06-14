@@ -87,7 +87,7 @@
                     <span class="mx-2">/</span>
                     <span style="color:var(--text-primary);">{% trans "Sedes" %}</span>
                 </nav>
-                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Mi Sede</h1>
+                <h1 class="text-xl font-bold" style="color:var(--text-primary);">Sedes del Centro Médico</h1>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -113,50 +113,84 @@
         </div>
         {% endif %}
 
-        {% if sede %}
+        {% if centro_medico %}
         <div class="dashboard-card p-6 fade-in">
-            <div class="flex items-center gap-4 mb-6">
-                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold" style="color:var(--text-primary);">{{ centro_medico.nombre_cm|default:"Centro Médico" }}</h2>
+                        <p class="text-sm" style="color:var(--text-secondary);">{{ sedes_del_centro|length }} sede(s) disponible(s)</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-lg font-bold" style="color:var(--text-primary);">{{ sede.nombre_sede|default:"Sede" }}</h2>
-                    <p class="text-sm" style="color:var(--text-secondary);">{{ sede.id_cm.nombre_cm|default:"Centro Medico" }}</p>
+                <div class="flex items-center gap-2">
+                    {% if sede_seleccionada %}
+                    <a href="{% url 'crear_consultorio' %}" class="px-3 py-2 rounded-lg border text-sm font-medium flex items-center gap-2" style="border-color:var(--border);color:var(--text-primary);background:var(--card-bg);text-decoration:none;transition:all .15s ease;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Crear Consultorio
+                    </a>
+                    {% endif %}
+                    {% if sedes_del_centro %}
+                    <form method="get" class="flex items-center gap-2">
+                        <select name="sede_id" onchange="this.form.submit()" class="px-3 py-2 rounded-lg border text-sm font-medium" style="border-color:var(--border);color:var(--text-primary);background:var(--card-bg);">
+                            {% for sede_option in sedes_del_centro %}
+                            <option value="{{ sede_option.id_sede }}" {% if sede_seleccionada and sede_seleccionada.id_sede == sede_option.id_sede %}selected{% endif %}>
+                                {{ sede_option.nombre_sede }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#F8FAFC;">
-                    <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Doctores</p>
-                    <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ doctores_count }}</p>
-                </div>
-                <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#F8FAFC;">
-                    <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Recepcionistas</p>
-                    <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ recepcionistas_count }}</p>
-                </div>
-                <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#F8FAFC;">
-                    <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Total citas</p>
-                    <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ citas_count }}</p>
-                </div>
-                <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#F8FAFC;">
-                    <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Consultas cerradas</p>
-                    <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ consultas_cerradas }}</p>
+            {% if sede_seleccionada %}
+            <div class="mb-6 p-4 rounded-xl border" style="border-color:var(--border);background:#F8FAFC;">
+                <h3 class="text-sm font-semibold mb-2" style="color:var(--text-primary);">Sede seleccionada: {{ sede_seleccionada.nombre_sede }}</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#FFFFFF;">
+                        <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Doctores</p>
+                        <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ doctores_count }}</p>
+                    </div>
+                    <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#FFFFFF;">
+                        <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Recepcionistas</p>
+                        <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ recepcionistas_count }}</p>
+                    </div>
+                    <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#FFFFFF;">
+                        <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Total citas</p>
+                        <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ citas_count }}</p>
+                    </div>
+                    <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#FFFFFF;">
+                        <p class="text-xs font-medium mb-1" style="color:var(--text-secondary);">Consultas cerradas</p>
+                        <p class="text-2xl font-bold" style="color:var(--text-primary);">{{ consultas_cerradas }}</p>
+                    </div>
                 </div>
             </div>
 
             <div class="mt-6 pt-6 border-t" style="border-color:var(--border);">
-                <h3 class="text-sm font-semibold mb-3" style="color:var(--text-primary);">Informacion de contacto</h3>
+                <h3 class="text-sm font-semibold mb-3" style="color:var(--text-primary);">Información de la sede seleccionada</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm" style="color:var(--text-secondary);">
                     <div>
-                        <span class="font-medium">Telefono:</span>
-                        <span>{{ sede.telefono_sede|default:"No registrado" }}</span>
+                        <span class="font-medium">Teléfono:</span>
+                        <span>{{ sede_seleccionada.telefono|default:"No registrado" }}</span>
                     </div>
                     <div>
                         <span class="font-medium">Estado:</span>
-                        <span>{% if sede.status %}<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">Activa</span>{% else %}<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">Inactiva</span>{% endif %}</span>
+                        <span>{% if sede_seleccionada.status %}<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">Activa</span>{% else %}<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">Inactiva</span>{% endif %}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium">RIF:</span>
+                        <span>{{ sede_seleccionada.rif_sede|default:"No registrado" }}</span>
                     </div>
                 </div>
             </div>
+            {% else %}
+            <div class="p-4 rounded-xl border" style="border-color:var(--border);background:#F8FAFC;">
+                <p class="text-sm text-center" style="color:var(--text-secondary);">Selecciona una sede para ver sus estadísticas.</p>
+            </div>
+            {% endif %}
         </div>
         {% else %}
         <div class="dashboard-card p-8 text-center fade-in">
