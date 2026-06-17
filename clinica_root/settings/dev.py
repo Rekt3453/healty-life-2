@@ -1,7 +1,7 @@
 from .base import *
 
 DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "testserver"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "testserver","healty-life-2.onrender.com"]
 CORS_ALLOW_ALL_ORIGINS = True
 
 # En desarrollo no hay HTTPS, DEBUG=True y se usa SECRET_KEY de fallback.
