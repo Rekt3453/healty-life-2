@@ -187,7 +187,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# LOGGING
+# LOGGING (Versión corregida para Render)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -198,12 +198,6 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'app.log',
-            'formatter': 'simple',
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -212,11 +206,11 @@ LOGGING = {
     },
     'loggers': {
         'usuarios': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'], # Eliminamos 'file'
             'level': 'INFO',
         },
         'citas': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'], # Eliminamos 'file'
             'level': 'INFO',
         },
     },
