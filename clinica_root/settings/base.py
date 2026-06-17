@@ -170,6 +170,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:56478",
     "http://127.0.0.1:51852",
+    "https://healty-life-2.onrender.com",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
