@@ -1408,7 +1408,7 @@ def iniciar_consulta(request, cita_id):
 
     # Historial médico del paciente
     paciente = cita.id_paciente
-    edad = paciente.edad if paciente else None
+    edad = paciente.edad if paciente and hasattr(paciente, 'edad') else None
     # Soporte para managed=False: la columna puede existir en BD aunque no esté declarada
     paciente_especial = getattr(cita, 'id_paciente_especial', None)
 
@@ -1547,7 +1547,7 @@ def cerrar_consulta(request, cita_id):
         pk=cita_id
     )
     consulta = get_object_or_404(ConsultaMedica, id_cita=cita)
-    edad = cita.id_paciente.edad if cita.id_paciente else None
+    edad = cita.id_paciente.edad if cita.id_paciente and hasattr(cita.id_paciente, 'edad') else None
 
     if consulta.estado == ConsultaMedica.ESTADO_CERRADA:
         messages.warning(request, 'Esta consulta ya está cerrada.')
